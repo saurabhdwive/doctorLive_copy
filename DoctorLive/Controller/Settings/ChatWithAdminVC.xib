@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="18122" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="18093"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="ChatWithAdminVC" customModule="DoctorLive" customModuleProvider="target">
+            <connections>
+                <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="st6-p8-iwF">
+                    <rect key="frame" x="0.0" y="44" width="414" height="84"/>
+                    <subviews>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="XCh-h6-URh">
+                            <rect key="frame" x="20" y="31" width="19" height="22"/>
+                            <color key="tintColor" systemColor="labelColor"/>
+                            <state key="normal" image="back1">
+                                <preferredSymbolConfiguration key="preferredSymbolConfiguration" scale="large"/>
+                            </state>
+                            <connections>
+                                <action selector="backButtonTapped:" destination="-1" eventType="touchUpInside" id="2Xz-El-83V"/>
+                            </connections>
+                        </button>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Support" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Coe-Yp-vfR">
+                            <rect key="frame" x="168.5" y="30" width="77" height="24"/>
+                            <fontDescription key="fontDescription" type="boldSystem" pointSize="20"/>
+                            <nil key="textColor"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                    </subviews>
+                    <color key="backgroundColor" name="BackGround"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="84" id="0xE-6j-0i4"/>
+                        <constraint firstItem="XCh-h6-URh" firstAttribute="centerY" secondItem="Coe-Yp-vfR" secondAttribute="centerY" id="GnI-ve-jY0"/>
+                        <constraint firstItem="Coe-Yp-vfR" firstAttribute="centerY" secondItem="st6-p8-iwF" secondAttribute="centerY" id="bUQ-my-DfO"/>
+                        <constraint firstItem="Coe-Yp-vfR" firstAttribute="centerX" secondItem="st6-p8-iwF" secondAttribute="centerX" id="jjf-Q2-r0u"/>
+                        <constraint firstItem="XCh-h6-URh" firstAttribute="leading" secondItem="st6-p8-iwF" secondAttribute="leading" constant="20" id="jyC-kl-sOT"/>
+                    </constraints>
+                </view>
+            </subviews>
+            <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
+            <color key="backgroundColor" name="BackGround"/>
+            <constraints>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="st6-p8-iwF" secondAttribute="trailing" id="B6W-Ds-Dhg"/>
+                <constraint firstItem="st6-p8-iwF" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" id="TRg-Wk-B8k"/>
+                <constraint firstItem="st6-p8-iwF" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="yGB-86-TQU"/>
+            </constraints>
+            <point key="canvasLocation" x="69.565217391304358" y="69.642857142857139"/>
+        </view>
+    </objects>
+    <resources>
+        <image name="back1" width="19" height="16.5"/>
+        <namedColor name="BackGround">
+            <color red="0.96078431372549022" green="0.98039215686274506" blue="0.99607843137254903" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <systemColor name="labelColor">
+            <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="18122" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="18093"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <customFonts key="customFonts">
+        <array key="Poppins-Medium.ttf">
+            <string>Poppins-Medium</string>
+        </array>
+        <array key="Poppins-Regular.ttf">
+            <string>Poppins-Regular</string>
+        </array>
+    </customFonts>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" reuseIdentifier="ChatMessageLeftCell" id="KGk-i7-Jjw" customClass="ChatMessageLeftCell" customModule="DoctorLive" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="320" height="87"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <rect key="frame" x="0.0" y="0.0" width="320" height="87"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="qOl-DA-BX7">
+                        <rect key="frame" x="10" y="5" width="71.5" height="77"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" text="nsdnnf" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="a2J-8t-lmk">
+                                <rect key="frame" x="8" y="30" width="43" height="20"/>
+                                <fontDescription key="fontDescription" name="Poppins-Regular" family="Poppins" pointSize="14"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" text="12.12 PM" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="yja-PP-7cL">
+                                <rect key="frame" x="8" y="55" width="52" height="17"/>
+                                <fontDescription key="fontDescription" name="Poppins-Regular" family="Poppins" pointSize="12"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" text="Ravi" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="nkx-8I-Phv">
+                                <rect key="frame" x="8" y="5" width="27.5" height="20"/>
+                                <fontDescription key="fontDescription" name="Poppins-Medium" family="Poppins" pointSize="14"/>
+                                <color key="textColor" red="0.078431372549019607" green="0.31372549019607843" blue="0.63529411764705879" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" name="ChatLeftCell"/>
+                        <constraints>
+                            <constraint firstItem="yja-PP-7cL" firstAttribute="top" secondItem="a2J-8t-lmk" secondAttribute="bottom" constant="5" id="0aG-DS-qhY"/>
+                            <constraint firstItem="nkx-8I-Phv" firstAttribute="leading" secondItem="qOl-DA-BX7" secondAttribute="leading" constant="8" id="3Rj-lQ-iCx"/>
+                            <constraint firstAttribute="bottom" secondItem="yja-PP-7cL" secondAttribute="bottom" constant="5" id="IYG-P3-1ga"/>
+                            <constraint firstItem="a2J-8t-lmk" firstAttribute="top" secondItem="nkx-8I-Phv" secondAttribute="bottom" constant="5" id="QQF-Gi-ay6"/>
+                            <constraint firstItem="yja-PP-7cL" firstAttribute="leading" secondItem="qOl-DA-BX7" secondAttribute="leading" constant="8" id="SQJ-K9-U28"/>
+                            <constraint firstItem="nkx-8I-Phv" firstAttribute="top" secondItem="qOl-DA-BX7" secondAttribute="top" constant="5" id="WuV-bs-LEB"/>
+                            <constraint firstItem="a2J-8t-lmk" firstAttribute="leading" secondItem="qOl-DA-BX7" secondAttribute="leading" constant="8" id="YRB-dt-Zvw"/>
+                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="a2J-8t-lmk" secondAttribute="trailing" constant="15" id="a9h-ai-YQF"/>
+                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="nkx-8I-Phv" secondAttribute="trailing" constant="14.5" id="d8D-bw-SN2"/>
+                            <constraint firstAttribute="trailing" relation="lessThanOrEqual" secondItem="yja-PP-7cL" secondAttribute="trailing" constant="16" id="sE1-ZY-X35"/>
+                        </constraints>
+                        <userDefinedRuntimeAttributes>
+                            <userDefinedRuntimeAttribute type="number" keyPath="cornerRadius">
+                                <real key="value" value="15"/>
+                            </userDefinedRuntimeAttribute>
+                        </userDefinedRuntimeAttributes>
+                    </view>
+                </subviews>
+                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                <constraints>
+                    <constraint firstAttribute="bottom" secondItem="qOl-DA-BX7" secondAttribute="bottom" constant="5" id="5Fm-3H-Yuf"/>
+                    <constraint firstItem="qOl-DA-BX7" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="10" id="Wxa-0O-I63"/>
+                    <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="qOl-DA-BX7" secondAttribute="trailing" constant="80" id="m3F-Wy-1Ln"/>
+                    <constraint firstItem="qOl-DA-BX7" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" constant="5" id="zYP-Up-5tw"/>
+                </constraints>
+            </tableViewCellContentView>
+            <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
+            <connections>
+                <outlet property="lblMessage" destination="a2J-8t-lmk" id="yYq-Iq-iEf"/>
+                <outlet property="lblTime" destination="yja-PP-7cL" id="0KZ-1L-8ld"/>
+                <outlet property="lblUserName" destination="nkx-8I-Phv" id="jiq-Bo-9aQ"/>
+            </connections>
+            <point key="canvasLocation" x="137.68115942028987" y="72.65625"/>
+        </tableViewCell>
+    </objects>
+    <resources>
+        <namedColor name="ChatLeftCell">
+            <color red="0.95294117647058818" green="0.92941176470588238" blue="0.93725490196078431" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+    </resources>
+</document>

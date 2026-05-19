@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="32700.99.1234" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22685"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <customFonts key="customFonts">
+        <array key="PlusJakartaSans-Medium.ttf">
+            <string>PlusJakartaSans-Medium</string>
+        </array>
+    </customFonts>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="ChatLeftImageCell" rowHeight="356" id="KGk-i7-Jjw" customClass="ChatLeftImageCell" customModule="DoctorLive" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="536" height="356"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <rect key="frame" x="0.0" y="0.0" width="536" height="356"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Wni-bW-fkt">
+                        <rect key="frame" x="0.0" y="0.0" width="536" height="356"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="wfA-nL-m0s">
+                                <rect key="frame" x="19" y="5" width="250" height="346"/>
+                                <subviews>
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Login_btn_pressed" translatesAutoresizingMaskIntoConstraints="NO" id="Jcj-et-U1g">
+                                        <rect key="frame" x="10" y="10" width="230" height="300"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="230" id="1bK-km-wrI"/>
+                                            <constraint firstAttribute="height" constant="300" id="f8Z-zQ-3Ws"/>
+                                        </constraints>
+                                    </imageView>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="10:22 AM" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wrh-ib-Vgl">
+                                        <rect key="frame" x="186" y="315" width="52" height="26"/>
+                                        <fontDescription key="fontDescription" name="PlusJakartaSans-Medium" family="Plus Jakarta Sans" pointSize="12"/>
+                                        <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="OGn-nv-KRD">
+                                        <rect key="frame" x="0.0" y="0.0" width="250" height="346"/>
+                                        <color key="tintColor" name="ButtonBlueColor"/>
+                                        <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                        <connections>
+                                            <action selector="imageBtn_Action:" destination="KGk-i7-Jjw" eventType="touchUpInside" id="dYz-Hf-mxQ"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
+                                <color key="backgroundColor" name="ThemeColor"/>
+                                <constraints>
+                                    <constraint firstAttribute="trailing" secondItem="wrh-ib-Vgl" secondAttribute="trailing" constant="12" id="2J7-zF-Ji2"/>
+                                    <constraint firstItem="Jcj-et-U1g" firstAttribute="leading" secondItem="wfA-nL-m0s" secondAttribute="leading" constant="10" id="9YG-NL-lek"/>
+                                    <constraint firstItem="OGn-nv-KRD" firstAttribute="top" secondItem="wfA-nL-m0s" secondAttribute="top" id="AxC-4x-nrY"/>
+                                    <constraint firstAttribute="trailing" secondItem="OGn-nv-KRD" secondAttribute="trailing" id="ClV-e2-OSo"/>
+                                    <constraint firstAttribute="trailing" secondItem="Jcj-et-U1g" secondAttribute="trailing" constant="10" id="De7-D0-Do3"/>
+                                    <constraint firstItem="wrh-ib-Vgl" firstAttribute="top" secondItem="Jcj-et-U1g" secondAttribute="bottom" constant="5" id="Jxb-Im-ks5"/>
+                                    <constraint firstAttribute="bottom" secondItem="OGn-nv-KRD" secondAttribute="bottom" id="Ynq-OZ-qhl"/>
+                                    <constraint firstItem="OGn-nv-KRD" firstAttribute="leading" secondItem="wfA-nL-m0s" secondAttribute="leading" id="dpz-6q-0hc"/>
+                                    <constraint firstAttribute="bottom" secondItem="wrh-ib-Vgl" secondAttribute="bottom" constant="5" id="fpR-Hb-crn"/>
+                                    <constraint firstItem="Jcj-et-U1g" firstAttribute="top" secondItem="wfA-nL-m0s" secondAttribute="top" constant="10" id="gdZ-jD-reT"/>
+                                </constraints>
+                            </view>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="leftNotch" translatesAutoresizingMaskIntoConstraints="NO" id="XRT-it-vgc">
+                                <rect key="frame" x="5" y="15" width="15" height="20"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="20" id="C91-bl-21h"/>
+                                    <constraint firstAttribute="width" constant="15" id="ObW-dS-BP2"/>
+                                </constraints>
+                            </imageView>
+                        </subviews>
+                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstAttribute="bottom" secondItem="wfA-nL-m0s" secondAttribute="bottom" constant="5" id="2o0-J2-Yc4"/>
+                            <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="wfA-nL-m0s" secondAttribute="trailing" constant="50" id="FFy-eP-9cY"/>
+                            <constraint firstItem="XRT-it-vgc" firstAttribute="top" secondItem="Wni-bW-fkt" secondAttribute="top" constant="15" id="jBt-zR-zeQ"/>
+                            <constraint firstItem="wfA-nL-m0s" firstAttribute="leading" secondItem="XRT-it-vgc" secondAttribute="trailing" constant="-1" id="m6x-Mu-CTX"/>
+                            <constraint firstItem="wfA-nL-m0s" firstAttribute="top" secondItem="Wni-bW-fkt" secondAttribute="top" constant="5" id="pGs-JB-GGz"/>
+                            <constraint firstItem="XRT-it-vgc" firstAttribute="leading" secondItem="Wni-bW-fkt" secondAttribute="leading" constant="5" id="sVv-0a-wI7"/>
+                        </constraints>
+                    </view>
+                </subviews>
+                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                <constraints>
+                    <constraint firstItem="Wni-bW-fkt" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" id="46V-Ws-Gi4"/>
+                    <constraint firstAttribute="bottom" secondItem="Wni-bW-fkt" secondAttribute="bottom" id="KAm-bX-HZB"/>
+                    <constraint firstItem="Wni-bW-fkt" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" id="LEr-6X-brU"/>
+                    <constraint firstAttribute="trailing" secondItem="Wni-bW-fkt" secondAttribute="trailing" id="djW-nd-LH9"/>
+                </constraints>
+            </tableViewCellContentView>
+            <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
+            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+            <connections>
+                <outlet property="chatImage" destination="Jcj-et-U1g" id="D4a-iT-DjX"/>
+                <outlet property="chatVw" destination="wfA-nL-m0s" id="c7I-qs-JBJ"/>
+                <outlet property="imageBtn" destination="OGn-nv-KRD" id="4Ub-pb-VZ9"/>
+                <outlet property="timeLbl" destination="wrh-ib-Vgl" id="plV-XJ-bHC"/>
+            </connections>
+            <point key="canvasLocation" x="277.86259541984731" y="26.760563380281692"/>
+        </tableViewCell>
+    </objects>
+    <resources>
+        <image name="Login_btn_pressed" width="125" height="47.5"/>
+        <image name="leftNotch" width="9" height="15"/>
+        <namedColor name="ButtonBlueColor">
+            <color red="0.10980392156862745" green="0.45882352941176469" blue="0.73725490196078436" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="ThemeColor">
+            <color red="0.10599999874830246" green="0.46299999952316284" blue="0.74099999666213989" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+    </resources>
+</document>

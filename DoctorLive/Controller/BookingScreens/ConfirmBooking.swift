@@ -1,0 +1,92 @@
+
+
+//  Created by Ashok kumar on 3/5/21.
+
+
+import Foundation
+import UIKit
+
+class ConfirmBooking: UIViewController {
+    
+    var addBookingCallBack: (() -> ())?
+    var message = "Please be prepare for the consultation, Thanks".localized()
+    
+    private lazy var backgroundCardView: UIView = {
+        let cardView = UIView()
+        cardView.translatesAutoresizingMaskIntoConstraints = false
+        cardView.backgroundColor = UIColor(named: "TextFieldBack")
+        cardView.layer.cornerRadius = 10
+        cardView.layer.shadowOpacity = 0.5
+        cardView.layer.shadowOffset = CGSize(width: 0, height: 0)
+        return cardView
+    }()
+    
+    public lazy var errorLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Booking Confirmed!".localized()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = .zero
+        label.font = UIFont(name: "Poppins-Bold", size: 22)
+        label.textColor = UIColor(named: "TextColour")
+        label.textAlignment = .center
+        return label
+    }()
+    
+    public lazy var percentageLabel: UILabel = {
+        let label = UILabel()
+        label.text = message
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = UIFont(name: "Poppins-Medium", size: 15)
+        label.numberOfLines = .zero
+        label.textColor = UIColor.gray
+        label.textAlignment = .center
+        return label
+    }()
+    
+   var navController: UINavigationController?
+    @objc func superViewTapped(sender: UITapGestureRecognizer) {
+        self.addBookingCallBack!()
+        //self.dismiss(animated: true, completion: nil)
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupViews()
+        setupConstraints()
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(superViewTapped))
+        view.addGestureRecognizer(tapGesture)
+        view.backgroundColor = Utils.shared.hexStringToUIColor(hex: "#1C1E26").withAlphaComponent(0.62)
+    }
+    
+    // MARK: - setupViews
+    private func setupViews() {
+        self.view.addSubview(backgroundCardView)
+        self.backgroundCardView.addSubview(percentageLabel)
+        self.backgroundCardView.addSubview(errorLabel)
+    }
+    
+    // MARK: -SetupConstraints
+    private func setupConstraints() {
+        
+        let safeArea = self.view.safeAreaLayoutGuide
+        NSLayoutConstraint.activate([
+            self.backgroundCardView.centerYAnchor.constraint(equalTo: safeArea.centerYAnchor),
+            self.backgroundCardView.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
+            self.backgroundCardView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 35),
+            self.backgroundCardView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -35),
+            self.backgroundCardView.heightAnchor.constraint(equalToConstant: 200)
+        ])
+        
+        NSLayoutConstraint.activate([
+            self.errorLabel.topAnchor.constraint(equalTo: backgroundCardView.topAnchor, constant: 20),
+            self.errorLabel.trailingAnchor.constraint(equalTo: backgroundCardView.trailingAnchor, constant: -20),
+            self.errorLabel.leadingAnchor.constraint(equalTo: backgroundCardView.leadingAnchor, constant: 20)
+        ])
+        
+        NSLayoutConstraint.activate([
+            self.percentageLabel.topAnchor.constraint(equalTo: errorLabel.bottomAnchor, constant: 30),
+            self.percentageLabel.trailingAnchor.constraint(equalTo: backgroundCardView.trailingAnchor, constant: -20),
+            self.percentageLabel.leadingAnchor.constraint(equalTo: backgroundCardView.leadingAnchor, constant: 20)
+        ])
+     }
+ }

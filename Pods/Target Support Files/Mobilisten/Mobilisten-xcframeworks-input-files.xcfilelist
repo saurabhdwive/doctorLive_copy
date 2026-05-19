@@ -1,0 +1,5 @@
+${PODS_ROOT}/Target Support Files/Mobilisten/Mobilisten-xcframeworks.sh
+${PODS_ROOT}/Mobilisten/AVCallKitBridge.xcframework
+${PODS_ROOT}/Mobilisten/Mobilisten.xcframework
+${PODS_ROOT}/Mobilisten/MobilistenCallsCore.xcframework
+${PODS_ROOT}/Mobilisten/MobilistenCore.xcframework

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="18122" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="18093"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <customFonts key="customFonts">
+        <array key="Poppins-Medium.ttf">
+            <string>Poppins-Medium</string>
+        </array>
+        <array key="Poppins-Regular.ttf">
+            <string>Poppins-Regular</string>
+        </array>
+    </customFonts>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" reuseIdentifier="ChatMessageImagesLeftCell" id="KGk-i7-Jjw" customClass="ChatMessageImagesLeftCell" customModule="StreetTalk" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="320" height="236"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <rect key="frame" x="0.0" y="0.0" width="320" height="236"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="gfg-QS-qkg">
+                        <rect key="frame" x="10" y="5" width="130" height="226"/>
+                        <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="4EE-kH-vi0">
+                                <rect key="frame" x="0.0" y="34" width="130" height="170"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="130" id="FhH-Ma-Lxj"/>
+                                    <constraint firstAttribute="height" constant="170" id="oha-3n-uF0"/>
+                                </constraints>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="cornerRadius">
+                                        <real key="value" value="15"/>
+                                    </userDefinedRuntimeAttribute>
+                                    <userDefinedRuntimeAttribute type="color" keyPath="borderColor">
+                                        <color key="value" name="Underline"/>
+                                    </userDefinedRuntimeAttribute>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="borderWidth">
+                                        <real key="value" value="1"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
+                            </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="252" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3gF-wp-sEl">
+                                <rect key="frame" x="0.0" y="209" width="32" height="17"/>
+                                <fontDescription key="fontDescription" name="Poppins-Regular" family="Poppins" pointSize="12"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Vym-nm-6P0">
+                                <rect key="frame" x="50" y="104" width="30" height="30"/>
+                                <color key="backgroundColor" red="0.10980392160000001" green="0.1529411765" blue="0.16862745100000001" alpha="1" colorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="30" id="83e-FK-Xbv"/>
+                                    <constraint firstAttribute="width" constant="30" id="I9P-Zc-67G"/>
+                                </constraints>
+                                <color key="tintColor" red="1" green="0.47058823529999999" blue="0.31764705879999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <state key="normal" image="play.fill" catalog="system"/>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="cornerRadius">
+                                        <real key="value" value="15"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
+                            </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Zl6-fl-ko0">
+                                <rect key="frame" x="8" y="0.0" width="122" height="26"/>
+                                <fontDescription key="fontDescription" name="Poppins-Medium" family="Poppins" pointSize="14"/>
+                                <color key="textColor" red="0.078431372549019607" green="0.31372549019607843" blue="0.63529411764705879" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="3gF-wp-sEl" firstAttribute="top" secondItem="4EE-kH-vi0" secondAttribute="bottom" constant="5" id="63H-FM-31h"/>
+                            <constraint firstItem="3gF-wp-sEl" firstAttribute="leading" secondItem="gfg-QS-qkg" secondAttribute="leading" id="69X-W3-CbL"/>
+                            <constraint firstItem="Zl6-fl-ko0" firstAttribute="top" secondItem="gfg-QS-qkg" secondAttribute="top" id="8Cw-3t-Q15"/>
+                            <constraint firstItem="4EE-kH-vi0" firstAttribute="top" secondItem="Zl6-fl-ko0" secondAttribute="bottom" constant="8" symbolic="YES" id="9EF-jd-Iac"/>
+                            <constraint firstItem="Vym-nm-6P0" firstAttribute="centerX" secondItem="4EE-kH-vi0" secondAttribute="centerX" id="BeU-dC-tWm"/>
+                            <constraint firstItem="4EE-kH-vi0" firstAttribute="leading" secondItem="gfg-QS-qkg" secondAttribute="leading" id="Ppu-68-HZe"/>
+                            <constraint firstAttribute="bottom" secondItem="3gF-wp-sEl" secondAttribute="bottom" id="b68-mK-r6g"/>
+                            <constraint firstItem="Zl6-fl-ko0" firstAttribute="leading" secondItem="gfg-QS-qkg" secondAttribute="leading" constant="8" id="gWf-0I-G8x"/>
+                            <constraint firstItem="Vym-nm-6P0" firstAttribute="centerY" secondItem="4EE-kH-vi0" secondAttribute="centerY" id="m56-yP-Ip6"/>
+                        </constraints>
+                    </view>
+                </subviews>
+                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                <constraints>
+                    <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="gfg-QS-qkg" secondAttribute="trailing" constant="180" id="G4a-aH-RwA"/>
+                    <constraint firstItem="gfg-QS-qkg" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="10" id="HPT-YW-2aM"/>
+                    <constraint firstItem="gfg-QS-qkg" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" constant="5" id="ImV-Fr-H7w"/>
+                    <constraint firstAttribute="bottom" secondItem="gfg-QS-qkg" secondAttribute="bottom" constant="5" id="iG7-9x-fmw"/>
+                </constraints>
+            </tableViewCellContentView>
+            <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
+            <connections>
+                <outlet property="btnPlay" destination="Vym-nm-6P0" id="Pxn-oW-UGZ"/>
+                <outlet property="imgMessage" destination="4EE-kH-vi0" id="UUa-q9-hAf"/>
+                <outlet property="lblTime" destination="3gF-wp-sEl" id="rk5-TB-AJF"/>
+                <outlet property="lblUserName" destination="Zl6-fl-ko0" id="suj-IZ-81l"/>
+            </connections>
+            <point key="canvasLocation" x="-42.028985507246382" y="50.892857142857139"/>
+        </tableViewCell>
+    </objects>
+    <resources>
+        <image name="play.fill" catalog="system" width="116" height="128"/>
+        <namedColor name="Underline">
+            <color red="0.77647058823529413" green="0.77647058823529413" blue="0.83137254901960789" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>

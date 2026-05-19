@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="32700.99.1234" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22685"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <customFonts key="customFonts">
+        <array key="PlusJakartaSans-Medium.ttf">
+            <string>PlusJakartaSans-Medium</string>
+        </array>
+    </customFonts>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="ChatRightImageCell" rowHeight="411" id="KGk-i7-Jjw" customClass="ChatRightImageCell" customModule="DoctorLive" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="511" height="411"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <rect key="frame" x="0.0" y="0.0" width="511" height="411"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ZwS-2P-Fee">
+                        <rect key="frame" x="0.0" y="0.0" width="511" height="411"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="tv3-IK-PZL">
+                                <rect key="frame" x="242" y="5" width="250" height="401"/>
+                                <subviews>
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Login_btn_pressed" translatesAutoresizingMaskIntoConstraints="NO" id="acc-A0-Peb">
+                                        <rect key="frame" x="10" y="10" width="230" height="300"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="300" id="i4n-Tf-jhz"/>
+                                            <constraint firstAttribute="width" constant="230" id="iN9-jh-SNd"/>
+                                        </constraints>
+                                    </imageView>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="10:22 AM" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="i32-Ut-efZ">
+                                        <rect key="frame" x="12" y="315" width="52" height="81"/>
+                                        <fontDescription key="fontDescription" name="PlusJakartaSans-Medium" family="Plus Jakarta Sans" pointSize="12"/>
+                                        <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Cpf-eS-Kjf">
+                                        <rect key="frame" x="0.0" y="0.0" width="250" height="315"/>
+                                        <color key="tintColor" name="ButtonBlueColor"/>
+                                        <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                        <connections>
+                                            <action selector="imageBtn_Action:" destination="KGk-i7-Jjw" eventType="touchUpInside" id="xah-kp-0xG"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
+                                <color key="backgroundColor" name="ThemeColor"/>
+                                <constraints>
+                                    <constraint firstAttribute="trailing" secondItem="Cpf-eS-Kjf" secondAttribute="trailing" id="4jI-UB-wkA"/>
+                                    <constraint firstItem="Cpf-eS-Kjf" firstAttribute="top" secondItem="tv3-IK-PZL" secondAttribute="top" id="8CI-7I-L43"/>
+                                    <constraint firstAttribute="trailing" secondItem="acc-A0-Peb" secondAttribute="trailing" constant="10" id="CA5-wW-gPr"/>
+                                    <constraint firstItem="Cpf-eS-Kjf" firstAttribute="leading" secondItem="tv3-IK-PZL" secondAttribute="leading" id="CHS-d1-qfz"/>
+                                    <constraint firstItem="i32-Ut-efZ" firstAttribute="leading" secondItem="tv3-IK-PZL" secondAttribute="leading" constant="12" id="apd-1s-BCQ"/>
+                                    <constraint firstItem="acc-A0-Peb" firstAttribute="leading" secondItem="tv3-IK-PZL" secondAttribute="leading" constant="10" id="bgK-tA-t7v"/>
+                                    <constraint firstItem="i32-Ut-efZ" firstAttribute="top" secondItem="acc-A0-Peb" secondAttribute="bottom" constant="5" id="fjp-eh-phO"/>
+                                    <constraint firstAttribute="bottom" secondItem="i32-Ut-efZ" secondAttribute="bottom" constant="5" id="mL6-dp-trb"/>
+                                    <constraint firstItem="i32-Ut-efZ" firstAttribute="top" secondItem="Cpf-eS-Kjf" secondAttribute="bottom" id="ovX-3k-l0B"/>
+                                    <constraint firstItem="acc-A0-Peb" firstAttribute="top" secondItem="tv3-IK-PZL" secondAttribute="top" constant="10" id="xU2-su-k7t"/>
+                                </constraints>
+                            </view>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="rightNotch" translatesAutoresizingMaskIntoConstraints="NO" id="Y8k-TY-wpI">
+                                <rect key="frame" x="491" y="15" width="15" height="20"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="15" id="12g-0J-I0f"/>
+                                    <constraint firstAttribute="height" constant="20" id="I3R-7b-lan"/>
+                                </constraints>
+                            </imageView>
+                        </subviews>
+                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstAttribute="bottom" secondItem="tv3-IK-PZL" secondAttribute="bottom" constant="5" id="4C7-zC-Eng"/>
+                            <constraint firstItem="Y8k-TY-wpI" firstAttribute="leading" secondItem="tv3-IK-PZL" secondAttribute="trailing" constant="-1" id="8VC-ef-9wE"/>
+                            <constraint firstItem="tv3-IK-PZL" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="ZwS-2P-Fee" secondAttribute="leading" constant="50" id="B6w-jd-l8l"/>
+                            <constraint firstItem="Y8k-TY-wpI" firstAttribute="top" secondItem="ZwS-2P-Fee" secondAttribute="top" constant="15" id="CrS-XU-VgO"/>
+                            <constraint firstItem="tv3-IK-PZL" firstAttribute="top" secondItem="ZwS-2P-Fee" secondAttribute="top" constant="5" id="W6R-JE-8yi"/>
+                            <constraint firstAttribute="trailing" secondItem="Y8k-TY-wpI" secondAttribute="trailing" constant="5" id="ylM-qj-x4d"/>
+                        </constraints>
+                    </view>
+                </subviews>
+                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                <constraints>
+                    <constraint firstItem="ZwS-2P-Fee" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" id="DO0-VE-bFG"/>
+                    <constraint firstAttribute="bottom" secondItem="ZwS-2P-Fee" secondAttribute="bottom" id="NqG-Ao-5wl"/>
+                    <constraint firstItem="ZwS-2P-Fee" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" id="WLk-Lt-2Qp"/>
+                    <constraint firstAttribute="trailing" secondItem="ZwS-2P-Fee" secondAttribute="trailing" id="p2n-rv-b8R"/>
+                </constraints>
+            </tableViewCellContentView>
+            <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
+            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+            <connections>
+                <outlet property="chatImage" destination="acc-A0-Peb" id="zKt-Ub-fkC"/>
+                <outlet property="chatVw" destination="tv3-IK-PZL" id="xfU-oh-7OD"/>
+                <outlet property="imageBtn" destination="Cpf-eS-Kjf" id="Uv5-ua-IBM"/>
+                <outlet property="timeLbl" destination="i32-Ut-efZ" id="WUC-NY-hFu"/>
+            </connections>
+            <point key="canvasLocation" x="260.30534351145036" y="88.380281690140848"/>
+        </tableViewCell>
+    </objects>
+    <resources>
+        <image name="Login_btn_pressed" width="125" height="47.5"/>
+        <image name="rightNotch" width="9" height="15"/>
+        <namedColor name="ButtonBlueColor">
+            <color red="0.10980392156862745" green="0.45882352941176469" blue="0.73725490196078436" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="ThemeColor">
+            <color red="0.10599999874830246" green="0.46299999952316284" blue="0.74099999666213989" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+    </resources>
+</document>

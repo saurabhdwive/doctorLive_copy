@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="19529" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="19519"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <customFonts key="customFonts">
+        <array key="Poppins-Regular.ttf">
+            <string>Poppins-Regular</string>
+        </array>
+        <array key="Poppins-SemiBold.ttf">
+            <string>Poppins-SemiBold</string>
+        </array>
+    </customFonts>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" rowHeight="116" id="KGk-i7-Jjw" customClass="QualificationTableViewCell" customModule="DoctorLive" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="385" height="116"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <rect key="frame" x="0.0" y="0.0" width="385" height="116"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="DQO-hA-0RN">
+                        <rect key="frame" x="0.0" y="0.0" width="385" height="116"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Chittagaon Medical College" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="AaY-rz-XCC">
+                                <rect key="frame" x="16" y="46" width="196" height="20"/>
+                                <fontDescription key="fontDescription" name="Poppins-Regular" family="Poppins" pointSize="14"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Bangladesh" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="s4S-fS-CPg">
+                                <rect key="frame" x="16" y="76" width="84" height="20"/>
+                                <fontDescription key="fontDescription" name="Poppins-Regular" family="Poppins" pointSize="14"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <stackView opaque="NO" contentMode="scaleToFill" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="3Je-4u-5Jo">
+                                <rect key="frame" x="336" y="9.5" width="36" height="22"/>
+                                <subviews>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="5NV-fF-P5u">
+                                        <rect key="frame" x="0.0" y="0.0" width="12" height="22"/>
+                                        <state key="normal" image="Path 6673"/>
+                                        <connections>
+                                            <action selector="editButtonTapped:" destination="KGk-i7-Jjw" eventType="touchUpInside" id="75i-VB-MGB"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Cnk-DJ-3FO">
+                                        <rect key="frame" x="22" y="0.0" width="14" height="22"/>
+                                        <state key="normal" image="Path 6732"/>
+                                        <connections>
+                                            <action selector="deleteButtonTapped:" destination="KGk-i7-Jjw" eventType="touchUpInside" id="N8A-Qk-GCE"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
+                            </stackView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="2016" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3Tu-xS-3RU">
+                                <rect key="frame" x="338.5" y="76" width="30.5" height="20"/>
+                                <fontDescription key="fontDescription" name="Poppins-Regular" family="Poppins" pointSize="14"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="MBBS" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Mnt-vr-1Z5">
+                                <rect key="frame" x="16" y="10" width="42" height="21"/>
+                                <fontDescription key="fontDescription" name="Poppins-SemiBold" family="Poppins" pointSize="15"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" name="TextFieldBack"/>
+                        <constraints>
+                            <constraint firstAttribute="trailing" secondItem="3Je-4u-5Jo" secondAttribute="trailing" constant="13" id="5WC-Wn-sDs"/>
+                            <constraint firstItem="AaY-rz-XCC" firstAttribute="top" secondItem="Mnt-vr-1Z5" secondAttribute="bottom" constant="15" id="6Oh-ka-KQ5"/>
+                            <constraint firstItem="Mnt-vr-1Z5" firstAttribute="top" secondItem="DQO-hA-0RN" secondAttribute="top" constant="10" id="8Kr-vH-k6O"/>
+                            <constraint firstItem="s4S-fS-CPg" firstAttribute="top" secondItem="AaY-rz-XCC" secondAttribute="bottom" constant="10" id="8N4-3K-qZ9"/>
+                            <constraint firstItem="Mnt-vr-1Z5" firstAttribute="leading" secondItem="DQO-hA-0RN" secondAttribute="leading" constant="16" id="CBk-ng-VdZ"/>
+                            <constraint firstItem="s4S-fS-CPg" firstAttribute="leading" secondItem="DQO-hA-0RN" secondAttribute="leading" constant="16" id="QLv-2Y-zYR"/>
+                            <constraint firstItem="3Je-4u-5Jo" firstAttribute="centerY" secondItem="Mnt-vr-1Z5" secondAttribute="centerY" id="QUO-Ze-T1y"/>
+                            <constraint firstAttribute="trailing" secondItem="3Tu-xS-3RU" secondAttribute="trailing" constant="16" id="Qn7-V6-98Y"/>
+                            <constraint firstItem="s4S-fS-CPg" firstAttribute="centerY" secondItem="3Tu-xS-3RU" secondAttribute="centerY" id="feR-tS-7RR"/>
+                            <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="s4S-fS-CPg" secondAttribute="bottom" constant="10" id="hR0-tk-caf"/>
+                            <constraint firstItem="AaY-rz-XCC" firstAttribute="leading" secondItem="DQO-hA-0RN" secondAttribute="leading" constant="16" id="ljB-Zs-Rt5"/>
+                        </constraints>
+                    </view>
+                </subviews>
+                <color key="backgroundColor" name="TextFieldBack"/>
+                <constraints>
+                    <constraint firstItem="DQO-hA-0RN" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" id="DUe-Hd-yyr"/>
+                    <constraint firstAttribute="trailing" secondItem="DQO-hA-0RN" secondAttribute="trailing" id="ckD-yt-Wa6"/>
+                    <constraint firstItem="DQO-hA-0RN" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" id="pI9-tQ-nEj"/>
+                    <constraint firstAttribute="bottom" secondItem="DQO-hA-0RN" secondAttribute="bottom" id="vac-lK-AJQ"/>
+                </constraints>
+            </tableViewCellContentView>
+            <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
+            <connections>
+                <outlet property="collegeTxt" destination="AaY-rz-XCC" id="2pq-zq-YGX"/>
+                <outlet property="countryLable" destination="s4S-fS-CPg" id="dxS-Le-3ta"/>
+                <outlet property="degreeTxt" destination="Mnt-vr-1Z5" id="dGj-o2-zRV"/>
+                <outlet property="deleteButton" destination="Cnk-DJ-3FO" id="1e0-o4-P0i"/>
+                <outlet property="editButton" destination="5NV-fF-P5u" id="s8X-on-6KA"/>
+                <outlet property="yearLable" destination="3Tu-xS-3RU" id="Zut-qq-Ql9"/>
+            </connections>
+            <point key="canvasLocation" x="105.07246376811595" y="110.49107142857143"/>
+        </tableViewCell>
+    </objects>
+    <resources>
+        <image name="Path 6673" width="12" height="12"/>
+        <image name="Path 6732" width="14" height="16"/>
+        <namedColor name="TextFieldBack">
+            <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+    </resources>
+</document>

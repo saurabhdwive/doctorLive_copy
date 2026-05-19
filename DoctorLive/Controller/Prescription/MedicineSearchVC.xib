@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="19529" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="19519"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="MedicineSearchVC" customModule="DoctorLive" customModuleProvider="target">
+            <connections>
+                <outlet property="searchBar" destination="Nf4-Gb-9Ui" id="lmh-l5-Snl"/>
+                <outlet property="tableView" destination="ddP-tv-ZJ3" id="a3S-vv-0DH"/>
+                <outlet property="titleTxt" destination="tH5-U7-Iu8" id="KxE-Hx-8DP"/>
+                <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="mOs-MP-uKC">
+                    <rect key="frame" x="0.0" y="44" width="414" height="818"/>
+                    <subviews>
+                        <searchBar contentMode="redraw" placeholder=" Search Here" translatesAutoresizingMaskIntoConstraints="NO" id="Nf4-Gb-9Ui">
+                            <rect key="frame" x="10" y="60" width="394" height="55"/>
+                            <color key="backgroundColor" name="AccentColor"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="55" id="vpX-3n-GYD"/>
+                            </constraints>
+                            <textInputTraits key="textInputTraits"/>
+                            <userDefinedRuntimeAttributes>
+                                <userDefinedRuntimeAttribute type="number" keyPath="cornerRadius">
+                                    <real key="value" value="10"/>
+                                </userDefinedRuntimeAttribute>
+                                <userDefinedRuntimeAttribute type="number" keyPath="borderWidth">
+                                    <real key="value" value="1"/>
+                                </userDefinedRuntimeAttribute>
+                                <userDefinedRuntimeAttribute type="color" keyPath="borderColor">
+                                    <color key="value" white="0.66666666669999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </userDefinedRuntimeAttribute>
+                            </userDefinedRuntimeAttributes>
+                        </searchBar>
+                        <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="none" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="ddP-tv-ZJ3">
+                            <rect key="frame" x="0.0" y="115" width="414" height="703"/>
+                            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                            <userDefinedRuntimeAttributes>
+                                <userDefinedRuntimeAttribute type="color" keyPath="borderColor">
+                                    <color key="value" white="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </userDefinedRuntimeAttribute>
+                            </userDefinedRuntimeAttributes>
+                        </tableView>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="leading" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="KE9-FP-d8k">
+                            <rect key="frame" x="10" y="10" width="70" height="50"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="50" id="RdW-kB-oss"/>
+                                <constraint firstAttribute="width" constant="70" id="fUg-PD-b7u"/>
+                            </constraints>
+                            <state key="normal" image="back1"/>
+                            <connections>
+                                <action selector="backButtonTapped:" destination="-1" eventType="touchUpInside" id="rhP-Vx-VT2"/>
+                            </connections>
+                        </button>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Select Medicine" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="tH5-U7-Iu8">
+                            <rect key="frame" x="146.5" y="25" width="121.5" height="20.5"/>
+                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                            <color key="textColor" name="TextColour"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                    </subviews>
+                    <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    <constraints>
+                        <constraint firstItem="tH5-U7-Iu8" firstAttribute="centerX" secondItem="mOs-MP-uKC" secondAttribute="centerX" id="1w8-ET-yfk"/>
+                        <constraint firstItem="KE9-FP-d8k" firstAttribute="top" secondItem="mOs-MP-uKC" secondAttribute="top" constant="10" id="8Sp-pT-BfS"/>
+                        <constraint firstAttribute="trailing" secondItem="Nf4-Gb-9Ui" secondAttribute="trailing" constant="10" id="Eti-fa-sI4"/>
+                        <constraint firstItem="ddP-tv-ZJ3" firstAttribute="leading" secondItem="mOs-MP-uKC" secondAttribute="leading" id="KSA-8v-lcP"/>
+                        <constraint firstItem="Nf4-Gb-9Ui" firstAttribute="leading" secondItem="mOs-MP-uKC" secondAttribute="leading" constant="10" id="Mvs-2R-S5E"/>
+                        <constraint firstItem="Nf4-Gb-9Ui" firstAttribute="top" secondItem="KE9-FP-d8k" secondAttribute="bottom" id="TQg-PT-Yat"/>
+                        <constraint firstAttribute="bottom" secondItem="ddP-tv-ZJ3" secondAttribute="bottom" id="cJ0-YP-KNS"/>
+                        <constraint firstItem="KE9-FP-d8k" firstAttribute="leading" secondItem="mOs-MP-uKC" secondAttribute="leading" constant="10" id="jZo-gC-2Ds"/>
+                        <constraint firstItem="ddP-tv-ZJ3" firstAttribute="top" secondItem="Nf4-Gb-9Ui" secondAttribute="bottom" id="lUe-dW-m6W"/>
+                        <constraint firstAttribute="trailing" secondItem="ddP-tv-ZJ3" secondAttribute="trailing" id="vM2-yX-iE3"/>
+                        <constraint firstItem="KE9-FP-d8k" firstAttribute="centerY" secondItem="tH5-U7-Iu8" secondAttribute="centerY" id="vrS-DV-n9M"/>
+                    </constraints>
+                </view>
+            </subviews>
+            <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
+            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+            <constraints>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="mOs-MP-uKC" secondAttribute="trailing" id="0Vk-wd-7wT"/>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="bottom" secondItem="mOs-MP-uKC" secondAttribute="bottom" id="OXG-df-mRn"/>
+                <constraint firstItem="mOs-MP-uKC" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" id="RXd-aJ-uK8"/>
+                <constraint firstItem="mOs-MP-uKC" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="acw-ph-HiO"/>
+            </constraints>
+            <point key="canvasLocation" x="63.768115942028992" y="67.633928571428569"/>
+        </view>
+    </objects>
+    <resources>
+        <image name="back1" width="19" height="16.5"/>
+        <namedColor name="AccentColor">
+            <color red="0.0" green="0.46000000000000002" blue="0.89000000000000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="TextColour">
+            <color red="0.094117647058823528" green="0.094117647058823528" blue="0.10980392156862745" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="18122" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="18093"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="LocationViewController" customModule="DoctorLive" customModuleProvider="target">
+            <connections>
+                <outlet property="doneButton" destination="Tq5-hS-Ttf" id="aUt-aJ-evk"/>
+                <outlet property="mapView" destination="gfe-JU-cce" id="THB-EE-CUc"/>
+                <outlet property="view" destination="QG9-VV-MBF" id="YH1-ZD-qxl"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="QG9-VV-MBF">
+            <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="gfe-JU-cce" customClass="GMSMapView">
+                    <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                    <color key="backgroundColor" name="BackGround"/>
+                </view>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Tq5-hS-Ttf">
+                    <rect key="frame" x="20" y="772" width="374" height="50"/>
+                    <color key="backgroundColor" name="AccentColor"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="50" id="Y8w-hW-0xX"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="19"/>
+                    <state key="normal" title="Done">
+                        <color key="titleColor" systemColor="tertiarySystemBackgroundColor"/>
+                    </state>
+                    <connections>
+                        <action selector="doneButtonTapped:" destination="-1" eventType="touchUpInside" id="yZe-2q-6tO"/>
+                    </connections>
+                </button>
+            </subviews>
+            <viewLayoutGuide key="safeArea" id="fMj-fL-jji"/>
+            <color key="backgroundColor" name="BackGround"/>
+            <constraints>
+                <constraint firstItem="fMj-fL-jji" firstAttribute="trailing" secondItem="gfe-JU-cce" secondAttribute="trailing" id="6d6-zd-geJ"/>
+                <constraint firstItem="gfe-JU-cce" firstAttribute="leading" secondItem="fMj-fL-jji" secondAttribute="leading" id="D9D-Kb-UWx"/>
+                <constraint firstItem="fMj-fL-jji" firstAttribute="bottom" secondItem="Tq5-hS-Ttf" secondAttribute="bottom" constant="40" id="DAf-eD-HqM"/>
+                <constraint firstItem="Tq5-hS-Ttf" firstAttribute="leading" secondItem="fMj-fL-jji" secondAttribute="leading" constant="20" id="edw-GF-1tj"/>
+                <constraint firstAttribute="bottom" secondItem="gfe-JU-cce" secondAttribute="bottom" id="ejg-Hq-10V"/>
+                <constraint firstItem="fMj-fL-jji" firstAttribute="trailing" secondItem="Tq5-hS-Ttf" secondAttribute="trailing" constant="20" id="fUj-Ra-bIB"/>
+                <constraint firstItem="gfe-JU-cce" firstAttribute="top" secondItem="QG9-VV-MBF" secondAttribute="top" id="hvL-Bm-L7v"/>
+            </constraints>
+            <point key="canvasLocation" x="-326.08695652173918" y="76.339285714285708"/>
+        </view>
+    </objects>
+    <resources>
+        <namedColor name="AccentColor">
+            <color red="0.0" green="0.46000000000000002" blue="0.89000000000000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="BackGround">
+            <color red="0.96078431372549022" green="0.98039215686274506" blue="0.99607843137254903" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <systemColor name="tertiarySystemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>

@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="32700.99.1234" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22685"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <customFonts key="customFonts">
+        <array key="Poppins-Medium.ttf">
+            <string>Poppins-Medium</string>
+        </array>
+        <array key="Poppins-Regular.ttf">
+            <string>Poppins-Regular</string>
+        </array>
+    </customFonts>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="UpcomingHomeCell" rowHeight="285" id="KGk-i7-Jjw" customClass="UpcomingHomeCell" customModule="DoctorLive" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="480" height="285"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <rect key="frame" x="0.0" y="0.0" width="480" height="285"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Tmy-iu-IUu">
+                        <rect key="frame" x="16" y="0.0" width="448" height="269"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Shahed Mk" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="OsB-BD-wUM">
+                                <rect key="frame" x="12" y="10.000000000000002" width="89.333333333333329" height="22.666666666666671"/>
+                                <fontDescription key="fontDescription" name="Poppins-Medium" family="Poppins" pointSize="16"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="36 yrs," textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="EAQ-VJ-Cm8">
+                                <rect key="frame" x="12" y="40.666666666666664" width="38" height="17"/>
+                                <fontDescription key="fontDescription" name="Poppins-Regular" family="Poppins" pointSize="12"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" alignment="top" spacing="14" translatesAutoresizingMaskIntoConstraints="NO" id="NuY-dW-KLK">
+                                <rect key="frame" x="12" y="94.333333333333329" width="424" height="164.66666666666669"/>
+                                <subviews>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="VKy-Ld-4gn">
+                                        <rect key="frame" x="0.0" y="0.0" width="205" height="32"/>
+                                        <color key="backgroundColor" name="ButtonBlueColor"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="32" id="s4T-12-a5O"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" name="Poppins-Regular" family="Poppins" pointSize="12"/>
+                                        <state key="normal" title="Video Call">
+                                            <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        </state>
+                                        <userDefinedRuntimeAttributes>
+                                            <userDefinedRuntimeAttribute type="number" keyPath="cornerRadius">
+                                                <real key="value" value="10"/>
+                                            </userDefinedRuntimeAttribute>
+                                        </userDefinedRuntimeAttributes>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="TnX-0d-V7K">
+                                        <rect key="frame" x="219" y="0.0" width="205" height="32"/>
+                                        <color key="backgroundColor" red="0.85882352941176465" green="0.90980392156862744" blue="0.95294117647058818" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="32" id="MR9-Sg-Xef"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" name="Poppins-Regular" family="Poppins" pointSize="12"/>
+                                        <state key="normal" title="Chat">
+                                            <color key="titleColor" name="TextColour"/>
+                                        </state>
+                                        <userDefinedRuntimeAttributes>
+                                            <userDefinedRuntimeAttribute type="number" keyPath="cornerRadius">
+                                                <real key="value" value="10"/>
+                                            </userDefinedRuntimeAttribute>
+                                        </userDefinedRuntimeAttributes>
+                                    </button>
+                                </subviews>
+                            </stackView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" hasAttributedTitle="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vh8-AF-Fsq">
+                                <rect key="frame" x="362" y="37" width="76" height="24.666666666666671"/>
+                                <state key="normal">
+                                    <attributedString key="attributedTitle">
+                                        <fragment content="Reason for Call">
+                                            <attributes>
+                                                <color key="NSColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                <font key="NSFont" size="11" name="ComicSansMS"/>
+                                                <integer key="NSUnderline" value="1"/>
+                                            </attributes>
+                                        </fragment>
+                                    </attributedString>
+                                </state>
+                            </button>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="video.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="0MC-0Z-A1a">
+                                <rect key="frame" x="12" y="70" width="18" height="11.333333333333343"/>
+                                <color key="tintColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="16" id="KSp-2f-Ahe"/>
+                                    <constraint firstAttribute="width" constant="18" id="cWQ-CV-9SE"/>
+                                </constraints>
+                            </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="12/10/2024" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cdl-LS-XWp">
+                                <rect key="frame" x="35" y="67.333333333333329" width="62.666666666666657" height="17"/>
+                                <fontDescription key="fontDescription" name="Poppins-Regular" family="Poppins" pointSize="12"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="cdl-LS-XWp" firstAttribute="centerY" secondItem="0MC-0Z-A1a" secondAttribute="centerY" id="3MT-JU-chd"/>
+                            <constraint firstAttribute="trailing" secondItem="NuY-dW-KLK" secondAttribute="trailing" constant="12" id="A1e-xn-Zad"/>
+                            <constraint firstAttribute="trailing" secondItem="vh8-AF-Fsq" secondAttribute="trailing" constant="10" id="Fe0-Z6-bYo"/>
+                            <constraint firstAttribute="bottom" secondItem="NuY-dW-KLK" secondAttribute="bottom" constant="10" id="HGg-je-0kd"/>
+                            <constraint firstItem="EAQ-VJ-Cm8" firstAttribute="top" secondItem="OsB-BD-wUM" secondAttribute="bottom" constant="8" id="ZdS-7A-pub"/>
+                            <constraint firstItem="cdl-LS-XWp" firstAttribute="leading" secondItem="0MC-0Z-A1a" secondAttribute="trailing" constant="5" id="aL7-G2-Wa5"/>
+                            <constraint firstItem="0MC-0Z-A1a" firstAttribute="leading" secondItem="Tmy-iu-IUu" secondAttribute="leading" constant="12" id="cyE-jK-dff"/>
+                            <constraint firstItem="OsB-BD-wUM" firstAttribute="top" secondItem="Tmy-iu-IUu" secondAttribute="top" constant="10" id="ege-Yi-wga"/>
+                            <constraint firstItem="EAQ-VJ-Cm8" firstAttribute="leading" secondItem="Tmy-iu-IUu" secondAttribute="leading" constant="12" id="h7a-ga-jv9"/>
+                            <constraint firstItem="vh8-AF-Fsq" firstAttribute="centerY" secondItem="EAQ-VJ-Cm8" secondAttribute="centerY" id="j2c-8W-qGQ"/>
+                            <constraint firstItem="NuY-dW-KLK" firstAttribute="leading" secondItem="Tmy-iu-IUu" secondAttribute="leading" constant="12" id="n2D-67-q0S"/>
+                            <constraint firstItem="OsB-BD-wUM" firstAttribute="leading" secondItem="Tmy-iu-IUu" secondAttribute="leading" constant="12" id="qG7-ee-90d"/>
+                            <constraint firstItem="NuY-dW-KLK" firstAttribute="top" secondItem="cdl-LS-XWp" secondAttribute="bottom" constant="10" id="qJr-jP-6L4"/>
+                            <constraint firstItem="0MC-0Z-A1a" firstAttribute="top" secondItem="EAQ-VJ-Cm8" secondAttribute="bottom" constant="10" id="vFS-GX-mZY"/>
+                        </constraints>
+                    </view>
+                </subviews>
+                <color key="backgroundColor" name="BackGround"/>
+                <constraints>
+                    <constraint firstItem="Tmy-iu-IUu" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="16" id="Ny2-Vn-ZGd"/>
+                    <constraint firstAttribute="bottom" secondItem="Tmy-iu-IUu" secondAttribute="bottom" constant="16" id="ioI-o9-pjj"/>
+                    <constraint firstItem="Tmy-iu-IUu" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" id="lLj-xC-B5y"/>
+                    <constraint firstAttribute="trailing" secondItem="Tmy-iu-IUu" secondAttribute="trailing" constant="16" id="mvl-1o-N7d"/>
+                </constraints>
+            </tableViewCellContentView>
+            <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
+            <connections>
+                <outlet property="bottomVw" destination="Tmy-iu-IUu" id="0QN-JM-OTw"/>
+                <outlet property="chatBtn" destination="TnX-0d-V7K" id="C8Z-Gk-Vzg"/>
+                <outlet property="dateLbl" destination="cdl-LS-XWp" id="II0-is-SYE"/>
+                <outlet property="patientNameLbl" destination="OsB-BD-wUM" id="2m2-cJ-1uT"/>
+                <outlet property="reasonForCallBtn" destination="vh8-AF-Fsq" id="qH3-Y7-5Gz"/>
+                <outlet property="videoCallBtn" destination="VKy-Ld-4gn" id="9mi-Fd-oBe"/>
+                <outlet property="yearGenderLbl" destination="EAQ-VJ-Cm8" id="7Ec-MS-VdH"/>
+            </connections>
+            <point key="canvasLocation" x="261.06870229007632" y="-65.140845070422543"/>
+        </tableViewCell>
+    </objects>
+    <resources>
+        <image name="video.fill" catalog="system" width="128" height="81"/>
+        <namedColor name="BackGround">
+            <color red="0.96078431372549022" green="0.98039215686274506" blue="0.99607843137254903" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="ButtonBlueColor">
+            <color red="0.10980392156862745" green="0.45882352941176469" blue="0.73725490196078436" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="TextColour">
+            <color red="0.094117647058823528" green="0.094117647058823528" blue="0.10980392156862745" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="19529" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="19519"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <customFonts key="customFonts">
+        <array key="Poppins-Regular.ttf">
+            <string>Poppins-Regular</string>
+        </array>
+        <array key="Poppins-SemiBold.ttf">
+            <string>Poppins-SemiBold</string>
+        </array>
+    </customFonts>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" rowHeight="77" id="KGk-i7-Jjw" customClass="ExperinceTableViewCell" customModule="DoctorLive" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="349" height="77"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" ambiguous="YES" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <rect key="frame" x="0.0" y="0.0" width="349" height="77"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="tHC-vo-Oi4">
+                        <rect key="frame" x="0.0" y="0.0" width="349" height="70"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Medical Officer" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1Zj-5K-t3k">
+                                <rect key="frame" x="16" y="15" width="107.5" height="20"/>
+                                <fontDescription key="fontDescription" name="Poppins-SemiBold" family="Poppins" pointSize="14"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Chittagaon Medical College" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="JpY-gt-R5N">
+                                <rect key="frame" x="16" y="45" width="182" height="18.5"/>
+                                <fontDescription key="fontDescription" name="Poppins-Regular" family="Poppins" pointSize="13"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <stackView opaque="NO" contentMode="scaleToFill" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="4n4-0L-iB3">
+                                <rect key="frame" x="299" y="14" width="36" height="22"/>
+                                <subviews>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Z5x-Vw-esj">
+                                        <rect key="frame" x="0.0" y="0.0" width="12" height="22"/>
+                                        <state key="normal" image="Path 6673"/>
+                                        <connections>
+                                            <action selector="editButtonTapped:" destination="KGk-i7-Jjw" eventType="touchUpInside" id="41X-Cn-urm"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hW1-xB-eMI">
+                                        <rect key="frame" x="22" y="0.0" width="14" height="22"/>
+                                        <state key="normal" image="Path 6732"/>
+                                        <connections>
+                                            <action selector="deleteButtonTapped:" destination="KGk-i7-Jjw" eventType="touchUpInside" id="YEj-NA-3Xq"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
+                            </stackView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="2012" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="M8o-8e-23Z">
+                                <rect key="frame" x="305" y="46.5" width="30" height="16"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="13"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" name="TextFieldBack"/>
+                        <constraints>
+                            <constraint firstItem="JpY-gt-R5N" firstAttribute="top" secondItem="1Zj-5K-t3k" secondAttribute="bottom" constant="10" id="6rY-nA-5Jg"/>
+                            <constraint firstItem="4n4-0L-iB3" firstAttribute="centerY" secondItem="1Zj-5K-t3k" secondAttribute="centerY" id="InU-ve-Mz6"/>
+                            <constraint firstItem="JpY-gt-R5N" firstAttribute="leading" secondItem="tHC-vo-Oi4" secondAttribute="leading" constant="16" id="KVd-qU-Skl"/>
+                            <constraint firstItem="1Zj-5K-t3k" firstAttribute="leading" secondItem="tHC-vo-Oi4" secondAttribute="leading" constant="16" id="V8d-U3-k9k"/>
+                            <constraint firstAttribute="trailing" secondItem="4n4-0L-iB3" secondAttribute="trailing" constant="14" id="YPV-0i-PIQ"/>
+                            <constraint firstItem="1Zj-5K-t3k" firstAttribute="top" secondItem="tHC-vo-Oi4" secondAttribute="top" constant="15" id="Zed-aD-jee"/>
+                            <constraint firstItem="JpY-gt-R5N" firstAttribute="centerY" secondItem="M8o-8e-23Z" secondAttribute="centerY" id="oN1-Gn-Y8M"/>
+                            <constraint firstAttribute="trailing" secondItem="M8o-8e-23Z" secondAttribute="trailing" constant="14" id="vSU-3y-ZEp"/>
+                            <constraint firstAttribute="height" constant="70" id="ySQ-yE-XEp"/>
+                        </constraints>
+                        <userDefinedRuntimeAttributes>
+                            <userDefinedRuntimeAttribute type="number" keyPath="cornerRadius">
+                                <real key="value" value="0.0"/>
+                            </userDefinedRuntimeAttribute>
+                        </userDefinedRuntimeAttributes>
+                    </view>
+                </subviews>
+                <color key="backgroundColor" name="TextFieldBack"/>
+                <constraints>
+                    <constraint firstAttribute="bottom" secondItem="tHC-vo-Oi4" secondAttribute="bottom" id="B4u-V2-NBQ"/>
+                    <constraint firstItem="tHC-vo-Oi4" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" id="Pyg-du-qV6"/>
+                    <constraint firstAttribute="trailing" secondItem="tHC-vo-Oi4" secondAttribute="trailing" id="flL-mE-Uyg"/>
+                    <constraint firstItem="tHC-vo-Oi4" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" id="pno-FE-0vV"/>
+                </constraints>
+            </tableViewCellContentView>
+            <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
+            <connections>
+                <outlet property="collegeTxt" destination="JpY-gt-R5N" id="CEj-DK-U4l"/>
+                <outlet property="deleteButton" destination="hW1-xB-eMI" id="VmD-eB-9mQ"/>
+                <outlet property="designationTxt" destination="1Zj-5K-t3k" id="q8p-14-fe5"/>
+                <outlet property="editButton" destination="Z5x-Vw-esj" id="nzu-in-3TD"/>
+                <outlet property="passingYearTxt" destination="M8o-8e-23Z" id="bhI-ie-jt6"/>
+            </connections>
+            <point key="canvasLocation" x="74.637681159420296" y="77.34375"/>
+        </tableViewCell>
+    </objects>
+    <resources>
+        <image name="Path 6673" width="12" height="12"/>
+        <image name="Path 6732" width="14" height="16"/>
+        <namedColor name="TextFieldBack">
+            <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+    </resources>
+</document>

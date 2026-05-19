@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="18122" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="18093"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="PrescriptionViewVC" customModule="DoctorLive" customModuleProvider="target">
+            <connections>
+                <outlet property="downloadButton" destination="X6R-sq-vpb" id="5rw-68-goE"/>
+                <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
+                <outlet property="webView" destination="eOj-SM-RM4" id="5Gr-Mo-JpU"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="RGn-86-BU5">
+                    <rect key="frame" x="0.0" y="0.0" width="414" height="100"/>
+                    <subviews>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="goK-8j-VUy">
+                            <rect key="frame" x="20" y="58" width="19" height="22"/>
+                            <state key="normal" image="back1"/>
+                            <connections>
+                                <action selector="backButtonTapped:" destination="-1" eventType="touchUpInside" id="Mac-WK-29y"/>
+                            </connections>
+                        </button>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Prescription" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="7ee-ay-J0H">
+                            <rect key="frame" x="154.5" y="57" width="105" height="24"/>
+                            <fontDescription key="fontDescription" type="system" pointSize="20"/>
+                            <nil key="textColor"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                    </subviews>
+                    <color key="backgroundColor" name="BackGround"/>
+                    <constraints>
+                        <constraint firstItem="goK-8j-VUy" firstAttribute="centerY" secondItem="7ee-ay-J0H" secondAttribute="centerY" id="9Ti-2G-8aw"/>
+                        <constraint firstAttribute="bottom" secondItem="goK-8j-VUy" secondAttribute="bottom" constant="20" id="X1U-mo-DEd"/>
+                        <constraint firstItem="goK-8j-VUy" firstAttribute="leading" secondItem="RGn-86-BU5" secondAttribute="leading" constant="20" id="XWd-uI-dEo"/>
+                        <constraint firstItem="7ee-ay-J0H" firstAttribute="centerX" secondItem="RGn-86-BU5" secondAttribute="centerX" id="i1t-g9-e1R"/>
+                        <constraint firstAttribute="height" constant="100" id="lFe-Rb-5x0"/>
+                    </constraints>
+                </view>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="X6R-sq-vpb">
+                    <rect key="frame" x="30" y="792" width="354" height="50"/>
+                    <color key="backgroundColor" red="0.10980392160000001" green="0.45882352939999999" blue="0.73725490199999999" alpha="1" colorSpace="calibratedRGB"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="50" id="fvo-PV-Vul"/>
+                    </constraints>
+                    <state key="normal" title="Download">
+                        <color key="titleColor" systemColor="systemBackgroundColor"/>
+                    </state>
+                    <connections>
+                        <action selector="downloadTapped:" destination="-1" eventType="touchUpInside" id="le0-lu-ogU"/>
+                    </connections>
+                </button>
+                <wkWebView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="eOj-SM-RM4">
+                    <rect key="frame" x="0.0" y="100" width="414" height="672"/>
+                    <color key="backgroundColor" name="BackGround"/>
+                    <wkWebViewConfiguration key="configuration">
+                        <audiovisualMediaTypes key="mediaTypesRequiringUserActionForPlayback" none="YES"/>
+                        <wkPreferences key="preferences"/>
+                    </wkWebViewConfiguration>
+                </wkWebView>
+            </subviews>
+            <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
+            <color key="backgroundColor" name="BackGround"/>
+            <constraints>
+                <constraint firstAttribute="trailing" secondItem="RGn-86-BU5" secondAttribute="trailing" id="8la-cW-Rm9"/>
+                <constraint firstItem="eOj-SM-RM4" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="ABp-30-3TZ"/>
+                <constraint firstItem="RGn-86-BU5" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="MrT-6b-xAV"/>
+                <constraint firstItem="X6R-sq-vpb" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" constant="30" id="Os6-dE-zdy"/>
+                <constraint firstItem="RGn-86-BU5" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="T8t-qD-9zL"/>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="eOj-SM-RM4" secondAttribute="trailing" id="Wc3-5g-LI0"/>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="bottom" secondItem="X6R-sq-vpb" secondAttribute="bottom" constant="20" id="gz2-U8-Huq"/>
+                <constraint firstItem="X6R-sq-vpb" firstAttribute="top" secondItem="eOj-SM-RM4" secondAttribute="bottom" constant="20" id="k8q-dH-OM0"/>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="X6R-sq-vpb" secondAttribute="trailing" constant="30" id="tuI-xx-SEf"/>
+                <constraint firstItem="eOj-SM-RM4" firstAttribute="top" secondItem="RGn-86-BU5" secondAttribute="bottom" id="yKq-cQ-oQz"/>
+            </constraints>
+            <point key="canvasLocation" x="60.869565217391312" y="69.642857142857139"/>
+        </view>
+    </objects>
+    <resources>
+        <image name="back1" width="19" height="16.5"/>
+        <namedColor name="BackGround">
+            <color red="0.96078431372549022" green="0.98039215686274506" blue="0.99607843137254903" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>

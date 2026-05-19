@@ -1,0 +1,4 @@
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Mobilisten/AVCallKitBridge.framework
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Mobilisten/Mobilisten.framework
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Mobilisten/MobilistenCallsCore.framework
+${PODS_XCFRAMEWORKS_BUILD_DIR}/Mobilisten/MobilistenCore.framework

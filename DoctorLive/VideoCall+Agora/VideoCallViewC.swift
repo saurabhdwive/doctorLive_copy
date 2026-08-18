@@ -63,11 +63,28 @@ class VideoCallViewC: UIViewController, PIPUsable {
     let ciContext = CIContext()
     var isLoggingOut = false
     var isStartButtonPressed:Bool = false
-    
+
+    // MARK: - Connection / network state
+    let connectionManager = AgoraCallConnectionManager()
+    let reconnectingIndicatorVw = CallStatusIndicatorView(text: "Reconnecting…")
+    let poorNetworkIndicatorVw = CallStatusIndicatorView(text: "Poor network connection")
+    let videoDisabledIndicatorVw = CallStatusIndicatorView(text: "Video paused due to poor network")
+
+    // Blur shown over the remote video when it's absent or stuck (frozen frame).
+    let remoteVideoBlurVw = RemoteVideoBlurView()
+    // Two independent reasons can trigger the same blur; tracked separately so hiding one
+    // doesn't clear a blur still needed for the other reason.
+    var isRemoteConnectionBlurActive = false
+    var isRemoteVideoStreamStuckBlurActive = false
+    var isRemoteNetworkPoorBlurActive = false
+    // Drives poorNetworkIndicatorVw, which reflects either side's poor-network state.
+    var isLocalNetworkPoorIndicatorActive = false
+
     override func viewDidLoad() {
         super.viewDidLoad()
         self.setUpViews()
         self.setUpDragableVw()
+        self.setUpConnectionIndicators()
         self.setUpAgora()
     }
     
@@ -117,6 +134,9 @@ class VideoCallViewC: UIViewController, PIPUsable {
     
     @IBAction func cameraBtn_Action(_ sender: Any) {
         self.isUsingLocalCamera = !self.isUsingLocalCamera
+        // Track the user's manual preference so poor-network recovery never re-enables a camera
+        // the user turned off on purpose.
+        self.connectionManager.updateUserVideoEnabled(self.isUsingLocalCamera)
         self.agoraKit?.enableLocalVideo(self.isUsingLocalCamera)
         if self.isUsingLocalCamera {
             self.cameraBtn.setImage(UIImage(named: "videoOn"), for: .normal)
@@ -156,6 +176,14 @@ class VideoCallViewC: UIViewController, PIPUsable {
 
         // Stop timer
         stopTimer()
+
+        // Reset reconnect/network state so nothing fires after teardown
+        connectionManager.reset()
+        isRemoteConnectionBlurActive = false
+        isRemoteVideoStreamStuckBlurActive = false
+        isRemoteNetworkPoorBlurActive = false
+        isLocalNetworkPoorIndicatorActive = false
+        remoteVideoBlurVw.isHidden = true
 
         // MARK: Stop PiP first
         if pipController?.isPictureInPictureActive == true {
@@ -402,16 +430,28 @@ extension VideoCallViewC: AgoraRtcEngineDelegate {
     }
     
     func rtcEngine(_ engine: AgoraRtcEngineKit, didOfflineOfUid uid: UInt, reason: AgoraUserOfflineReason) {
-        print("didOfflineOfUid")
-        guard self.userConnect else {return}
-//        self.pipStatus = false
-//        self.setUpPipVw()
-        self.delegate?.videoCallData(patientName: self.patientName ?? EMPTY, bookingId: self.bookingId ?? EMPTY, callDuration: self.timerLbl.text ?? EMPTY)
-//        self.leaveChannel()
-//        PIPKit.dismiss(animated: true)
-        disconnectCallAndDismiss()
+        print("didOfflineOfUid reason=\(reason.rawValue)")
+        guard self.userConnect else { return }
+        // Let the connection manager decide: .quit ends the call immediately, .dropped /
+        // .becomeAudience / unknown reasons keep the call alive and start a reconnect window.
+        connectionManager.handleUserOffline(uid: uid, reason: reason)
     }
-    
+
+    func rtcEngine(_ engine: AgoraRtcEngineKit, connectionChangedTo state: AgoraConnectionState, reason: AgoraConnectionChangedReason) {
+        print("connectionChangedTo state=\(state.rawValue) reason=\(reason.rawValue)")
+        connectionManager.handleConnectionStateChanged(state: state, reason: reason)
+    }
+
+    func rtcEngine(_ engine: AgoraRtcEngineKit, networkQuality uid: UInt, txQuality: AgoraNetworkQuality, rxQuality: AgoraNetworkQuality) {
+        // uid == 0 identifies the local user in this callback; any other uid is a remote user
+        // (matched against the joined remote uid inside the manager).
+        if uid == 0 {
+            connectionManager.handleLocalNetworkQuality(txQuality: txQuality, rxQuality: rxQuality)
+        } else {
+            connectionManager.handleRemoteNetworkQuality(uid: uid, txQuality: txQuality, rxQuality: rxQuality)
+        }
+    }
+
     func rtcEngine(_ engine: AgoraRtcEngineKit, reportRtcStats stats: AgoraChannelStats) {
         print("Video Send/Recv: \(stats.txVideoKBitrate)kbps/\(stats.rxVideoKBitrate)kbps")
         if stats.rxVideoKBitrate == 0 {
@@ -423,11 +463,15 @@ extension VideoCallViewC: AgoraRtcEngineDelegate {
             }else{
                 self.videoDefaultVw.isHidden = true
             }
+            // No incoming remote video bitrate even though the call itself is connected —
+            // the remote camera is off, or the stream is frozen/stuck. Blur the last frame.
+            self.setRemoteVideoStreamStuckBlur(true)
         }else{
             self.videoDefaultVw.isHidden = true
             self.timerImage.tintColor = UIColor.white
             self.timerLbl.textColor = UIColor.white
             self.titleNameLbl.tintColor = UIColor.white
+            self.setRemoteVideoStreamStuckBlur(false)
         }
         
 //        if stats.txVideoKBitrate == 0 {
@@ -459,6 +503,7 @@ extension VideoCallViewC: AgoraRtcEngineDelegate {
     func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
         print("didJoinedOfUid")
         self.userConnect = true
+        self.connectionManager.markUserJoined(uid: uid)
         self.startTimer()
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             self.createPiP()

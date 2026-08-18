@@ -65,6 +65,8 @@
 		1820D5702C97FD9300B5C816 /* DraggableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1820D56A2C97FD9300B5C816 /* DraggableView.swift */; };
 		1820D5712C97FD9300B5C816 /* VideoCall+Agora.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1820D56B2C97FD9300B5C816 /* VideoCall+Agora.swift */; };
 		1820D5732C97FD9300B5C816 /* VideoCallViewC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1820D56D2C97FD9300B5C816 /* VideoCallViewC.swift */; };
+		1E313DAB63C517A491809251 /* AgoraCallConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A5591C0B68DD01E4ADE3EA5 /* AgoraCallConnectionManager.swift */; };
+		40370CB3B3C4EDBC74DA75DE /* VideoCallViewC+ConnectionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E57B2EB401795F2179570B3 /* VideoCallViewC+ConnectionState.swift */; };
 		1820D5782C980A9800B5C816 /* VideoFlow.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1820D5772C980A9800B5C816 /* VideoFlow.storyboard */; };
 		1820D57A2C98156900B5C816 /* DIConfigurator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1820D5792C98156900B5C816 /* DIConfigurator.swift */; };
 		1820D57C2C982D1200B5C816 /* FeesDetailViewC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1820D57B2C982D1200B5C816 /* FeesDetailViewC.swift */; };
@@ -425,6 +427,8 @@
 		1820D56A2C97FD9300B5C816 /* DraggableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DraggableView.swift; sourceTree = "<group>"; };
 		1820D56B2C97FD9300B5C816 /* VideoCall+Agora.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "VideoCall+Agora.swift"; sourceTree = "<group>"; };
 		1820D56D2C97FD9300B5C816 /* VideoCallViewC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoCallViewC.swift; sourceTree = "<group>"; };
+		2A5591C0B68DD01E4ADE3EA5 /* AgoraCallConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgoraCallConnectionManager.swift; sourceTree = "<group>"; };
+		8E57B2EB401795F2179570B3 /* VideoCallViewC+ConnectionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VideoCallViewC+ConnectionState.swift"; sourceTree = "<group>"; };
 		1820D5772C980A9800B5C816 /* VideoFlow.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = VideoFlow.storyboard; sourceTree = "<group>"; };
 		1820D5792C98156900B5C816 /* DIConfigurator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DIConfigurator.swift; sourceTree = "<group>"; };
 		1820D57B2C982D1200B5C816 /* FeesDetailViewC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeesDetailViewC.swift; sourceTree = "<group>"; };
@@ -846,6 +850,8 @@
 			children = (
 				1820D56D2C97FD9300B5C816 /* VideoCallViewC.swift */,
 				186394CD2CD9F4F900F2AD80 /* VideoCallViewC+Extension.swift */,
+				2A5591C0B68DD01E4ADE3EA5 /* AgoraCallConnectionManager.swift */,
+				8E57B2EB401795F2179570B3 /* VideoCallViewC+ConnectionState.swift */,
 				1820D56B2C97FD9300B5C816 /* VideoCall+Agora.swift */,
 				186394CF2CD9F66D00F2AD80 /* VideoCallViewC+ApiService.swift */,
 				1820D56A2C97FD9300B5C816 /* DraggableView.swift */,
@@ -1899,6 +1905,8 @@
 				CEC9B09D26CD0521005112D0 /* AddBankDetailPopUp.swift in Sources */,
 				18BBB9732CDE1D3200B436BC /* AppDelegate+Extension.swift in Sources */,
 				1820D5732C97FD9300B5C816 /* VideoCallViewC.swift in Sources */,
+				1E313DAB63C517A491809251 /* AgoraCallConnectionManager.swift in Sources */,
+				40370CB3B3C4EDBC74DA75DE /* VideoCallViewC+ConnectionState.swift in Sources */,
 				1885A11C2795ACFB00AAB5C6 /* CustomPlayerControlsView.swift in Sources */,
 				18F9568C2C8ACE51006F6727 /* HomeVC+Extension.swift in Sources */,
 				CEFA0CB126C4435C006587B2 /* CommonClass.swift in Sources */,

@@ -35,6 +35,23 @@ class HomeVC: UIViewController {
     var pendingBookingData = PendingBookingData()
     var upcomingBookingData = [UpcomingBooking]()
     var previousBookingData = PreviousBookingData()
+    var allBookingData = [PastCall]()
+    
+    var currentPage = 1
+    var isLoadingList = false
+    var isLastPage = false
+    
+    lazy var refreshControl: UIRefreshControl = {
+        let refreshControl = UIRefreshControl()
+        refreshControl.addTarget(self, action: #selector(refreshData), for: .valueChanged)
+        return refreshControl
+    }()
+    
+    lazy var bottomLoader: UIActivityIndicatorView = {
+        let loader = UIActivityIndicatorView(style: .medium)
+        loader.frame = CGRect(x: 0, y: 0, width: self.bookingTblVw.bounds.width, height: 44)
+        return loader
+    }()
     
     var sinchToken: String?
     var rtcAgoroToken: String?
@@ -48,7 +65,12 @@ class HomeVC: UIViewController {
         self.registerXib()
         self.setUpViews()
         self.setUpTable()
-        self.performPendingBooking()
+        // self.performPendingBooking()
+        self.performAllBooking(isRefresh: true)
+    }
+    
+    @objc func refreshData() {
+        self.performAllBooking(isRefresh: true)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -66,11 +88,44 @@ class HomeVC: UIViewController {
     }
     
     private func setUpViews(){
-        self.previousStackVw.isHidden = false
-        self.stackHeight.constant = 44
-        self.followUpTopConst.constant = 10
+//        self.previousStackVw.isHidden = true
+//        self.stackVw.isHidden = true
+        self.stackHeight.constant = 100
+        self.followUpTopConst.constant = 0
+        
+        // Force fully collapse stack views to remove empty space
+        self.stackVw.constraints.forEach { if $0.firstAttribute == .height { $0.isActive = false } }
+        let sHeight = self.stackVw.heightAnchor.constraint(equalToConstant: 0)
+        sHeight.priority = .defaultHigh
+        sHeight.isActive = true
+        
+        self.previousStackVw.constraints.forEach { if $0.firstAttribute == .height { $0.isActive = false } }
+        let psHeight = self.previousStackVw.heightAnchor.constraint(equalToConstant: 0)
+        psHeight.priority = .defaultHigh
+        psHeight.isActive = true
+        
+        // Remove the storyboard margins around the hidden stack views
+        self.view.constraints.forEach { constraint in
+            // Remove gap between stackVw and searchVw
+            if (constraint.firstItem === self.searchVw && constraint.firstAttribute == .top) ||
+               (constraint.secondItem === self.searchVw && constraint.secondAttribute == .top) {
+                constraint.constant = 0
+            }
+            // Keep gap between logo and stackVw so searchVw isn't overlapping
+            if (constraint.firstItem === self.stackVw && constraint.firstAttribute == .top) ||
+               (constraint.secondItem === self.stackVw && constraint.secondAttribute == .top) {
+                constraint.constant = 12
+            }
+            // Remove gap between previousStackVw and table view
+            if (constraint.firstItem === self.bookingTblVw && constraint.firstAttribute == .top) ||
+               (constraint.secondItem === self.bookingTblVw && constraint.secondAttribute == .top) {
+                // Set to 0 to completely eliminate the empty space from the hidden segment
+                constraint.constant = 0
+            }
+        }
         self.navigationController?.isNavigationBarHidden = true
-        GlobalMethods.shared.provideCornerRadiusMultipleView(vw: [self.btnMenu, self.btnNotification, self.stackVw, self.searchVw, self.previousStackVw], cornerRadius: 12, borderColor: UIColor.gray.cgColor, borderWidth: 1)
+        GlobalMethods.shared.provideCornerRadiusMultipleView(vw: [self.btnMenu, self.btnNotification, self.searchVw], cornerRadius: 12, borderColor: UIColor.gray.cgColor, borderWidth: 1) // Removed stackVw and previousStackVw
+        // GlobalMethods.shared.provideCornerRadiusMultipleView(vw: [self.btnMenu, self.btnNotification, self.stackVw, self.searchVw, self.previousStackVw], cornerRadius: 12, borderColor: UIColor.gray.cgColor, borderWidth: 1)
         GlobalMethods.shared.provideCornerRadius(view: self.articleBtn, cornerRadius: 12, borderColor: UIColor.clear.cgColor, borderWidth: 0)
         GlobalMethods.shared.provideCornerRadius(view: self.askFreeBtn, cornerRadius: 12, borderColor: UIColor(named: "ButtonBlueColor")!.cgColor, borderWidth: 1)
         GlobalMethods.shared.provideCornerRadiusMultipleView(vw: [self.pendingBtn, self.upcomingBtn, self.previousBtn, self.followUpBtn, self.previousBookingBtn], cornerRadius: 12, borderColor: UIColor.clear.cgColor, borderWidth: 0)
@@ -100,6 +155,11 @@ class HomeVC: UIViewController {
         UISegmentedControl.appearance().setTitleTextAttributes(titleTextAttributes, for: .selected)
         let titleTextAttributes1 = [NSAttributedString.Key.foregroundColor: UIColor.gray]
         UISegmentedControl.appearance().setTitleTextAttributes(titleTextAttributes1, for: .normal)
+        if #available(iOS 10.0, *) {
+            self.bookingTblVw.refreshControl = refreshControl
+        } else {
+            self.bookingTblVw.addSubview(refreshControl)
+        }
     }
     
     func getAgeFromDOF(date: String) -> (Int,Int,Int) {
@@ -143,6 +203,7 @@ class HomeVC: UIViewController {
         }
     }
     
+    /*
     @IBAction func pendingBtn_Action(_ sender: UIButton){
         self.bookingStatus = .PENDING
         self.previousStackVw.isHidden = false
@@ -197,6 +258,7 @@ class HomeVC: UIViewController {
         self.bookingTblVw.reloadData()
         self.setUpSegment(selectedBtn: self.previousBookingBtn, unSelectedBtn: [self.followUpBtn])
     }
+    */
     
     @IBAction func switchTapped(_ sender: UISwitch) {
         if (sender.isOn) {
@@ -217,16 +279,16 @@ class HomeVC: UIViewController {
     }
     
     @objc func acceptBtnTap(_ sender: UIButton){
-        self.performConfirmBooking(bookingId: self.pendingBookingData.Pending?[sender.tag].bookingId ?? EMPTY)
+        self.performConfirmBooking(bookingId: self.allBookingData[sender.tag].id ?? EMPTY)
     }
     
     @objc func swapBtnTap(_ sender: UIButton){
         let view = UIStoryboard.init(name: "Auth", bundle: nil)
         let vc = view.instantiateViewController(withIdentifier: "RejectPopVC") as! RejectPopVC
         vc.rejectCallBack = {
-            self.performPendingBooking()
+            self.performAllBooking(isRefresh: true)
         }
-        vc.bookingId = self.pendingBookingData.Pending?[sender.tag].bookingId ?? EMPTY
+        vc.bookingId = self.allBookingData[sender.tag].id ?? EMPTY
         vc.modalPresentationStyle = .overCurrentContext
         vc.modalTransitionStyle = .crossDissolve
         self.present(vc, animated: true, completion: nil)
@@ -234,22 +296,7 @@ class HomeVC: UIViewController {
     
     @objc func reasonForCallBtnTap(_ sender: UIButton){
         let action = ReasonForVisitPopUp()
-        switch self.bookingStatus{
-        case .PENDING:
-            if self.pendingAcceptedStatus == .PENDING {
-                action.message = self.pendingBookingData.Pending?[sender.tag].reasonForCall ?? EMPTY
-            }else{
-                action.message = self.pendingBookingData.Accepted?[sender.tag].reasonForCall ?? EMPTY
-            }
-        case .UPCOMING:
-            action.message = self.upcomingBookingData[sender.tag].reasonForCall ?? EMPTY
-        case .PREVIOUS:
-            if self.followUpPreviousStatus == .FOLLOW_UP{
-                action.message = self.previousBookingData.FollowUp?[sender.tag].reasonForCall ?? EMPTY
-            }else{
-                action.message = self.previousBookingData.Previous?[sender.tag].reasonForCall ?? EMPTY
-            }
-        }
+        action.message = self.allBookingData[sender.tag].reasonVisit ?? EMPTY
         action.modalTransitionStyle = .crossDissolve
         action.modalPresentationStyle = .overCurrentContext
         self.present(action, animated: true)
@@ -259,81 +306,43 @@ class HomeVC: UIViewController {
         if let _ = self.findVideoCallController() {
             AppToast.showMessage(message: "Video call is already in progress")
         }else{
-            self.sinchToken = self.upcomingBookingData[sender.tag].sinchId ?? EMPTY
-            self.userId = self.upcomingBookingData[sender.tag].userId ?? EMPTY
-            self.patientName = self.upcomingBookingData[sender.tag].patientName ?? EMPTY
-            self.bookingId = self.upcomingBookingData[sender.tag].bookingId ?? EMPTY
+            self.sinchToken = self.allBookingData[sender.tag].devicetoken ?? EMPTY
+            self.userId = self.allBookingData[sender.tag].userId ?? EMPTY
+            self.patientName = self.allBookingData[sender.tag].memberName ?? EMPTY
+            self.bookingId = self.allBookingData[sender.tag].id ?? EMPTY
             self.doctorId = USER_DEFAULTS.string(forKey: Constants.userId) ?? EMPTY
             self.getToken()
         }
     }
     
     @objc func chatBtnTap(_ sender: UIButton){
-        let upcoming = self.upcomingBookingData[sender.tag]
+        let booking = self.allBookingData[sender.tag]
         let viewC = DIConfigurator.sharedInst().getChatViewC()
         viewC.senderId = USER_DEFAULTS.string(forKey: Constants.userId)
-        viewC.recieverId = upcoming.userId ?? EMPTY
-        viewC.roomId = upcoming.bookingId ?? EMPTY
+        viewC.recieverId = booking.userId ?? EMPTY
+        viewC.roomId = booking.id ?? EMPTY
         viewC.profilePic = EMPTY
-        viewC.patientName = upcoming.patientName ?? EMPTY
-        viewC.sinchToken = upcoming.sinchId ?? EMPTY
-        viewC.userId = upcoming.userId ?? EMPTY
-        viewC.bookingId = upcoming.bookingId ?? EMPTY
+        viewC.patientName = booking.memberName ?? EMPTY
+        viewC.sinchToken = booking.devicetoken ?? EMPTY
+        viewC.userId = booking.userId ?? EMPTY
+        viewC.bookingId = booking.id ?? EMPTY
         viewC.doctorId = USER_DEFAULTS.string(forKey: Constants.userId) ?? EMPTY
         self.navigationController?.pushViewController(viewC, animated: true)
     }
     
     @objc func chatBtnPreviousTap(_ sender: UIButton){
-        if self.followUpPreviousStatus == .FOLLOW_UP{
-            let followUp = self.previousBookingData.FollowUp?[sender.tag]
-            let viewC = DIConfigurator.sharedInst().getChatViewC()
-            viewC.senderId = USER_DEFAULTS.string(forKey: Constants.userId)
-            viewC.recieverId = followUp?.userId ?? EMPTY
-            viewC.roomId = followUp?.bookingId ?? EMPTY
-            viewC.profilePic = EMPTY
-            viewC.patientName = followUp?.patientName ?? EMPTY
-            viewC.sinchToken = followUp?.sinchKey ?? EMPTY
-            viewC.userId = followUp?.userId ?? EMPTY
-            viewC.bookingId = followUp?.bookingId ?? EMPTY
-            viewC.doctorId = USER_DEFAULTS.string(forKey: Constants.userId) ?? EMPTY
-            self.navigationController?.pushViewController(viewC, animated: true)
-        }else{
-            let followUp = self.previousBookingData.Previous?[sender.tag]
-            let viewC = DIConfigurator.sharedInst().getChatViewC()
-            viewC.senderId = USER_DEFAULTS.string(forKey: Constants.userId)
-            viewC.recieverId = followUp?.userId ?? EMPTY
-            viewC.roomId = followUp?.bookingId ?? EMPTY
-            viewC.profilePic = EMPTY
-            viewC.patientName = followUp?.patientName ?? EMPTY
-            viewC.sinchToken = followUp?.sinchKey ?? EMPTY
-            viewC.userId = followUp?.userId ?? EMPTY
-            viewC.bookingId = followUp?.bookingId ?? EMPTY
-            viewC.doctorId = USER_DEFAULTS.string(forKey: Constants.userId) ?? EMPTY
-            self.navigationController?.pushViewController(viewC, animated: true)
-        }
+        self.chatBtnTap(sender)
     }
     
     @objc func prescriptionBtnTap(_ sender: UIButton){
-        if self.followUpPreviousStatus == .FOLLOW_UP{
-            if self.previousBookingData.FollowUp?[sender.tag].prescription ?? EMPTY == EMPTY {
-                let viewC = PrescriptionViewController()
-                viewC.bookingId = self.previousBookingData.FollowUp?[sender.tag].bookingId ?? EMPTY
-                self.navigationController?.pushViewController(viewC, animated: true)
-            }else{
-                let vc = PrescriptionViewVC()
-                vc.urlString = self.previousBookingData.FollowUp?[sender.tag].prescription ?? EMPTY
-                self.navigationController?.pushViewController(vc, animated: true)
-            }
+        if self.allBookingData[sender.tag].filePdf ?? EMPTY == EMPTY {
+            let viewC = PrescriptionViewController()
+            viewC.bookingId = self.allBookingData[sender.tag].id ?? EMPTY
+            self.navigationController?.pushViewController(viewC, animated: true)
         }else{
-            if self.previousBookingData.Previous?[sender.tag].prescription ?? EMPTY == EMPTY {
-                let viewC = PrescriptionViewController()
-                viewC.bookingId = self.previousBookingData.Previous?[sender.tag].bookingId ?? EMPTY
-                self.navigationController?.pushViewController(viewC, animated: true)
-            }else{
-                let vc = PrescriptionViewVC()
-                vc.urlString = self.previousBookingData.Previous?[sender.tag].prescription ?? EMPTY
-                self.navigationController?.pushViewController(vc, animated: true)
-            }
+            let vc = PrescriptionViewVC()
+            vc.urlString = self.allBookingData[sender.tag].filePdf ?? EMPTY
+            self.navigationController?.pushViewController(vc, animated: true)
         }
     }
 }

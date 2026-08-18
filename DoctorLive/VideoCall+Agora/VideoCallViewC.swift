@@ -66,9 +66,10 @@ class VideoCallViewC: UIViewController, PIPUsable {
 
     // MARK: - Connection / network state
     let connectionManager = AgoraCallConnectionManager()
-    let reconnectingIndicatorVw = CallStatusIndicatorView(text: "Reconnecting…")
+    let reconnectingIndicatorVw = BannerStatusIndicatorView(text: "Reconnecting…", bgColor: UIColor(red: 0x19/255.0, green: 0x76/255.0, blue: 0xD2/255.0, alpha: 1.0))
     let poorNetworkIndicatorVw = CallStatusIndicatorView(text: "Poor network connection")
     let videoDisabledIndicatorVw = CallStatusIndicatorView(text: "Video paused due to poor network")
+    lazy var weakConnectionIndicatorVw = BannerStatusIndicatorView(text: "Weak connection from \(self.patientName ?? "patient")", bgColor: UIColor(red: 0xFF/255.0, green: 0xA5/255.0, blue: 0x00/255.0, alpha: 1.0))
 
     // Blur shown over the remote video when it's absent or stuck (frozen frame).
     let remoteVideoBlurVw = RemoteVideoBlurView()
@@ -184,6 +185,7 @@ class VideoCallViewC: UIViewController, PIPUsable {
         isRemoteNetworkPoorBlurActive = false
         isLocalNetworkPoorIndicatorActive = false
         remoteVideoBlurVw.isHidden = true
+        weakConnectionIndicatorVw.hide()
 
         // MARK: Stop PiP first
         if pipController?.isPictureInPictureActive == true {
@@ -451,39 +453,38 @@ extension VideoCallViewC: AgoraRtcEngineDelegate {
             connectionManager.handleRemoteNetworkQuality(uid: uid, txQuality: txQuality, rxQuality: rxQuality)
         }
     }
+    
+    func rtcEngine(_ engine: AgoraRtcEngineKit, remoteAudioStats stats: AgoraRtcRemoteAudioStats) {
+        connectionManager.handleRemoteAudioStats(uid: stats.uid, audioLossRate: UInt(stats.audioLossRate))
+    }
+
+    func rtcEngine(_ engine: AgoraRtcEngineKit, remoteVideoStats stats: AgoraRtcRemoteVideoStats) {
+        connectionManager.handleRemoteVideoStats(uid: stats.uid, packetLossRate: UInt(stats.packetLossRate))
+    }
 
     func rtcEngine(_ engine: AgoraRtcEngineKit, reportRtcStats stats: AgoraChannelStats) {
-        print("Video Send/Recv: \(stats.txVideoKBitrate)kbps/\(stats.rxVideoKBitrate)kbps")
+        // print("Video Send/Recv: \(stats.txVideoKBitrate)kbps/\(stats.rxVideoKBitrate)kbps")
+        
+        // Hide the default placeholder view since we are handling remote video and blur now
+        self.videoDefaultVw.isHidden = true
+        
+        // Ensure overlay labels remain visible against the dark video/blur background
+        self.timerImage.tintColor = UIColor.white
+        self.timerLbl.textColor = UIColor.white
+        self.titleNameLbl.tintColor = UIColor.white
+        
+        connectionManager.handleRemoteVideoBitrate(rxVideoKBitrate: Int(stats.rxVideoKBitrate))
+        
         if stats.rxVideoKBitrate == 0 {
-            if self.pipStatus {
-                self.videoDefaultVw.isHidden = false
-                self.timerImage.tintColor = UIColor.black
-                self.timerLbl.textColor = UIColor.black
-                self.titleNameLbl.tintColor = UIColor.black
-            }else{
-                self.videoDefaultVw.isHidden = true
-            }
             // No incoming remote video bitrate even though the call itself is connected —
             // the remote camera is off, or the stream is frozen/stuck. Blur the last frame.
             self.setRemoteVideoStreamStuckBlur(true)
         }else{
-            self.videoDefaultVw.isHidden = true
-            self.timerImage.tintColor = UIColor.white
-            self.timerLbl.textColor = UIColor.white
-            self.titleNameLbl.tintColor = UIColor.white
             self.setRemoteVideoStreamStuckBlur(false)
         }
-        
-//        if stats.txVideoKBitrate == 0 {
-//            self.localCanvas.view = nil
-//            self.agoraKit?.setupLocalVideo(self.localCanvas)
-//        }else{
-//            self.localCanvas.view = self.draggableView
-//            self.agoraKit?.setupLocalVideo(self.localCanvas)
-//        }
     }
     
-//    func rtcEngine(_ engine: AgoraRtcEngineKit, firstRemoteVideoDecodedOfUid uid: UInt, size: CGSize, elapsed: Int) {
+//    func rtcEngine(_ engine: AgoraRtwhatcEngineKit, firstRemoteVideoDecodedOfUid uid: UInt, size: CGSize, elapsed: Int) {
 //        print("=====================\(uid)==============================")
 //        print(size)
 //        self.remoteCanvas = AgoraRtcVideoCanvas()
@@ -625,7 +626,6 @@ AVPictureInPictureControllerDelegate {
             // FORCE SWIFTUI TO REBUILD VIEWS
 //            self.refreshID = UUID()
             self.restoreToVideoCallScreen()
-            
         }
     }
 

@@ -17,18 +17,31 @@ extension VideoCallViewC {
     /// changes are required.
     func setUpConnectionIndicators() {
         connectionManager.delegate = self
+        
+        let bannerStack = UIStackView(arrangedSubviews: [reconnectingIndicatorVw, weakConnectionIndicatorVw])
+        bannerStack.axis = .vertical
+        bannerStack.spacing = 0
+        bannerStack.translatesAutoresizingMaskIntoConstraints = false
+        bannerStack.layer.shadowColor = UIColor.black.cgColor
+        bannerStack.layer.shadowOpacity = 0.3
+        bannerStack.layer.shadowOffset = CGSize(width: 0, height: 4)
+        bannerStack.layer.shadowRadius = 4
+        self.view.addSubview(bannerStack)
+        
+        NSLayoutConstraint.activate([
+            bannerStack.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
+            bannerStack.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+            bannerStack.trailingAnchor.constraint(equalTo: self.view.trailingAnchor)
+        ])
 
-        [reconnectingIndicatorVw, poorNetworkIndicatorVw, videoDisabledIndicatorVw].forEach {
+        [poorNetworkIndicatorVw, videoDisabledIndicatorVw].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             $0.isHidden = true
             self.view.addSubview($0)
         }
 
         NSLayoutConstraint.activate([
-            reconnectingIndicatorVw.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 12),
-            reconnectingIndicatorVw.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
-
-            poorNetworkIndicatorVw.topAnchor.constraint(equalTo: reconnectingIndicatorVw.bottomAnchor, constant: 8),
+            poorNetworkIndicatorVw.topAnchor.constraint(equalTo: bannerStack.bottomAnchor, constant: 8),
             poorNetworkIndicatorVw.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
 
             videoDisabledIndicatorVw.topAnchor.constraint(equalTo: poorNetworkIndicatorVw.bottomAnchor, constant: 8),
@@ -169,6 +182,17 @@ extension VideoCallViewC: AgoraCallConnectionManagerDelegate {
             self.updatePoorNetworkIndicator()
         }
     }
+    
+    func connectionManager(_ manager: AgoraCallConnectionManager, didChangeRemoteConnectionWeak weak: Bool) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            if weak {
+                self.weakConnectionIndicatorVw.show()
+            } else {
+                self.weakConnectionIndicatorVw.hide()
+            }
+        }
+    }
 }
 
 // MARK: - Remote video blur overlay
@@ -214,11 +238,11 @@ final class RemoteVideoBlurView: UIView {
         stack.alignment = .center
         stack.spacing = 8
         stack.translatesAutoresizingMaskIntoConstraints = false
-        blurView.contentView.addSubview(stack)
-        NSLayoutConstraint.activate([
-            stack.centerXAnchor.constraint(equalTo: blurView.contentView.centerXAnchor),
-            stack.centerYAnchor.constraint(equalTo: blurView.contentView.centerYAnchor),
-        ])
+//        blurView.contentView.addSubview(stack)
+//        NSLayoutConstraint.activate([
+//            stack.centerXAnchor.constraint(equalTo: blurView.contentView.centerXAnchor),
+//            stack.centerYAnchor.constraint(equalTo: blurView.contentView.centerYAnchor),
+//        ])
 
         isUserInteractionEnabled = false
     }
@@ -277,6 +301,63 @@ final class CallStatusIndicatorView: UIView {
             label.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -14),
             label.topAnchor.constraint(equalTo: topAnchor, constant: 6),
             label.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -6),
+        ])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    func show() {
+        setHidden(false, animated: true)
+    }
+
+    func hide() {
+        setHidden(true, animated: true)
+    }
+
+    func setHidden(_ hidden: Bool, animated: Bool) {
+        guard isHidden != hidden else { return }
+        guard animated else {
+            isHidden = hidden
+            return
+        }
+        if !hidden {
+            alpha = 0
+            isHidden = false
+        }
+        UIView.animate(withDuration: 0.2, animations: {
+            self.alpha = hidden ? 0 : 1
+        }, completion: { _ in
+            self.isHidden = hidden
+        })
+    }
+}
+
+// MARK: - Full Width Banner
+
+final class BannerStatusIndicatorView: UIView {
+
+    private let label = UILabel()
+
+    init(text: String, bgColor: UIColor) {
+        super.init(frame: .zero)
+        
+        isHidden = true
+        backgroundColor = bgColor
+
+        label.text = text
+        label.textColor = .white
+        label.font = .systemFont(ofSize: 14, weight: .medium)
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(label)
+
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
+            label.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+            label.topAnchor.constraint(equalTo: topAnchor, constant: 8),
+            label.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
         ])
     }
 

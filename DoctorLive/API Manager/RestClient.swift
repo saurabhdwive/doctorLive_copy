@@ -75,6 +75,7 @@ enum MediaType1: String {
     case appVersionPopUp
     case generateAndSendPush
     case getToken
+    case allBooking
 
     var resource: (method: HTTPMethod, endPoint: String) {
         switch self {
@@ -181,6 +182,8 @@ enum MediaType1: String {
             return (.post, "user/generateAndSendPush")
         case .getToken:
             return (.post, "user/getToken")
+        case .allBooking:
+            return (.post, "allbooking")
         }
     }
 }

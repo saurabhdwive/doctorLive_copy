@@ -65,6 +65,7 @@ protocol ApiInterface {
     
     func generateAndSendPush<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
     func getToken<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
+    func allBooking<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
     
 }
 
@@ -272,6 +273,10 @@ final class Network: ApiInterface {
     
     func getToken<T>(parameters: [String : Any]?,header:String?) -> Promise<T> where T : Decodable {
         return appVersionPopUp.requestWithParams(.getToken , parameters: parameters,header: header)
+    }
+    
+    func allBooking<T>(parameters: [String : Any]?, header: String?) -> Promise<T> where T : Decodable {
+        return client.requestWithParams(.allBooking, parameters: parameters, header: header)
     }
     
    

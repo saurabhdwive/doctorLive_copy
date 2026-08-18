@@ -45,6 +45,9 @@ protocol AgoraCallConnectionManagerDelegate: AnyObject {
     /// just degraded/stuttering — the caller should visually flag it (e.g. blur the remote view)
     /// rather than doing anything to the local camera.
     func connectionManager(_ manager: AgoraCallConnectionManager, didChangeRemoteVideoStuckBecauseOfNetwork stuck: Bool)
+    
+    /// The remote user's connection is weak based on high packet/audio loss or poor rx quality.
+    func connectionManager(_ manager: AgoraCallConnectionManager, didChangeRemoteConnectionWeak weak: Bool)
 }
 
 /// Tracks Agora connection/reconnection state and local network quality, and decides when to
@@ -94,6 +97,15 @@ final class AgoraCallConnectionManager {
     private var poorRemoteNetworkCount = 0
     private var goodRemoteNetworkCount = 0
     private var reconnectTimer: Timer?
+    
+    // Weak connection state
+    private var remoteAudioLossCount = 0
+    private var remoteVideoLossCount = 0
+    private var isRemoteConnectionWeak = false
+    private var weakConnectionShowTime: TimeInterval = 0
+    private let minBannerDisplaySeconds: TimeInterval = 5.0
+    private var currentRxQuality: AgoraNetworkQuality = .unknown
+    private var isRemoteVideoBitrateZero = false
 
     private func runOnMain(_ block: @escaping () -> Void) {
         if Thread.isMainThread {
@@ -131,6 +143,13 @@ final class AgoraCallConnectionManager {
             self.poorRemoteNetworkCount = 0
             self.goodRemoteNetworkCount = 0
             self.isRemoteVideoStuckBecauseOfNetwork = false
+            
+            self.remoteAudioLossCount = 0
+            self.remoteVideoLossCount = 0
+            self.isRemoteConnectionWeak = false
+            self.weakConnectionShowTime = 0
+            self.currentRxQuality = .unknown
+            self.isRemoteVideoBitrateZero = false
         }
     }
 
@@ -272,11 +291,14 @@ final class AgoraCallConnectionManager {
     /// engine — it only tells the caller the remote feed is likely to look stuck/degraded so it
     /// can show a visual hint (e.g. blur) while audio and the call itself stay untouched.
     func handleRemoteNetworkQuality(uid: UInt, txQuality: AgoraNetworkQuality, rxQuality: AgoraNetworkQuality) {
-        let poorNetwork = Self.isPoor(txQuality) || Self.isPoor(rxQuality)
-
         runOnMain { [weak self] in
             guard let self else { return }
             guard uid == self.lastRemoteUid else { return }
+            
+            self.currentRxQuality = rxQuality
+            self.evaluateWeakConnection()
+            
+            let poorNetwork = Self.isPoor(txQuality) || Self.isPoor(rxQuality)
 
             if poorNetwork {
                 self.poorRemoteNetworkCount += 1
@@ -306,6 +328,59 @@ final class AgoraCallConnectionManager {
             return false
         @unknown default:
             return false
+        }
+    }
+    
+    // MARK: - Weak Connection Evaluation
+    
+    func handleRemoteAudioStats(uid: UInt, audioLossRate: UInt) {
+        runOnMain { [weak self] in
+            guard let self = self, uid == self.lastRemoteUid else { return }
+            if audioLossRate > 15 {
+                self.remoteAudioLossCount += 1
+            } else {
+                self.remoteAudioLossCount = 0
+            }
+            self.evaluateWeakConnection()
+        }
+    }
+
+    func handleRemoteVideoStats(uid: UInt, packetLossRate: UInt) {
+        runOnMain { [weak self] in
+            guard let self = self, uid == self.lastRemoteUid else { return }
+            if packetLossRate > 15 {
+                self.remoteVideoLossCount += 1
+            } else {
+                self.remoteVideoLossCount = 0
+            }
+            self.evaluateWeakConnection()
+        }
+    }
+    
+    func handleRemoteVideoBitrate(rxVideoKBitrate: Int) {
+        runOnMain { [weak self] in
+            guard let self = self else { return }
+            self.isRemoteVideoBitrateZero = (rxVideoKBitrate == 0)
+            self.evaluateWeakConnection()
+        }
+    }
+    
+    private func evaluateWeakConnection() {
+        let qualityWeak = Self.isPoor(currentRxQuality)
+        let lossWeak = remoteAudioLossCount >= 3 || remoteVideoLossCount >= 3
+        let bitrateWeak = isRemoteVideoBitrateZero
+        
+        if qualityWeak || lossWeak || bitrateWeak {
+            if !isRemoteConnectionWeak {
+                isRemoteConnectionWeak = true
+                weakConnectionShowTime = Date().timeIntervalSince1970
+                delegate?.connectionManager(self, didChangeRemoteConnectionWeak: true)
+            }
+        } else {
+            if isRemoteConnectionWeak, Date().timeIntervalSince1970 - weakConnectionShowTime >= minBannerDisplaySeconds {
+                isRemoteConnectionWeak = false
+                delegate?.connectionManager(self, didChangeRemoteConnectionWeak: false)
+            }
         }
     }
 }

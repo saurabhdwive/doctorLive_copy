@@ -1,3 +1,4 @@
+
 //
 //  HomeVC+ApiService.swift
 //  DoctorLive
@@ -53,6 +54,7 @@ extension HomeVC {
 }
 
 //MARK: - PENDING
+/*
 extension HomeVC {
     func pendingBooking(param: [String: String]){
         LoaderController.sharedInstance.showLoader(view: self.view)
@@ -107,8 +109,10 @@ extension HomeVC {
         }
     }
 }
+*/
 
 //MARK: - UPCOMING
+/*
 extension HomeVC {
     func upcomingBooking(param: [String: String]){
         LoaderController.sharedInstance.showLoader(view: self.view)
@@ -155,8 +159,10 @@ extension HomeVC {
         }
     }
 }
+*/
 
 //MARK: - PREVIOUS
+/*
 extension HomeVC {
     func pastBooking(param: [String: String]){
         LoaderController.sharedInstance.showLoader(view: self.view)
@@ -213,6 +219,86 @@ extension HomeVC {
         }
     }
 }
+*/
+
+//MARK: - ALL BOOKING
+extension HomeVC {
+    func allBooking(param: [String: String], showLoader: Bool = true){
+        if showLoader {
+            LoaderController.sharedInstance.showLoader(view: self.view)
+        }
+        firstly {
+            service!.allBooking(parameters: param, header: "DeviceToken")
+        }.done { (model: PastBookingModel) in
+            self.handleAllBookingResponse(model: model, hideLoader: showLoader)
+        }.catch { (error) in
+            DispatchQueue.main.async {
+                if showLoader {
+                    LoaderController.sharedInstance.removeLoader()
+                }
+            }
+        }.finally {
+            DispatchQueue.main.async {
+                if showLoader {
+                    LoaderController.sharedInstance.removeLoader()
+                }
+            }
+        }
+    }
+    
+    func performAllBooking(isRefresh: Bool = true) {
+        if isRefresh {
+            self.currentPage = 1
+            self.isLastPage = false
+        }
+        
+        if self.isLoadingList { return }
+        self.isLoadingList = true
+        
+        var showMainLoader = false
+        if !isRefresh {
+            self.bottomLoader.startAnimating()
+            self.bookingTblVw.tableFooterView = self.bottomLoader
+        } else if !self.refreshControl.isRefreshing {
+            showMainLoader = true
+        }
+        
+        var parameter = [String: String]()
+        guard let token = UserDefaults.standard.string(forKey: Constants.accessToken) else { return }
+        guard let code = UserDefaults.standard.string(forKey: Constants.languageCode) else { return }
+        parameter = ["language_type": code,
+                     "token": token,
+                     "page": "\(self.currentPage)"]
+        self.allBooking(param: parameter, showLoader: showMainLoader)
+    }
+    
+    func handleAllBookingResponse(model: PastBookingModel, hideLoader: Bool = true) {
+        self.isLoadingList = false
+        self.refreshControl.endRefreshing()
+        self.bottomLoader.stopAnimating()
+        self.bookingTblVw.tableFooterView = nil
+        
+        if model.status == "SUCCESS" {
+            if self.currentPage == 1 {
+                self.allBookingData.removeAll()
+            }
+            if let calls = model.pastbooking?.call {
+                if calls.count == 0 {
+                    self.isLastPage = true
+                } else {
+                    self.allBookingData.append(contentsOf: calls)
+                }
+            } else {
+                self.isLastPage = true
+            }
+            self.bookingTblVw.reloadData()
+            if hideLoader { LoaderController.sharedInstance.removeLoader() }
+        } else {
+            AppToast.showMessage(message: model.message ?? "")
+            if hideLoader { LoaderController.sharedInstance.removeLoader() }
+        }
+    }
+}
 
 //MARK: - CONFIRM BOOKING
 extension HomeVC {
@@ -247,7 +333,7 @@ extension HomeVC {
     
     func confirmBoking(model: BookingStatusModel){
         if model.status == "SUCCESS" {
-            self.performPendingBooking()
+            self.performAllBooking(isRefresh: true)
         } else {
             AppToast.showMessage(message: model.message ?? "")
         }
@@ -287,7 +373,7 @@ extension HomeVC {
     
     func endBooking(model: BookingStatusModel){
         if model.status == "SUCCESS" {
-            self.performUpcomingBooking()
+            self.performAllBooking(isRefresh: true)
         } else {
             AppToast.showMessage(message: model.message ?? "")
         }

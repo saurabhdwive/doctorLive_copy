@@ -9,6 +9,7 @@ import Foundation
 import UIKit
 
 extension HomeVC: UITableViewDelegate{
+/*
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch self.bookingStatus {
         case .PENDING:
@@ -27,14 +28,27 @@ extension HomeVC: UITableViewDelegate{
             }
         }
     }
+*/
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return self.allBookingData.count
+    }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return UITableView.automaticDimension
     }
     
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        let lastElement = self.allBookingData.count - 1
+        if indexPath.row == lastElement && !self.isLoadingList && !self.isLastPage {
+            self.currentPage += 1
+            self.performAllBooking(isRefresh: false)
+        }
+    }
+    
 }
 
 extension HomeVC: UITableViewDataSource {
+/*
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         switch self.bookingStatus{
         case .PENDING:
@@ -154,6 +168,109 @@ extension HomeVC: UITableViewDataSource {
             cell.prescriptionBtn.addTarget(self, action: #selector(prescriptionBtnTap), for: .touchUpInside)
             cell.reasonForCallBtn.tag = indexPath.row
             cell.reasonForCallBtn.addTarget(self, action: #selector(reasonForCallBtnTap), for: .touchUpInside)
+            return cell
+        }
+    }
+*/
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let booking = self.allBookingData[indexPath.row]
+        let patientName = (booking.memberName == "Me") ? (booking.name ?? EMPTY) : (booking.memberName ?? EMPTY)
+        let dateString = "\(booking.scheduleDate ?? EMPTY), \(booking.scheduleTime ?? EMPTY)"
+        let ageString = "\(booking.memberDob ?? EMPTY) yrs, \(self.setUpGender(gender: booking.memberGender ?? EMPTY))"
+        let statusName = booking.bookingStatusName ?? EMPTY
+        
+        if statusName == "Pending" {
+            let cell = self.bookingTblVw.dequeueReusableCell(withIdentifier: PendingHomeCell.className)as! PendingHomeCell
+            cell.patientNameLbl.text = patientName
+            cell.dateLbl.text = dateString
+            cell.yearGenderLbl.text = ageString
+            cell.acceptBtn.isHidden = false
+            cell.swapBtn.isHidden = false
+            
+            cell.acceptBtn.tag = indexPath.row
+            cell.acceptBtn.addTarget(self, action: #selector(acceptBtnTap), for: .touchUpInside)
+            cell.swapBtn.tag = indexPath.row
+            cell.swapBtn.addTarget(self, action: #selector(swapBtnTap), for: .touchUpInside)
+            cell.reasonForCallBtn.tag = indexPath.row
+            cell.reasonForCallBtn.addTarget(self, action: #selector(reasonForCallBtnTap), for: .touchUpInside)
+            return cell
+        } else if statusName == "Payment Success" {
+            let cell = self.bookingTblVw.dequeueReusableCell(withIdentifier: UpcomingHomeCell.className)as! UpcomingHomeCell
+            cell.patientNameLbl.text = patientName
+            cell.dateLbl.text = dateString
+            cell.yearGenderLbl.text = ageString
+            let cCount = booking.chat_count ?? "0"
+            if cCount == "0" {
+                cell.chatBtn.setTitle("Chat", for: .normal)
+            } else {
+                cell.chatBtn.setTitle("Chat(\(cCount))", for: .normal)
+            }
+            cell.videoCallBtn.tag = indexPath.row
+            cell.videoCallBtn.addTarget(self, action: #selector(videoCallBtnTap), for: .touchUpInside)
+            cell.chatBtn.tag = indexPath.row
+            cell.chatBtn.addTarget(self, action: #selector(chatBtnTap), for: .touchUpInside)
+            cell.reasonForCallBtn.tag = indexPath.row
+            cell.reasonForCallBtn.addTarget(self, action: #selector(reasonForCallBtnTap), for: .touchUpInside)
+            return cell
+        } else {
+            let cell = self.bookingTblVw.dequeueReusableCell(withIdentifier: PreviousHomeCell.className)as! PreviousHomeCell
+            cell.patientNameLbl.text = patientName
+            cell.dateLbl.text = dateString
+            cell.yearGenderLbl.text = ageString
+            cell.priceLbl.text = "৳\(booking.amount ?? EMPTY)"
+            
+            cell.FollowUpTxt.isHidden = true
+            cell.followUpLbl.isHidden = true
+            cell.statusLbl.isHidden = false
+            
+            if statusName == "Cancel" {
+                cell.statusLbl.text = "Cancelled"
+                cell.statusLbl.textColor = .red
+                cell.chatBtn.isHidden = true
+                cell.prescriptionBtn.isHidden = true
+                cell.ratingVw.isHidden = true
+            } else if statusName == "Reject" {
+                cell.statusLbl.text = "Rejected"
+                cell.statusLbl.textColor = .red
+                cell.chatBtn.isHidden = true
+                cell.prescriptionBtn.isHidden = true
+                cell.ratingVw.isHidden = true
+            } else if statusName == "Past Booking" {
+                cell.statusLbl.text = "Completed"
+                cell.statusLbl.textColor = .systemGreen
+                cell.chatBtn.isHidden = false
+                cell.prescriptionBtn.isHidden = false
+                cell.setRating(booking.rating)
+            } else {
+                cell.statusLbl.isHidden = false
+                cell.chatBtn.isHidden = true
+                cell.prescriptionBtn.isHidden = true
+                cell.statusLbl.text = statusName
+                cell.statusLbl.textColor = .systemGreen
+                cell.setRating(booking.rating)
+            }
+            
+            if booking.filePdf ?? EMPTY == EMPTY {
+                cell.prescriptionBtn.backgroundColor = UIColor.lightGray
+            } else {
+                cell.prescriptionBtn.backgroundColor = UIColor(named: "ButtonBlueColor")
+            }
+            
+            let cCount = booking.chat_count ?? "0"
+            if cCount == "0" {
+                cell.chatBtn.setTitle("Chat", for: .normal)
+            } else {
+                cell.chatBtn.setTitle("Chat(\(cCount))", for: .normal)
+            }
+            
+            cell.chatBtn.tag = indexPath.row
+            cell.chatBtn.addTarget(self, action: #selector(chatBtnPreviousTap), for: .touchUpInside)
+            cell.prescriptionBtn.tag = indexPath.row
+            cell.prescriptionBtn.addTarget(self, action: #selector(prescriptionBtnTap), for: .touchUpInside)
+            cell.reasonForCallBtn.tag = indexPath.row
+            cell.reasonForCallBtn.addTarget(self, action: #selector(reasonForCallBtnTap), for: .touchUpInside)
+            
             return cell
         }
     }

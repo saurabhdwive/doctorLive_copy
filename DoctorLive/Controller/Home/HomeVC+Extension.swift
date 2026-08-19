@@ -30,7 +30,21 @@ extension HomeVC: UITableViewDelegate{
     }
 */
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.allBookingData.count
+        if self.allBookingData.count == 0 {
+            if self.isDataFetched {
+                let noDataLabel = UILabel(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: tableView.bounds.size.height))
+                noDataLabel.text = "No data available".localized()
+                noDataLabel.textColor = UIColor.black
+                noDataLabel.textAlignment = .center
+                tableView.backgroundView = noDataLabel
+            } else {
+                tableView.backgroundView = nil
+            }
+            return 0
+        } else {
+            tableView.backgroundView = nil
+            return self.allBookingData.count
+        }
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {

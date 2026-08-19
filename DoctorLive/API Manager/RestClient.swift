@@ -215,12 +215,43 @@ class RestClient {
 //            }
 
             
-            session.request(url, method: method, parameters: parameters, headers: HTTPHeaders(getHeadeWithDeviceToken())).responseDecodable(of: T.self) { (response) in
+            let headers = HTTPHeaders(getHeadeWithDeviceToken())
+            print("================= API REQUEST ======================")
+            print("🚀 URL: \(url)")
+            print("🚀 Method: \(method.rawValue)")
+            print("🚀 Headers: \(headers.dictionary)")
+            if let params = parameters {
+                print("🚀 Params: \(params)")
+            }
+            print("====================================================")
+            
+            session.request(url, method: method, parameters: parameters, headers: headers).responseDecodable(of: T.self) { (response) in
                 if let data = response.data,
                     let jsonString = String(data: data, encoding: .utf8) {
                      print("Response String:")
                      print(jsonString)
                  }
+                
+                if let data = response.data,
+                   let jsonDict = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                   let status = jsonDict["status"] as? String,
+                   let message = jsonDict["message"] as? String,
+                   status == "FAILURE",
+                   message == "Your credentials is loggedIn in another device! Please login again." {
+                    
+                    DispatchQueue.main.async {
+                        let alert = UIAlertController(title: "DoctorLive", message: message, preferredStyle: .alert)
+                        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
+                            let storyboard = UIStoryboard.init(name: "Auth", bundle: nil)
+                            let menuVC = storyboard.instantiateViewController(withIdentifier: "LoginVC") as! LoginVC
+                            let navigationController = UINavigationController(rootViewController: menuVC)
+                            navigationController.isNavigationBarHidden = true
+                            UIApplication.shared.windows.first?.rootViewController = navigationController
+                            UIApplication.shared.windows.first?.makeKeyAndVisible()
+                        }))
+                        UIApplication.shared.windows.first?.rootViewController?.present(alert, animated: true, completion: nil)
+                    }
+                }
                 switch response.result {
                 case .success(let data):
                     seal.fulfill(data)
@@ -348,6 +379,16 @@ class RestClient {
             for (k,v) in temp {
                 headr.add(Alamofire.HTTPHeader(name: k, value: v))
             }
+            
+            print("================= API REQUEST (BODY) ===============")
+            print("🚀 URL: \(url)")
+            print("🚀 Method: \(method.rawValue)")
+            print("🚀 Headers: \(headr.dictionary)")
+            if let params = parameters {
+                print("🚀 Params: \(params)")
+            }
+            print("====================================================")
+            
             session.upload(multipartFormData: { multiPart in
                 guard let params = parameters else{return}
                 for (key, value) in params {
@@ -361,6 +402,27 @@ class RestClient {
                     //onProgress(progress.fractionCompleted)
                 })
                 .responseDecodable(of: T.self) { (response) in
+                    if let data = response.data,
+                       let jsonDict = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                       let status = jsonDict["status"] as? String,
+                       let message = jsonDict["message"] as? String,
+                       status == "FAILURE",
+                       message == "Your credentials is loggedIn in another device! Please login again." {
+                        
+                        DispatchQueue.main.async {
+                            let alert = UIAlertController(title: "DoctorLive", message: message, preferredStyle: .alert)
+                            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
+                                let storyboard = UIStoryboard.init(name: "Auth", bundle: nil)
+                                let menuVC = storyboard.instantiateViewController(withIdentifier: "LoginVC") as! LoginVC
+                                let navigationController = UINavigationController(rootViewController: menuVC)
+                                navigationController.isNavigationBarHidden = true
+                                UIApplication.shared.windows.first?.rootViewController = navigationController
+                                UIApplication.shared.windows.first?.makeKeyAndVisible()
+                            }))
+                            UIApplication.shared.windows.first?.rootViewController?.present(alert, animated: true, completion: nil)
+                        }
+                    }
+                    
                     switch response.result{
                     case .success(let data):
                         seal.fulfill(data)

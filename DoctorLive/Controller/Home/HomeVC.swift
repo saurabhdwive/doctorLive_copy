@@ -14,12 +14,12 @@ import AgoraRtcKit
 
 class HomeVC: UIViewController {
     
-    @IBOutlet weak var stackHeight: NSLayoutConstraint!
-    @IBOutlet weak var upcomingBtn, previousBtn, pendingBtn, btnMenu, btnNotification, askFreeBtn, articleBtn, followUpBtn, previousBookingBtn: UIButton!
-    @IBOutlet weak var followUpTopConst: NSLayoutConstraint!     // 10, 0
+//    @IBOutlet weak var stackHeight: NSLayoutConstraint!
+    @IBOutlet weak var btnMenu, btnNotification, askFreeBtn, articleBtn: UIButton!
+//    @IBOutlet weak var followUpTopConst: NSLayoutConstraint!     // 10, 0
     @IBOutlet weak var searchTxt: UITextField!
     @IBOutlet weak var switchButton: UISwitch!
-    @IBOutlet weak var stackVw, previousStackVw: UIStackView!
+//    @IBOutlet weak var stackVw, previousStackVw: UIStackView!
     @IBOutlet weak var searchVw: UIView!
     @IBOutlet weak var bookingTblVw: UITableView!{
         didSet{
@@ -40,6 +40,7 @@ class HomeVC: UIViewController {
     var currentPage = 1
     var isLoadingList = false
     var isLastPage = false
+    var isDataFetched = false
     
     lazy var refreshControl: UIRefreshControl = {
         let refreshControl = UIRefreshControl()
@@ -51,6 +52,43 @@ class HomeVC: UIViewController {
         let loader = UIActivityIndicatorView(style: .medium)
         loader.frame = CGRect(x: 0, y: 0, width: self.bookingTblVw.bounds.width, height: 44)
         return loader
+    }()
+    
+    lazy var noInternetView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = UIColor(named: "BackGround") ?? .white
+        view.isHidden = true
+        
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "No Internet Connection!".localized()
+        label.textColor = .black
+        label.font = UIFont.systemFont(ofSize: 18, weight: .medium)
+        label.textAlignment = .center
+        
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitle("Retry".localized(), for: .normal)
+        button.setTitleColor(.white, for: .normal)
+        button.backgroundColor = UIColor(named: "ButtonBlueColor") ?? .blue
+        button.layer.cornerRadius = 8
+        button.addTarget(self, action: #selector(retryBtnTapped), for: .touchUpInside)
+        
+        view.addSubview(label)
+        view.addSubview(button)
+        
+        NSLayoutConstraint.activate([
+            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            label.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -20),
+            
+            button.topAnchor.constraint(equalTo: label.bottomAnchor, constant: 16),
+            button.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            button.widthAnchor.constraint(equalToConstant: 120),
+            button.heightAnchor.constraint(equalToConstant: 44)
+        ])
+        
+        return view
     }()
     
     var sinchToken: String?
@@ -67,6 +105,11 @@ class HomeVC: UIViewController {
         self.setUpTable()
         // self.performPendingBooking()
         self.performAllBooking(isRefresh: true)
+        NotificationCenter.default.addObserver(self, selector: #selector(refreshData), name: Notification.Name("RefreshScreen"), object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     @objc func refreshData() {
@@ -90,57 +133,50 @@ class HomeVC: UIViewController {
     private func setUpViews(){
 //        self.previousStackVw.isHidden = true
 //        self.stackVw.isHidden = true
-        self.stackHeight.constant = 100
-        self.followUpTopConst.constant = 0
-        
-        // Force fully collapse stack views to remove empty space
-        self.stackVw.constraints.forEach { if $0.firstAttribute == .height { $0.isActive = false } }
-        let sHeight = self.stackVw.heightAnchor.constraint(equalToConstant: 0)
-        sHeight.priority = .defaultHigh
-        sHeight.isActive = true
-        
-        self.previousStackVw.constraints.forEach { if $0.firstAttribute == .height { $0.isActive = false } }
-        let psHeight = self.previousStackVw.heightAnchor.constraint(equalToConstant: 0)
-        psHeight.priority = .defaultHigh
-        psHeight.isActive = true
-        
-        // Remove the storyboard margins around the hidden stack views
-        self.view.constraints.forEach { constraint in
-            // Remove gap between stackVw and searchVw
-            if (constraint.firstItem === self.searchVw && constraint.firstAttribute == .top) ||
-               (constraint.secondItem === self.searchVw && constraint.secondAttribute == .top) {
-                constraint.constant = 0
-            }
-            // Keep gap between logo and stackVw so searchVw isn't overlapping
-            if (constraint.firstItem === self.stackVw && constraint.firstAttribute == .top) ||
-               (constraint.secondItem === self.stackVw && constraint.secondAttribute == .top) {
-                constraint.constant = 12
-            }
-            // Remove gap between previousStackVw and table view
-            if (constraint.firstItem === self.bookingTblVw && constraint.firstAttribute == .top) ||
-               (constraint.secondItem === self.bookingTblVw && constraint.secondAttribute == .top) {
-                // Set to 0 to completely eliminate the empty space from the hidden segment
-                constraint.constant = 0
-            }
-        }
+//        self.stackHeight.constant = 100
+//        self.followUpTopConst.constant = 0
+//        
+//        // Force fully collapse stack views to remove empty space
+//        self.stackVw.constraints.forEach { if $0.firstAttribute == .height { $0.isActive = false } }
+//        let sHeight = self.stackVw.heightAnchor.constraint(equalToConstant: 0)
+//        sHeight.priority = .defaultHigh
+//        sHeight.isActive = true
+//        
+//        self.previousStackVw.constraints.forEach { if $0.firstAttribute == .height { $0.isActive = false } }
+//        let psHeight = self.previousStackVw.heightAnchor.constraint(equalToConstant: 0)
+//        psHeight.priority = .defaultHigh
+//        psHeight.isActive = true
+    
         self.navigationController?.isNavigationBarHidden = true
         GlobalMethods.shared.provideCornerRadiusMultipleView(vw: [self.btnMenu, self.btnNotification, self.searchVw], cornerRadius: 12, borderColor: UIColor.gray.cgColor, borderWidth: 1) // Removed stackVw and previousStackVw
         // GlobalMethods.shared.provideCornerRadiusMultipleView(vw: [self.btnMenu, self.btnNotification, self.stackVw, self.searchVw, self.previousStackVw], cornerRadius: 12, borderColor: UIColor.gray.cgColor, borderWidth: 1)
         GlobalMethods.shared.provideCornerRadius(view: self.articleBtn, cornerRadius: 12, borderColor: UIColor.clear.cgColor, borderWidth: 0)
         GlobalMethods.shared.provideCornerRadius(view: self.askFreeBtn, cornerRadius: 12, borderColor: UIColor(named: "ButtonBlueColor")!.cgColor, borderWidth: 1)
-        GlobalMethods.shared.provideCornerRadiusMultipleView(vw: [self.pendingBtn, self.upcomingBtn, self.previousBtn, self.followUpBtn, self.previousBookingBtn], cornerRadius: 12, borderColor: UIColor.clear.cgColor, borderWidth: 0)
+//        GlobalMethods.shared.provideCornerRadiusMultipleView(vw: [self.followUpBtn], cornerRadius: 12, borderColor: UIColor.clear.cgColor, borderWidth: 0)
         self.switchButton?.isOn = UserDefaults.standard.bool(forKey: "switchState")
         SideMenuManager.default.leftMenuNavigationController = menu
         SideMenuManager.default.addPanGestureToPresent(toView: self.view)
-        self.previousBookingBtn.setTitle("Accepted Booking", for: .normal)
-        self.followUpBtn.setTitle("Pending Booking", for: .normal)
-        self.setUpSegment(selectedBtn: self.followUpBtn, unSelectedBtn: [self.previousBookingBtn])
+//        self.previousBookingBtn.setTitle("Accepted Booking", for: .normal)
+//        self.followUpBtn.setTitle("Pending Booking", for: .normal)
+//        self.setUpSegment(selectedBtn: self.followUpBtn, unSelectedBtn: [])
         if USER_DEFAULTS.bool(forKey: "version") == false{
             self.checkAppVersion(controller: self)
         }
         self.typeOn(string: "Search by patient name...")
+        self.searchTxt.delegate = self
+        self.searchTxt.addTarget(self, action: #selector(searchTextChanged(_:)), for: .editingChanged)
+        self.searchTxt.returnKeyType = .search
+        
         let name = USER_DEFAULTS.string(forKey: Constants.userName) ?? EMPTY
         ZohoSalesIQ.Visitor.setName("Doctor:- \(name)")
+        
+        self.view.addSubview(noInternetView)
+        NSLayoutConstraint.activate([
+            noInternetView.topAnchor.constraint(equalTo: self.bookingTblVw.topAnchor),
+            noInternetView.bottomAnchor.constraint(equalTo: self.bookingTblVw.bottomAnchor),
+            noInternetView.leadingAnchor.constraint(equalTo: self.bookingTblVw.leadingAnchor),
+            noInternetView.trailingAnchor.constraint(equalTo: self.bookingTblVw.trailingAnchor)
+        ])
     }
     
     private func registerXib(){
@@ -278,6 +314,11 @@ class HomeVC: UIViewController {
         self.navigationController?.pushViewController(viewC, animated: true)
     }
     
+    @objc func retryBtnTapped() {
+        self.noInternetView.isHidden = true
+        self.performAllBooking(isRefresh: true)
+    }
+    
     @objc func acceptBtnTap(_ sender: UIButton){
         self.performConfirmBooking(bookingId: self.allBookingData[sender.tag].id ?? EMPTY)
     }
@@ -406,5 +447,24 @@ extension HomeVC{
 extension HomeVC: VideoCallData{
     func videoCallData(patientName: String, bookingId: String, callDuration: String) {
         self.performEndCall(bookingId: bookingId, reason: EMPTY)
+    }
+}
+
+extension HomeVC: UITextFieldDelegate {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        self.performAllBooking(isRefresh: true)
+        return true
+    }
+    @objc func searchTextChanged(_ textField: UITextField) {
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(triggerSearch), object: nil)
+        self.perform(#selector(triggerSearch), with: nil, afterDelay: 0.5)
+    }
+    
+    @objc func triggerSearch() {
+        let text = self.searchTxt.text ?? ""
+        if text.isEmpty || text.count >= 3 {
+            self.performAllBooking(isRefresh: true)
+        }
     }
 }

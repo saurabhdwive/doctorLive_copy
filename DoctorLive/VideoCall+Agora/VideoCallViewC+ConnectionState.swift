@@ -34,18 +34,18 @@ extension VideoCallViewC {
             bannerStack.trailingAnchor.constraint(equalTo: self.view.trailingAnchor)
         ])
 
-        [poorNetworkIndicatorVw, videoDisabledIndicatorVw].forEach {
-            $0.translatesAutoresizingMaskIntoConstraints = false
-            $0.isHidden = true
-            self.view.addSubview($0)
-        }
+//        [poorNetworkIndicatorVw, videoDisabledIndicatorVw].forEach {
+//            $0.translatesAutoresizingMaskIntoConstraints = false
+//            $0.isHidden = true
+//            self.view.addSubview($0)
+//        }
 
         NSLayoutConstraint.activate([
-            poorNetworkIndicatorVw.topAnchor.constraint(equalTo: bannerStack.bottomAnchor, constant: 8),
-            poorNetworkIndicatorVw.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
-
-            videoDisabledIndicatorVw.topAnchor.constraint(equalTo: poorNetworkIndicatorVw.bottomAnchor, constant: 8),
-            videoDisabledIndicatorVw.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
+//            poorNetworkIndicatorVw.topAnchor.constraint(equalTo: bannerStack.bottomAnchor, constant: 8),
+//            poorNetworkIndicatorVw.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
+//
+//            videoDisabledIndicatorVw.topAnchor.constraint(equalTo: poorNetworkIndicatorVw.bottomAnchor, constant: 8),
+//            videoDisabledIndicatorVw.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
         ])
 
         // Sits directly on top of remoteVideoView (already embedded into videoVw by
@@ -90,7 +90,12 @@ extension VideoCallViewC {
     /// reports its own bool here instead of setting visibility directly.
     private func updatePoorNetworkIndicator() {
         let shouldShow = isLocalNetworkPoorIndicatorActive || isRemoteNetworkPoorBlurActive
-        poorNetworkIndicatorVw.setHidden(!shouldShow, animated: true)
+//        poorNetworkIndicatorVw.setHidden(!shouldShow, animated: true)
+    }
+
+    func updateWeakConnectionIndicatorVisibility() {
+        let shouldShow = isRemoteConnectionWeakActive && !isRemoteConnectionBlurActive && isWeakConnectionInitialDelayPassed && userConnect
+        weakConnectionIndicatorVw.setHidden(!shouldShow, animated: true)
     }
 }
 
@@ -120,6 +125,7 @@ extension VideoCallViewC: AgoraCallConnectionManagerDelegate {
             guard let self else { return }
             self.reconnectingIndicatorVw.show()
             self.setRemoteConnectionBlur(true)
+            self.updateWeakConnectionIndicatorVisibility()
         }
     }
 
@@ -129,6 +135,7 @@ extension VideoCallViewC: AgoraCallConnectionManagerDelegate {
             guard let self else { return }
             self.reconnectingIndicatorVw.hide()
             self.setRemoteConnectionBlur(false)
+            self.updateWeakConnectionIndicatorVisibility()
         }
     }
 
@@ -161,9 +168,9 @@ extension VideoCallViewC: AgoraCallConnectionManagerDelegate {
                 if self.isUsingLocalCamera {
                     self.agoraKit?.enableLocalVideo(false)
                 }
-                self.videoDisabledIndicatorVw.show()
+//                self.videoDisabledIndicatorVw.show()
             } else {
-                self.videoDisabledIndicatorVw.hide()
+//                self.videoDisabledIndicatorVw.hide()
                 // Only restore video if the user had it enabled manually before the network
                 // problem started — never override a manual camera-off choice.
                 if self.isUsingLocalCamera {
@@ -186,11 +193,8 @@ extension VideoCallViewC: AgoraCallConnectionManagerDelegate {
     func connectionManager(_ manager: AgoraCallConnectionManager, didChangeRemoteConnectionWeak weak: Bool) {
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            if weak {
-                self.weakConnectionIndicatorVw.show()
-            } else {
-                self.weakConnectionIndicatorVw.hide()
-            }
+            self.isRemoteConnectionWeakActive = weak
+            self.updateWeakConnectionIndicatorVisibility()
         }
     }
 }

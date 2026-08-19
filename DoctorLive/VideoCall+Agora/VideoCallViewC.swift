@@ -67,8 +67,8 @@ class VideoCallViewC: UIViewController, PIPUsable {
     // MARK: - Connection / network state
     let connectionManager = AgoraCallConnectionManager()
     let reconnectingIndicatorVw = BannerStatusIndicatorView(text: "Reconnecting…", bgColor: UIColor(red: 0x19/255.0, green: 0x76/255.0, blue: 0xD2/255.0, alpha: 1.0))
-    let poorNetworkIndicatorVw = CallStatusIndicatorView(text: "Poor network connection")
-    let videoDisabledIndicatorVw = CallStatusIndicatorView(text: "Video paused due to poor network")
+//    let poorNetworkIndicatorVw = CallStatusIndicatorView(text: "Poor network connection")
+//    let videoDisabledIndicatorVw = CallStatusIndicatorView(text: "Video paused due to poor network")
     lazy var weakConnectionIndicatorVw = BannerStatusIndicatorView(text: "Weak connection from \(self.patientName ?? "patient")", bgColor: UIColor(red: 0xFF/255.0, green: 0xA5/255.0, blue: 0x00/255.0, alpha: 1.0))
 
     // Blur shown over the remote video when it's absent or stuck (frozen frame).
@@ -80,6 +80,10 @@ class VideoCallViewC: UIViewController, PIPUsable {
     var isRemoteNetworkPoorBlurActive = false
     // Drives poorNetworkIndicatorVw, which reflects either side's poor-network state.
     var isLocalNetworkPoorIndicatorActive = false
+    
+    // Weak connection indicator state
+    var isRemoteConnectionWeakActive = false
+    var isWeakConnectionInitialDelayPassed = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -336,6 +340,7 @@ extension VideoCallViewC {
         self.agoraKit?.setClientRole(self.role)
         self.agoraKit?.enableDualStreamMode(false)
         self.agoraKit?.enableVideo()
+        self.agoraKit?.startPreview()
         self.agoraKit?.setEnableSpeakerphone(true)
         self.agoraKit?.setParameters("""
             {
@@ -504,6 +509,15 @@ extension VideoCallViewC: AgoraRtcEngineDelegate {
     func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
         print("didJoinedOfUid")
         self.userConnect = true
+        
+        // Start 10-second grace period for weak connection indicator only after both parties are connected
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) { [weak self] in
+            guard let self = self else { return }
+            self.isWeakConnectionInitialDelayPassed = true
+            self.updateWeakConnectionIndicatorVisibility()
+        }
+        
+        self.updateWeakConnectionIndicatorVisibility()
         self.connectionManager.markUserJoined(uid: uid)
         self.startTimer()
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {

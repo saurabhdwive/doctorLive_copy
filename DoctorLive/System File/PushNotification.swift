@@ -141,6 +141,8 @@ class PushNotification:NSObject, UNUserNotificationCenterDelegate,MessagingDeleg
                     USER_DEFAULTS.set(userInfo["type"] as! String, forKey: PUSHUD.chatType)
                     USER_DEFAULTS.set(true, forKey: PUSHUD.comeFromPush)
                     DIConfigurator.sharedInst().getRootViewC(.Auth, identifer: ChatViewC.className)
+                }else if let type = userInfo["notification_type"] as? String {
+                    self.notificationTapped(notificationType: type)
                 }else if let type = userInfo["type"] as? String{
                     self.notificationTapped(notificationType: type)
                 }
@@ -151,18 +153,19 @@ class PushNotification:NSObject, UNUserNotificationCenterDelegate,MessagingDeleg
     }
     
     func notificationTapped(notificationType: String) {
-//        if notificationType == NotificationRedirection.addbooking.rawValue{
-//            bookingRecieved()
-//        }else if notificationType == NotificationRedirection.payment.rawValue {
-//            paymentAccepted()
-//        } else if notificationType == NotificationRedirection.cancelled.rawValue {
-//            bookingCancel()
-//        } else if notificationType == NotificationRedirection.chat.rawValue {
-//            paymentAccepted()
-//        } else {
+        if notificationType.lowercased() == "doctor" {
+            let viewC = UIStoryboard.init(name: "Auth", bundle: nil)
+            let vc1 = viewC.instantiateViewController(withIdentifier: "MyEarningViewController") as! MyEarningViewController
+            let navigationController = UINavigationController(rootViewController: drawerController)
+            navigationController.viewControllers.append(vc1)
+            navigationController.navigationBar.isHidden = true
+            window = UIWindow(frame: UIScreen.main.bounds)
+            window?.rootViewController = navigationController
+            window?.makeKeyAndVisible()
+        } else {
             let appDel = UIApplication.shared.delegate as! AppDelegate
-            appDel.initControllerrr(identifer: HomeVC.className)
-//        }
+            _ = appDel.initHome()
+        }
     }
     
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {

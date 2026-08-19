@@ -263,16 +263,34 @@ extension HomeVC {
             showMainLoader = true
         }
         
+        if !InternetConnection.internetshared.isConnectedToNetwork() {
+            self.noInternetView.isHidden = false
+            self.refreshControl.endRefreshing()
+            self.bottomLoader.stopAnimating()
+            if showMainLoader {
+                LoaderController.sharedInstance.removeLoader()
+            }
+            self.isLoadingList = false
+            return
+        }
+        self.noInternetView.isHidden = true
+        
         var parameter = [String: String]()
         guard let token = UserDefaults.standard.string(forKey: Constants.accessToken) else { return }
         guard let code = UserDefaults.standard.string(forKey: Constants.languageCode) else { return }
         parameter = ["language_type": code,
                      "token": token,
                      "page": "\(self.currentPage)"]
+        
+        if let searchText = self.searchTxt.text, !searchText.isEmpty {
+            parameter["search"] = searchText
+        }
+        
         self.allBooking(param: parameter, showLoader: showMainLoader)
     }
     
     func handleAllBookingResponse(model: PastBookingModel, hideLoader: Bool = true) {
+        self.isDataFetched = true
         self.isLoadingList = false
         self.refreshControl.endRefreshing()
         self.bottomLoader.stopAnimating()

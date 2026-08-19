@@ -144,6 +144,16 @@ extension Requestable1{
         for (k,v) in Headers {
             header.add(name: k, value: v)
         }
+        
+        print("================= API REQUEST ======================")
+        print("🚀 URL: \(url)")
+        print("🚀 Method: \(method.method.rawValue)")
+        print("🚀 Headers: \(header.dictionary)")
+        if let p = params {
+            print("🚀 Params: \(p)")
+        }
+        print("====================================================")
+        
 //        URLEncoding.default =====   for form data
 //        JSONEncoding.default =====  for raw data 
         AF.request(url, method: method.method, parameters: params, encoding: URLEncoding.default, headers: header).response { responseObject in
@@ -203,6 +213,16 @@ extension Requestable1{
         for (k,v) in Headers {
             header.add(name: k, value: v)
         }
+        
+        print("================= API REQUEST ======================")
+        print("🚀 URL: \(url)")
+        print("🚀 Method: \(method.method.rawValue)")
+        print("🚀 Headers: \(header.dictionary)")
+        if let p = params {
+            print("🚀 Params: \(p)")
+        }
+        print("====================================================")
+        
 //        URLEncoding.default =====   for form data
 //        JSONEncoding.default =====  for raw data
         AF.request(url, method: method.method, parameters: params, encoding: JSONEncoding.default, headers: header).response { responseObject in

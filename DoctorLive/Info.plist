@@ -98,5 +98,7 @@
 	<string>Light</string>
 	<key>com.apple.developer.avfoundation.multitasking-camera-access</key>
 	<true/>
+    <key>UIDesignRequiresCompatibility</key>
+    <true/>
 </dict>
 </plist>

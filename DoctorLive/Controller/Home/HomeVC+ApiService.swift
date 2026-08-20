@@ -295,7 +295,7 @@ extension HomeVC {
         self.refreshControl.endRefreshing()
         self.bottomLoader.stopAnimating()
         self.bookingTblVw.tableFooterView = nil
-        
+        print(model)
         if model.status == "SUCCESS" {
             if self.currentPage == 1 {
                 self.allBookingData.removeAll()
@@ -310,6 +310,8 @@ extension HomeVC {
                 self.isLastPage = true
             }
             self.bookingTblVw.reloadData()
+            if hideLoader { LoaderController.sharedInstance.removeLoader() }
+        }else if model.message == "Your credentials are logged in on another device! Please login again."{
             if hideLoader { LoaderController.sharedInstance.removeLoader() }
         } else {
             AppToast.showMessage(message: model.message ?? "")
@@ -390,6 +392,7 @@ extension HomeVC {
     }
     
     func endBooking(model: BookingStatusModel){
+        print(model)
         if model.status == "SUCCESS" {
             self.performAllBooking(isRefresh: true)
         } else {

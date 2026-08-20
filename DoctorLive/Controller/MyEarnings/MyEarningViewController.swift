@@ -38,6 +38,7 @@ class MyEarningViewController: UIViewController {
     var myEarningArray:[Earning] = []
     var myWidhrawArray:[WithdrawEarning] = []
     var earningData: EarningListModel?
+    var notifyId: String?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -69,7 +70,6 @@ class MyEarningViewController: UIViewController {
         UISegmentedControl.appearance().setTitleTextAttributes(titleTextAttributes, for: .selected)
         let titleTextAttributes1 = [NSAttributedString.Key.foregroundColor: UIColor.gray]
         UISegmentedControl.appearance().setTitleTextAttributes(titleTextAttributes1, for: .normal)
-        
     }
     
     @IBAction func notificationButton(_ sender: Any) {
@@ -240,6 +240,9 @@ extension MyEarningViewController {
         guard let code = UserDefaults.standard.string(forKey: Constants.languageCode) else { return }
         parameter = ["language_type": code,
                      "token": token]
+        if let notifyId = notifyId {
+            parameter["notify_id"] = notifyId
+        }
          myWidhraw(param: parameter)
     }
     

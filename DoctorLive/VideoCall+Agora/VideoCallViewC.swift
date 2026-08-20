@@ -44,6 +44,7 @@ class VideoCallViewC: UIViewController, PIPUsable {
     var callCutElapsedTime: Int = 30
     
     var isMuted = false
+    var isUsingFrontCamera = true
     var isUsingLocalCamera = true
     
     var userConnect: Bool = false
@@ -134,7 +135,9 @@ class VideoCallViewC: UIViewController, PIPUsable {
     }
     
     @IBAction func flipBtn_Action(_ sender: Any) {
+        self.isUsingFrontCamera.toggle()
         self.agoraKit?.switchCamera()
+        self.updateVideoMirrorMode()
     }
     
     @IBAction func cameraBtn_Action(_ sender: Any) {
@@ -354,10 +357,22 @@ extension VideoCallViewC {
             }
             """)
         agoraKit?.setVideoFrameDelegate(self)
+        self.updateVideoMirrorMode()
         self.agoraKit?.joinChannel(byToken: token, channelId: room, info: nil, uid: uid ,joinSuccess: { _, _, _ in
             print("success")
         })
         
+    }
+    
+    private func updateVideoMirrorMode() {
+        let videoConfig = AgoraVideoEncoderConfiguration(
+            size: self.dimension,
+            frameRate: self.framerate,
+            bitrate: AgoraVideoBitrateStandard,
+            orientationMode: .adaptative,
+            mirrorMode: self.isUsingFrontCamera ? .enabled : .disabled
+        )
+        self.agoraKit?.setVideoEncoderConfiguration(videoConfig)
     }
     
 //    func addLocalAudio() {
@@ -556,10 +571,22 @@ AgoraVideoFrameDelegate {
                 videoFrame.pixelBuffer else {
             return true
         }
+        
+        var finalBuffer = pixelBuffer
+        
+        if self.isUsingFrontCamera {
+            if let mirroredBuffer = rotatePixelBuffer(
+                pixelBuffer,
+                rotation: 0,
+                mirror: true
+            ) {
+                finalBuffer = mirroredBuffer
+            }
+        }
 
         guard let sampleBuffer =
                 makeSampleBuffer(
-                    pixelBuffer: pixelBuffer
+                    pixelBuffer: finalBuffer
                 ) else {
             return true
         }
@@ -741,10 +768,11 @@ AVPictureInPictureControllerDelegate {
 extension VideoCallViewC {
     func rotatePixelBuffer(
         _ pixelBuffer: CVPixelBuffer,
-        rotation: Int32
+        rotation: Int32,
+        mirror: Bool = false
     ) -> CVPixelBuffer? {
 
-        if rotation == 0 {
+        if rotation == 0 && !mirror {
             return pixelBuffer
         }
 
@@ -796,6 +824,11 @@ extension VideoCallViewC {
         (rotation == 90 || rotation == 270)
         ? width
         : height
+        
+        // if mirror {
+        //     let mirrorTransform = CGAffineTransform(a: -1, b: 0, c: 0, d: 1, tx: CGFloat(outputWidth), ty: 0)
+        //     transform = transform.concatenating(mirrorTransform)
+        // }
 
         var outputBuffer: CVPixelBuffer?
 
@@ -818,13 +851,20 @@ extension VideoCallViewC {
             return nil
         }
         
-        let normalizedImage =
+        var normalizedImage =
         rotatedImage.transformed(
             by: CGAffineTransform(
                 translationX: -rotatedImage.extent.origin.x,
                 y: -rotatedImage.extent.origin.y
             )
         )
+
+         if mirror {
+            normalizedImage = normalizedImage.transformed(
+                by: CGAffineTransform(translationX: normalizedImage.extent.width, y: 0)
+                    .scaledBy(x: -1, y: 1)
+            )
+        }
 
         ciContext.render(
             normalizedImage,

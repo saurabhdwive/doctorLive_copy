@@ -252,10 +252,13 @@ extension SideMenuVC {
     }
     
     func handleProfileResponse(model: FullProfileDetailModel){
+        print(model.message)
         if model.status == "SUCCESS" {
             UserDefaults.standard.set(model.professionaldetail?.bank?.first?.accountNo, forKey: Constants.accountNo)
             UserDefaults.standard.set(model.professionaldetail?.bank?.first?.bankName, forKey: Constants.bankName)
             UserDefaults.standard.set(model.professionaldetail?.bank?.first?.id, forKey: Constants.bankId)
+        }else if model.message == "Your credentials is loggedIn in another device! Please login again."{
+//            print(model.message)
         } else {
             AppToast.showMessage(message: model.message ?? "")
         }
@@ -292,7 +295,7 @@ extension SideMenuVC {
     
     func handleResponse(model: EarningListModel) {
         if model.status == "SUCCESS" {
-            print(model)
+//            print(model)
             self.myEarningArray = model.myearning?.earning ?? [Earning]()
             self.earningData = model
             let due = model.myearning?.due

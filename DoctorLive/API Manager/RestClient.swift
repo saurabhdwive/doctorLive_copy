@@ -232,26 +232,91 @@ class RestClient {
                      print(jsonString)
                  }
                 
+                let loggedInOtherDeviceMessages = [
+                    "Your credentials are logged in on another device! Please login again.",
+                    "Your credentials is loggedIn in another device! Please login again."
+                ]
+//                if let data = response.data,
+//                   let jsonDict = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+//                   let status = jsonDict["status"] as? String,
+//                   let message = jsonDict["message"] as? String,
+//                   status == "FAILURE",
+//                   message.contains(loggedInOtherDeviceMessages) {
+//                    print(message)
+//                    
+//                    DispatchQueue.main.async {
+//                        let alert = UIAlertController(title: "DoctorLive", message: message, preferredStyle: .alert)
+//                        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
+//                            let storyboard = UIStoryboard.init(name: "Auth", bundle: nil)
+//                            let menuVC = storyboard.instantiateViewController(withIdentifier: "LoginVC") as! LoginVC
+//                            let navigationController = UINavigationController(rootViewController: menuVC)
+//                            navigationController.isNavigationBarHidden = true
+//                            UIApplication.shared.windows.first?.rootViewController = navigationController
+//                            UIApplication.shared.windows.first?.makeKeyAndVisible()
+//                        }))
+//                        UIApplication.shared.windows.first?.rootViewController?.present(alert, animated: true, completion: nil)
+//                        UserDefaults.standard.set(false, forKey: Constants.accountStatus)
+//                    }
+//                }
+                
                 if let data = response.data,
                    let jsonDict = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                    let status = jsonDict["status"] as? String,
                    let message = jsonDict["message"] as? String,
                    status == "FAILURE",
-                   message == "Your credentials is loggedIn in another device! Please login again." {
-                    
+                   loggedInOtherDeviceMessages.contains(where: { message.contains($0) }) {
+
+                    print("🚨 Logged in on another device: \(message)")
+
                     DispatchQueue.main.async {
-                        let alert = UIAlertController(title: "DoctorLive", message: message, preferredStyle: .alert)
-                        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
-                            let storyboard = UIStoryboard.init(name: "Auth", bundle: nil)
-                            let menuVC = storyboard.instantiateViewController(withIdentifier: "LoginVC") as! LoginVC
-                            let navigationController = UINavigationController(rootViewController: menuVC)
+                        let alert = UIAlertController(
+                            title: "DoctorLive",
+                            message: message,
+                            preferredStyle: .alert
+                        )
+
+                        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+
+                            UserDefaults.standard.set(false, forKey: Constants.accountStatus)
+
+                            let storyboard = UIStoryboard(name: "Auth", bundle: nil)
+
+                            let loginVC = storyboard.instantiateViewController(
+                                withIdentifier: "LoginVC"
+                            ) as! LoginVC
+
+                            let navigationController = UINavigationController(
+                                rootViewController: loginVC
+                            )
+
                             navigationController.isNavigationBarHidden = true
-                            UIApplication.shared.windows.first?.rootViewController = navigationController
-                            UIApplication.shared.windows.first?.makeKeyAndVisible()
-                        }))
-                        UIApplication.shared.windows.first?.rootViewController?.present(alert, animated: true, completion: nil)
+
+                            if let windowScene = UIApplication.shared.connectedScenes
+                                .first(where: {
+                                    $0.activationState == .foregroundActive
+                                }) as? UIWindowScene,
+                               let window = windowScene.windows
+                                .first(where: { $0.isKeyWindow }) {
+
+                                window.rootViewController = navigationController
+                                window.makeKeyAndVisible()
+                            }
+                        })
+
+                        if let windowScene = UIApplication.shared.connectedScenes
+                            .first(where: {
+                                $0.activationState == .foregroundActive
+                            }) as? UIWindowScene,
+                           let window = windowScene.windows.first(where: {
+                               $0.isKeyWindow
+                           }),
+                           let rootVC = window.rootViewController {
+
+                            rootVC.present(alert, animated: true)
+                        }
                     }
                 }
+                
                 switch response.result {
                 case .success(let data):
                     seal.fulfill(data)
@@ -402,24 +467,88 @@ class RestClient {
                     //onProgress(progress.fractionCompleted)
                 })
                 .responseDecodable(of: T.self) { (response) in
+//                    if let data = response.data,
+//                       let jsonDict = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+//                       let status = jsonDict["status"] as? String,
+//                       let message = jsonDict["message"] as? String,
+//                       status == "FAILURE",
+//                       message == "Your credentials is loggedIn in another device! Please login again." {
+//                        
+//                        DispatchQueue.main.async {
+//                            let alert = UIAlertController(title: "DoctorLive", message: message, preferredStyle: .alert)
+//                            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
+//                                let storyboard = UIStoryboard.init(name: "Auth", bundle: nil)
+//                                let menuVC = storyboard.instantiateViewController(withIdentifier: "LoginVC") as! LoginVC
+//                                let navigationController = UINavigationController(rootViewController: menuVC)
+//                                navigationController.isNavigationBarHidden = true
+//                                UIApplication.shared.windows.first?.rootViewController = navigationController
+//                                UIApplication.shared.windows.first?.makeKeyAndVisible()
+//                            }))
+//                            UIApplication.shared.windows.first?.rootViewController?.present(alert, animated: true, completion: nil)
+//                            UserDefaults.standard.set(false, forKey: Constants.accountStatus)
+//
+//                        }
+//                    }
+                    let loggedInOtherDeviceMessages = [
+                        "Your credentials are logged in on another device! Please login again.",
+                        "Your credentials is loggedIn in another device! Please login again."
+                    ]
+                    
                     if let data = response.data,
                        let jsonDict = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                        let status = jsonDict["status"] as? String,
                        let message = jsonDict["message"] as? String,
                        status == "FAILURE",
-                       message == "Your credentials is loggedIn in another device! Please login again." {
-                        
+                       loggedInOtherDeviceMessages.contains(where: { message.contains($0) }) {
+
+                        print("🚨 Logged in on another device: \(message)")
+
                         DispatchQueue.main.async {
-                            let alert = UIAlertController(title: "DoctorLive", message: message, preferredStyle: .alert)
-                            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
-                                let storyboard = UIStoryboard.init(name: "Auth", bundle: nil)
-                                let menuVC = storyboard.instantiateViewController(withIdentifier: "LoginVC") as! LoginVC
-                                let navigationController = UINavigationController(rootViewController: menuVC)
+                            let alert = UIAlertController(
+                                title: "DoctorLive",
+                                message: message,
+                                preferredStyle: .alert
+                            )
+
+                            alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+
+                                UserDefaults.standard.set(false, forKey: Constants.accountStatus)
+
+                                let storyboard = UIStoryboard(name: "Auth", bundle: nil)
+
+                                let loginVC = storyboard.instantiateViewController(
+                                    withIdentifier: "LoginVC"
+                                ) as! LoginVC
+
+                                let navigationController = UINavigationController(
+                                    rootViewController: loginVC
+                                )
+
                                 navigationController.isNavigationBarHidden = true
-                                UIApplication.shared.windows.first?.rootViewController = navigationController
-                                UIApplication.shared.windows.first?.makeKeyAndVisible()
-                            }))
-                            UIApplication.shared.windows.first?.rootViewController?.present(alert, animated: true, completion: nil)
+
+                                if let windowScene = UIApplication.shared.connectedScenes
+                                    .first(where: {
+                                        $0.activationState == .foregroundActive
+                                    }) as? UIWindowScene,
+                                   let window = windowScene.windows
+                                    .first(where: { $0.isKeyWindow }) {
+
+                                    window.rootViewController = navigationController
+                                    window.makeKeyAndVisible()
+                                }
+                            })
+
+                            if let windowScene = UIApplication.shared.connectedScenes
+                                .first(where: {
+                                    $0.activationState == .foregroundActive
+                                }) as? UIWindowScene,
+                               let window = windowScene.windows.first(where: {
+                                   $0.isKeyWindow
+                               }),
+                               let rootVC = window.rootViewController {
+
+                                rootVC.present(alert, animated: true)
+                            }
                         }
                     }
                     

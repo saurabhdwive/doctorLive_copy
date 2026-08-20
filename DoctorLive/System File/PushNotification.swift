@@ -115,6 +115,9 @@ class PushNotification:NSObject, UNUserNotificationCenterDelegate,MessagingDeleg
                         completionHandler([.alert, .badge, .sound])
                     }
                     
+                }else if (userInfo["type"] ?? EMPTY) as! String == "callend"{
+                    NotificationCenter.default.post(name: .refereshCallData, object: nil)
+                    completionHandler([.alert, .badge, .sound])
                 }else{
                     UIApplication.shared.applicationIconBadgeNumber = badge
                     NotificationCenter.default.post(name: Notification.Name("NotificationIdentifier"), object: nil)
@@ -141,10 +144,12 @@ class PushNotification:NSObject, UNUserNotificationCenterDelegate,MessagingDeleg
                     USER_DEFAULTS.set(userInfo["type"] as! String, forKey: PUSHUD.chatType)
                     USER_DEFAULTS.set(true, forKey: PUSHUD.comeFromPush)
                     DIConfigurator.sharedInst().getRootViewC(.Auth, identifer: ChatViewC.className)
+                }else if userInfo["type"] as? String == "callend" {
+                    NotificationCenter.default.post(name: .refereshCallData, object: nil)
                 }else if let type = userInfo["notification_type"] as? String {
-                    self.notificationTapped(notificationType: type)
+                    self.notificationTapped(notificationType: type, userInfo: userInfo)
                 }else if let type = userInfo["type"] as? String{
-                    self.notificationTapped(notificationType: type)
+                    self.notificationTapped(notificationType: type, userInfo: userInfo)
                 }
                 completionHandler()
             }
@@ -152,10 +157,13 @@ class PushNotification:NSObject, UNUserNotificationCenterDelegate,MessagingDeleg
         }
     }
     
-    func notificationTapped(notificationType: String) {
+    func notificationTapped(notificationType: String, userInfo: [String: Any]? = nil) {
         if notificationType.lowercased() == "doctor" {
             let viewC = UIStoryboard.init(name: "Auth", bundle: nil)
             let vc1 = viewC.instantiateViewController(withIdentifier: "MyEarningViewController") as! MyEarningViewController
+            if let userInfo = userInfo, let notifyId = userInfo["notify_id"] as? String ?? (userInfo["notify_id"] as? Int).map({ String($0) }) {
+                vc1.notifyId = notifyId
+            }
             let navigationController = UINavigationController(rootViewController: drawerController)
             navigationController.viewControllers.append(vc1)
             navigationController.navigationBar.isHidden = true

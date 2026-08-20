@@ -80,10 +80,10 @@ extension VideoCallViewC {
     }
 
     private func updateRemoteVideoBlurVisibility() {
-        let shouldBlur = isRemoteConnectionBlurActive
-            || isRemoteVideoStreamStuckBlurActive
-            || isRemoteNetworkPoorBlurActive
-        remoteVideoBlurVw.setHidden(!shouldBlur, animated: true)
+//        let shouldBlur = isRemoteConnectionBlurActive
+//            || isRemoteVideoStreamStuckBlurActive
+//            || isRemoteNetworkPoorBlurActive
+        remoteVideoBlurVw.setHidden(true, animated: true)
     }
 
     /// poorNetworkIndicatorVw reflects either side's poor-network state, so each side just

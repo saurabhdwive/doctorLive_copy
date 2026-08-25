@@ -97,6 +97,7 @@ class HomeVC: UIViewController {
     var patientName: String?
     var bookingId: String?
     var doctorId: String?
+    var notifyId: String?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -113,11 +114,13 @@ class HomeVC: UIViewController {
     }
     
     @objc func refreshData() {
-        self.performAllBooking(isRefresh: true)
+        self.performAllBooking(isRefresh: false)
+        self.performNotificationUnread()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        self.performNotificationUnread()
         ZohoSalesIQ.showLauncher(false)
         self.navigationController?.isNavigationBarHidden = true
         let dictionary = [".": "_", " ": "_"]
@@ -466,5 +469,39 @@ extension HomeVC: UITextFieldDelegate {
         if text.isEmpty || text.count >= 3 {
             self.performAllBooking(isRefresh: true)
         }
+    }
+}
+
+extension HomeVC {
+    func updateNotificationBadge(count: Int) {
+        btnNotification.subviews.filter({$0.tag == 999}).forEach({$0.removeFromSuperview()})
+        if count > 0 {
+            let dot = UIView(frame: CGRect(x: btnNotification.bounds.width - 20, y: 10, width: 8, height: 8))
+            dot.backgroundColor = .red
+            dot.layer.cornerRadius = 5
+            dot.tag = 999
+            btnNotification.addSubview(dot)
+        }
+    }
+    
+    func notificationUnreadCount(param: [String: String]){
+        firstly {
+            service!.notificationUnRead(parameters: param, header: "DeviceToken")
+        }.done { (model: NotificationUnreadModel) in
+            if model.status == "SUCCESS" {
+                self.updateNotificationBadge(count: model.notificationunread ?? 0)
+            }
+        }.catch { (error) in
+            print(error)
+        }
+    }
+    
+    func performNotificationUnread() {
+        var parameter = [String: String]()
+        guard let token = UserDefaults.standard.string(forKey: Constants.accessToken) else { return }
+        guard let code = UserDefaults.standard.string(forKey: Constants.languageCode) else { return }
+        parameter = ["language_type": code,
+                     "token": token]
+        notificationUnreadCount(param: parameter)
     }
 }

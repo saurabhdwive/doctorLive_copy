@@ -170,6 +170,13 @@ class PushNotification:NSObject, UNUserNotificationCenterDelegate,MessagingDeleg
             window = UIWindow(frame: UIScreen.main.bounds)
             window?.rootViewController = navigationController
             window?.makeKeyAndVisible()
+        } else if notificationType.lowercased() == "general" {
+            let appDel = UIApplication.shared.delegate as! AppDelegate
+            if let userInfo = userInfo, let notifyId = userInfo["notify_id"] as? String ?? (userInfo["notify_id"] as? Int).map({ String($0) }) {
+                _ = appDel.initHome(notifyId: notifyId)
+            } else {
+                _ = appDel.initHome()
+            }
         } else {
             let appDel = UIApplication.shared.delegate as! AppDelegate
             _ = appDel.initHome()

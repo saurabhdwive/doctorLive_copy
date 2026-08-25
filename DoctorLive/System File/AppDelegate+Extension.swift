@@ -111,9 +111,10 @@ extension AppDelegate{
         window?.makeKeyAndVisible()
     }
     
-    func initHome() -> AppDelegate {
+    func initHome(notifyId: String? = nil) -> AppDelegate {
         let storyboardHome = UIStoryboard(name: "Auth", bundle: Bundle.main)
-        let homeVC = storyboardHome.instantiateViewController(withIdentifier: "HomeVC")
+        let homeVC = storyboardHome.instantiateViewController(withIdentifier: "HomeVC") as! HomeVC
+        homeVC.notifyId = notifyId
         let storyboardProfile = UIStoryboard(name: "Auth", bundle: Bundle.main)
         let menuVC = storyboardProfile.instantiateViewController(withIdentifier: "SideMenuVC")
         let navigationController = UINavigationController(rootViewController: drawerController)

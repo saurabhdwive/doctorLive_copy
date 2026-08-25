@@ -104,6 +104,7 @@ class VideoCallViewC: UIViewController, PIPUsable {
         self.titleNameLbl.text = self.patientName ?? EMPTY
         NotificationCenter.default.addObserver(self, selector: #selector(handleData(notification:)), name: .refereshCallData, object: nil)
         self.startCallCutTimer()
+        self.flipBtn.setImage(UIImage.generatedFlipIcon(selected: false), for: .normal)
     }
     
     @objc func handleData(notification: Notification) {
@@ -138,6 +139,7 @@ class VideoCallViewC: UIViewController, PIPUsable {
         self.isUsingFrontCamera.toggle()
         self.agoraKit?.switchCamera()
         self.updateVideoMirrorMode()
+        self.flipBtn.setImage(UIImage.generatedFlipIcon(selected: !self.isUsingFrontCamera), for: .normal)
     }
     
     @IBAction func cameraBtn_Action(_ sender: Any) {
@@ -301,7 +303,7 @@ extension VideoCallViewC{
         
         pipController.delegate = self
         
-        pipController.requiresLinearPlayback = true
+//        pipController.requiresLinearPlayback = true
         
         pipController
             .canStartPictureInPictureAutomaticallyFromInline = true
@@ -1185,3 +1187,38 @@ import UIKit
 //    }
 //}
 
+extension UIImage {
+    static func generatedFlipIcon(selected: Bool) -> UIImage? {
+        let size = CGSize(width: 60, height: 60)
+        UIGraphicsBeginImageContextWithOptions(size, false, 0)
+        guard let ctx = UIGraphicsGetCurrentContext() else { return nil }
+        
+        let ellipseRect = CGRect(origin: .zero, size: size)
+        if selected {
+            ctx.setFillColor(UIColor.white.cgColor)
+            ctx.fillEllipse(in: ellipseRect)
+        } else {
+            ctx.setFillColor(UIColor(white: 0.25, alpha: 0.6).cgColor)
+            ctx.fillEllipse(in: ellipseRect)
+            
+            ctx.setStrokeColor(UIColor.white.cgColor)
+            ctx.setLineWidth(0.5)
+            ctx.strokeEllipse(in: ellipseRect.insetBy(dx: 0.25, dy: 0.25))
+        }
+        
+        let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .regular)
+        if let symbol = UIImage(systemName: "camera.rotate", withConfiguration: config) {
+            let iconColor = selected ? UIColor.black : UIColor.white
+            let tintedSymbol = symbol.withTintColor(iconColor, renderingMode: .alwaysOriginal)
+            let rect = CGRect(x: (size.width - symbol.size.width)/2, 
+                              y: (size.height - symbol.size.height)/2, 
+                              width: symbol.size.width, 
+                              height: symbol.size.height)
+            tintedSymbol.draw(in: rect)
+        }
+        
+        let img = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return img?.withRenderingMode(.alwaysOriginal)
+    }
+}

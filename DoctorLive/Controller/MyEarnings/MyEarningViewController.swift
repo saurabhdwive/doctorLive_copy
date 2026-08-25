@@ -189,6 +189,9 @@ extension MyEarningViewController {
         parameter = ["language_type": code,
                      "token": token,
                      "type": type]
+        if let notifyId = notifyId {
+            parameter["notify_id"] = notifyId
+        }
         fullProfile(param: parameter)
     }
     
@@ -240,9 +243,9 @@ extension MyEarningViewController {
         guard let code = UserDefaults.standard.string(forKey: Constants.languageCode) else { return }
         parameter = ["language_type": code,
                      "token": token]
-        if let notifyId = notifyId {
-            parameter["notify_id"] = notifyId
-        }
+//        if let notifyId = notifyId {
+//            parameter["notify_id"] = notifyId
+//        }
          myWidhraw(param: parameter)
     }
     

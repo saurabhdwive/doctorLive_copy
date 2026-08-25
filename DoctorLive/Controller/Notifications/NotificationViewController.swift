@@ -17,11 +17,21 @@ class NotificationViewController: UIViewController {
     var notificationId = String()
     var notificationRead: Bool?
     var menu: SideMenuNavigationController?
+    
+    var currentPage = 1
+    var isLastPage = false
+    var isFetching = false
+    
+    lazy var bottomLoader: UIActivityIndicatorView = {
+        let loader = UIActivityIndicatorView(style: .medium)
+        loader.frame = CGRect(x: 0, y: 0, width: self.tableView.bounds.width, height: 44)
+        return loader
+    }()
     override func viewDidLoad() {
         super.viewDidLoad()
         setUpTableView()
         notificationTitle.text = "Notifications".localized()
-        self.performNotification()
+        self.performNotification(isRefresh: true)
         SideMenuManager.default.leftMenuNavigationController = menu
         SideMenuManager.default.addPanGestureToPresent(toView: self.view)
         
@@ -56,7 +66,7 @@ extension NotificationViewController: UITableViewDelegate, UITableViewDataSource
         cell.messageTxt.text = myNotificationArray[indexPath.row].message
         cell.dateTxt.text = myNotificationArray[indexPath.row].date
         cell.timeTxt.text = myNotificationArray[indexPath.row].time
-        if notificationRead == true {
+        if myNotificationArray[indexPath.row].notificationStatus == "0" {
             cell.notificationReadImage.image = UIImage(named: "noun_doubleBlue")
         } else {
             cell.notificationReadImage.image = UIImage(named: "noun_double check_-1")
@@ -66,19 +76,29 @@ extension NotificationViewController: UITableViewDelegate, UITableViewDataSource
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         self.notificationId = myNotificationArray[indexPath.row].id ?? ""
-        if myNotificationArray[indexPath.row].type == "payment" {
+        let type = myNotificationArray[indexPath.row].type
+        let title = myNotificationArray[indexPath.row].title
+        
+        if type == "payment" {
+//            let storyboard = UIStoryboard.init(name: "Auth", bundle: nil)
+//            let vc = storyboard.instantiateViewController(withIdentifier: "UpcomingBookingVC") as! UpcomingBookingVC
+//            vc.isCameScreen = "Payment"
+//            self.navigationController?.pushViewController(vc, animated: true)
+            let appDel = UIApplication.shared.delegate as! AppDelegate
+             _ = appDel.initHome()
+        } else if type == "addbooking" {
+            let appDel = UIApplication.shared.delegate as! AppDelegate
+            _ = appDel.initHome()
+        } else if type == "cancel" {
+//            let storyboard = UIStoryboard.init(name: "Auth", bundle: nil)
+//            let vc = storyboard.instantiateViewController(withIdentifier: "UpcomingBookingVC") as! UpcomingBookingVC
+//            vc.isCameScreen = "ChatScreen"
+//            self.navigationController?.pushViewController(vc, animated: true)
+            let appDel = UIApplication.shared.delegate as! AppDelegate
+             _ = appDel.initHome()
+        } else if type == "NotificationPush" && title == "Payout update" {
             let storyboard = UIStoryboard.init(name: "Auth", bundle: nil)
-            let vc = storyboard.instantiateViewController(withIdentifier: "UpcomingBookingVC") as! UpcomingBookingVC
-            vc.isCameScreen = "Payment"
-            self.navigationController?.pushViewController(vc, animated: true)
-        } else if myNotificationArray[indexPath.row].type == "addbooking" {
-            let storyboard = UIStoryboard.init(name: "Auth", bundle: nil)
-            let vc = storyboard.instantiateViewController(withIdentifier: "UpcomingBookingVC") as! UpcomingBookingVC
-            self.navigationController?.pushViewController(vc, animated: true)
-        } else if myNotificationArray[indexPath.row].type == "cancel" {
-            let storyboard = UIStoryboard.init(name: "Auth", bundle: nil)
-            let vc = storyboard.instantiateViewController(withIdentifier: "UpcomingBookingVC") as! UpcomingBookingVC
-            vc.isCameScreen = "ChatScreen"
+            let vc = storyboard.instantiateViewController(withIdentifier: "MyEarningViewController") as! MyEarningViewController
             self.navigationController?.pushViewController(vc, animated: true)
         } else {
             let appDel = UIApplication.shared.delegate as! AppDelegate
@@ -86,11 +106,24 @@ extension NotificationViewController: UITableViewDelegate, UITableViewDataSource
         }
         performNotificationRead()
     }
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        if indexPath.row == self.myNotificationArray.count - 1 && !isLastPage && !isFetching {
+            self.currentPage += 1
+            self.performNotification(isRefresh: false)
+        }
+    }
 }
 
 extension NotificationViewController {
     func myWidhraw(param: [String: String]){
-        LoaderController.sharedInstance.showLoader(view: self.view)
+        if currentPage == 1 {
+            LoaderController.sharedInstance.showLoader(view: self.view)
+        } else {
+            self.tableView.tableFooterView = self.bottomLoader
+            self.bottomLoader.startAnimating()
+        }
+        
         firstly {
             service!.NotificationList(parameters: param, header: "DeviceToken")
         }.done { (model: NotificationListModel) in
@@ -98,32 +131,57 @@ extension NotificationViewController {
         }.catch { (error) in
             DispatchQueue.main.async {
                 LoaderController.sharedInstance.removeLoader()
+                self.isFetching = false
+                self.bottomLoader.stopAnimating()
+                self.tableView.tableFooterView = nil
             }
             
         }.finally {
             DispatchQueue.main.async {
                 LoaderController.sharedInstance.removeLoader()
+                self.isFetching = false
+                self.bottomLoader.stopAnimating()
+                self.tableView.tableFooterView = nil
             }
         }
     }
     
-    func performNotification() {
+    func performNotification(isRefresh: Bool = false) {
+        if isRefresh {
+            currentPage = 1
+            isLastPage = false
+        }
+        
+        if isFetching { return }
+        isFetching = true
+        
         var parameter = [String: String]()
         guard let token = UserDefaults.standard.string(forKey: Constants.accessToken) else { return }
         guard let code = UserDefaults.standard.string(forKey: Constants.languageCode) else { return }
         parameter = ["language_type": code,
-                     "token": token]
+                     "token": token,
+                     "page": "\(currentPage)"]
          myWidhraw(param: parameter)
     }
     
     func myWidhrawResponse(model: NotificationListModel) {
         if model.status == "SUCCESS" {
-            self.myNotificationArray = model.mynotification ?? [Mynotification]()
+            let newItems = model.mynotification ?? [Mynotification]()
+            
+            if currentPage == 1 {
+                self.myNotificationArray = newItems
+            } else {
+                self.myNotificationArray.append(contentsOf: newItems)
+            }
+            
+            self.isLastPage = newItems.isEmpty
             self.tableView.reloadData()
-            LoaderController.sharedInstance.removeLoader()
-        } else {
-            LoaderController.sharedInstance.removeLoader()
         }
+        
+        LoaderController.sharedInstance.removeLoader()
+        self.isFetching = false
+        self.bottomLoader.stopAnimating()
+        self.tableView.tableFooterView = nil
     }
 }
 
@@ -148,9 +206,11 @@ extension NotificationViewController {
     
     func performNotificationRead() {
         var parameter = [String: String]()
+        guard let token = UserDefaults.standard.string(forKey: Constants.accessToken) else { return }
         guard let code = UserDefaults.standard.string(forKey: Constants.languageCode) else { return }
         parameter = ["language_type": code,
-                     "id": self.notificationId]
+                     "id": self.notificationId,
+                     "token": token]
         notificationRead(param: parameter)
     }
     

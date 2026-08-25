@@ -16,7 +16,8 @@ extension ChatViewController{
         let passDic = ["user_id": self.userId ?? EMPTY,
                        "channel": self.sinchToken ?? EMPTY,
                        "token": self.rtcAgoroToken ?? EMPTY,
-                       "doctor_id": self.doctorId ?? EMPTY]
+                       "doctor_id": self.doctorId ?? EMPTY,
+                       "type":"ios"]
         print(passDic)
         self.generateAndSendPushApi(param: passDic)
     }

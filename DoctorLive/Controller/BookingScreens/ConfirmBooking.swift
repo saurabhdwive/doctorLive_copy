@@ -43,9 +43,27 @@ class ConfirmBooking: UIViewController {
         return label
     }()
     
+    public lazy var okayButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitle("Okay".localized(), for: .normal)
+        button.backgroundColor = UIColor(named: "ButtonBlueColor") ?? .systemBlue
+        button.setTitleColor(.white, for: .normal)
+        button.titleLabel?.font = UIFont(name: "Poppins-Medium", size: 16)
+        button.layer.cornerRadius = 8
+        button.addTarget(self, action: #selector(okayButtonTapped), for: .touchUpInside)
+        return button
+    }()
+    
    var navController: UINavigationController?
+   
+    @objc func okayButtonTapped() {
+        self.addBookingCallBack?()
+        self.dismiss(animated: true, completion: nil)
+    }
+    
     @objc func superViewTapped(sender: UITapGestureRecognizer) {
-        self.addBookingCallBack!()
+        self.addBookingCallBack?()
         //self.dismiss(animated: true, completion: nil)
     }
     
@@ -63,6 +81,7 @@ class ConfirmBooking: UIViewController {
         self.view.addSubview(backgroundCardView)
         self.backgroundCardView.addSubview(percentageLabel)
         self.backgroundCardView.addSubview(errorLabel)
+        self.backgroundCardView.addSubview(okayButton)
     }
     
     // MARK: -SetupConstraints
@@ -73,8 +92,7 @@ class ConfirmBooking: UIViewController {
             self.backgroundCardView.centerYAnchor.constraint(equalTo: safeArea.centerYAnchor),
             self.backgroundCardView.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
             self.backgroundCardView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 35),
-            self.backgroundCardView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -35),
-            self.backgroundCardView.heightAnchor.constraint(equalToConstant: 200)
+            self.backgroundCardView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -35)
         ])
         
         NSLayoutConstraint.activate([
@@ -84,9 +102,17 @@ class ConfirmBooking: UIViewController {
         ])
         
         NSLayoutConstraint.activate([
-            self.percentageLabel.topAnchor.constraint(equalTo: errorLabel.bottomAnchor, constant: 30),
+            self.percentageLabel.topAnchor.constraint(equalTo: errorLabel.bottomAnchor, constant: 20),
             self.percentageLabel.trailingAnchor.constraint(equalTo: backgroundCardView.trailingAnchor, constant: -20),
             self.percentageLabel.leadingAnchor.constraint(equalTo: backgroundCardView.leadingAnchor, constant: 20)
+        ])
+        
+        NSLayoutConstraint.activate([
+            self.okayButton.topAnchor.constraint(equalTo: percentageLabel.bottomAnchor, constant: 25),
+            self.okayButton.centerXAnchor.constraint(equalTo: backgroundCardView.centerXAnchor),
+            self.okayButton.widthAnchor.constraint(equalToConstant: 120),
+            self.okayButton.heightAnchor.constraint(equalToConstant: 44),
+            self.okayButton.bottomAnchor.constraint(equalTo: backgroundCardView.bottomAnchor, constant: -20)
         ])
      }
  }

@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		04289C27303F187C00310053 /* ChatPdfCells.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04289C26303F187C00310053 /* ChatPdfCells.swift */; };
+		04289C2A303F189700310053 /* ChatRightAudioCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04289C28303F189700310053 /* ChatRightAudioCell.swift */; };
+		04289C2B303F189700310053 /* ChatRightAudioCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 04289C29303F189700310053 /* ChatRightAudioCell.xib */; };
+		04289C30303F200400310053 /* RecorderVC+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04289C2E303F200400310053 /* RecorderVC+Extension.swift */; };
+		04289C31303F200400310053 /* RecorderVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04289C2D303F200400310053 /* RecorderVC.swift */; };
+		04289C32303F200400310053 /* AKAudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04289C2C303F200400310053 /* AKAudioRecorder.swift */; };
 		0C201638272A8F680034BBA5 /* MedicineList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C201637272A8F680034BBA5 /* MedicineList.swift */; };
 		0C2A92DF270ED9A8005FD8E4 /* DeleteAvilability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C2A92DE270ED9A8005FD8E4 /* DeleteAvilability.swift */; };
 		0C2A92E2270F281E005FD8E4 /* SettingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C2A92E1270F281E005FD8E4 /* SettingViewController.swift */; };
@@ -366,6 +372,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		04289C26303F187C00310053 /* ChatPdfCells.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatPdfCells.swift; sourceTree = "<group>"; };
+		04289C28303F189700310053 /* ChatRightAudioCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRightAudioCell.swift; sourceTree = "<group>"; };
+		04289C29303F189700310053 /* ChatRightAudioCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ChatRightAudioCell.xib; sourceTree = "<group>"; };
+		04289C2C303F200400310053 /* AKAudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AKAudioRecorder.swift; sourceTree = "<group>"; };
+		04289C2D303F200400310053 /* RecorderVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecorderVC.swift; sourceTree = "<group>"; };
+		04289C2E303F200400310053 /* RecorderVC+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RecorderVC+Extension.swift"; sourceTree = "<group>"; };
 		0B57CE3221BCE286F910C58A /* Pods-DoctorLive.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DoctorLive.debug.xcconfig"; path = "Target Support Files/Pods-DoctorLive/Pods-DoctorLive.debug.xcconfig"; sourceTree = "<group>"; };
 		0C201637272A8F680034BBA5 /* MedicineList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicineList.swift; sourceTree = "<group>"; };
 		0C2A92DE270ED9A8005FD8E4 /* DeleteAvilability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAvilability.swift; sourceTree = "<group>"; };
@@ -734,6 +746,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		04289C2F303F200400310053 /* Recorder Screen */ = {
+			isa = PBXGroup;
+			children = (
+				04289C2C303F200400310053 /* AKAudioRecorder.swift */,
+				04289C2D303F200400310053 /* RecorderVC.swift */,
+				04289C2E303F200400310053 /* RecorderVC+Extension.swift */,
+			);
+			path = "Recorder Screen";
+			sourceTree = "<group>";
+		};
 		0C2A92E0270F27ED005FD8E4 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
@@ -1046,6 +1068,7 @@
 		18E923C92D27AF4800345CBC /* Chat Screen */ = {
 			isa = PBXGroup;
 			children = (
+				04289C26303F187C00310053 /* ChatPdfCells.swift */,
 				18E923C32D27AF4800345CBC /* ChatViewC.swift */,
 				18E923C72D27AF4800345CBC /* ChatViewC+KeyBoard.swift */,
 				18E923C52D27AF4800345CBC /* ChatViewC+ChatVw.swift */,
@@ -1062,6 +1085,8 @@
 				18E923C02D27AF4800345CBC /* ChatRightImageCell.xib */,
 				18E923C12D27AF4800345CBC /* ChatRightTextCell.swift */,
 				18E923C22D27AF4800345CBC /* ChatRightTextCell.xib */,
+				04289C28303F189700310053 /* ChatRightAudioCell.swift */,
+				04289C29303F189700310053 /* ChatRightAudioCell.xib */,
 			);
 			path = "Chat Screen";
 			sourceTree = "<group>";
@@ -1494,6 +1519,7 @@
 				4F37F0B826EAFB1B007CDB32 /* MyProfileExtension.swift */,
 				0C7D0F48273BBB9C0084DE26 /* DownloadOperation.swift */,
 				4FCCA85E26E23A970078641E /* LocationView */,
+				04289C2F303F200400310053 /* Recorder Screen */,
 			);
 			path = Controller;
 			sourceTree = "<group>";
@@ -1719,6 +1745,7 @@
 				18BBB96A2CDCBC2C00B436BC /* QuestionDetailCell.xib in Resources */,
 				4F67AA5526F7413000944A3B /* SetAvilabilityOnCallVC.xib in Resources */,
 				1820D5692C92D05B00B5C816 /* PreviousHomeCell.xib in Resources */,
+				04289C2B303F189700310053 /* ChatRightAudioCell.xib in Resources */,
 				CEFA0C5526C2FC85006587B2 /* cam_flip.xcassets in Resources */,
 				4F65278C26F4B60300450EE8 /* ChatMessageLeftCell.xib in Resources */,
 				186394D52CD9F77800F2AD80 /* EndCallPopUp.xib in Resources */,
@@ -1967,6 +1994,7 @@
 				4F67AA5C26F7B28800944A3B /* ChatMessageImagesLeftCell.swift in Sources */,
 				CEFA0CAC26C4435C006587B2 /* Indicator.swift in Sources */,
 				4FCE007A26E772870059F7C5 /* ForgetPassword.swift in Sources */,
+				04289C27303F187C00310053 /* ChatPdfCells.swift in Sources */,
 				18BBB9512CDCA85200B436BC /* QuestionListViewC+Model.swift in Sources */,
 				18F956942C8B08B6006F6727 /* Enum+Extension.swift in Sources */,
 				18E923DB2D2CF13400345CBC /* ImagePickerSwift.swift in Sources */,
@@ -2087,6 +2115,7 @@
 				CEFA0CA626C4435C006587B2 /* ScreenManager.swift in Sources */,
 				0C201638272A8F680034BBA5 /* MedicineList.swift in Sources */,
 				0C58FE7227252EDC00742043 /* EditClinicModel.swift in Sources */,
+				04289C2A303F189700310053 /* ChatRightAudioCell.swift in Sources */,
 				1885A11D2795ACFB00AAB5C6 /* CustomPlayerCircularButtonView.swift in Sources */,
 				1820D5AD2C9AE90E00B5C816 /* MyArticleViewC+ApiService.swift in Sources */,
 				CEFA0CA426C4435C006587B2 /* Manageable.swift in Sources */,
@@ -2103,6 +2132,9 @@
 				4FCCA81026E0A6430078641E /* Utils.swift in Sources */,
 				18BBB96B2CDCBC2C00B436BC /* QuestionDetailCell.swift in Sources */,
 				CE10DF0B26CAD90C00036EF4 /* WelcomeVC.swift in Sources */,
+				04289C30303F200400310053 /* RecorderVC+Extension.swift in Sources */,
+				04289C31303F200400310053 /* RecorderVC.swift in Sources */,
+				04289C32303F200400310053 /* AKAudioRecorder.swift in Sources */,
 				4F3FB5BB26F1F85A00B04DE4 /* UpcomingBookingVC.swift in Sources */,
 				1820D5C22C9AFF6E00B5C816 /* Networking.swift in Sources */,
 				0C5681CA27638380001D5D63 /* MedicineSearchVC.swift in Sources */,

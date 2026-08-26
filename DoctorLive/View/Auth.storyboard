@@ -10373,6 +10373,18 @@ YWNrIHRvIHlvdSBBU0FQLg
                                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                             </textView>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="AuD-io-BtN">
+                                                <rect key="frame" x="254" y="16.5" width="25" height="25"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="width" constant="25" id="cEa-gX-fXh"/>
+                                                    <constraint firstAttribute="height" constant="25" id="rFj-mI-aXn"/>
+                                                </constraints>
+                                                <color key="tintColor" name="ButtonBlueColor"/>
+                                                <state key="normal" image="mic.fill" catalog="system"/>
+                                                <connections>
+                                                    <action selector="audioBtn_Action:" destination="BZm-TY-HTS" eventType="touchUpInside" id="k6R-Gq-QWE"/>
+                                                </connections>
+                                            </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Pgi-1c-d7m">
                                                 <rect key="frame" x="289" y="16.5" width="25" height="25"/>
                                                 <constraints>
@@ -10393,7 +10405,9 @@ YWNrIHRvIHlvdSBBU0FQLg
                                             <constraint firstAttribute="bottom" secondItem="Knz-Xc-f0E" secondAttribute="bottom" constant="10" id="L5J-Zn-TcB"/>
                                             <constraint firstAttribute="trailing" secondItem="Pgi-1c-d7m" secondAttribute="trailing" constant="10" id="Svq-33-RtK"/>
                                             <constraint firstItem="Pgi-1c-d7m" firstAttribute="centerY" secondItem="0km-gS-xct" secondAttribute="centerY" id="Ww2-QO-uaN"/>
-                                            <constraint firstItem="Pgi-1c-d7m" firstAttribute="leading" secondItem="Knz-Xc-f0E" secondAttribute="trailing" constant="10" id="rh0-c2-pUD"/>
+                                            <constraint firstItem="AuD-io-BtN" firstAttribute="leading" secondItem="Knz-Xc-f0E" secondAttribute="trailing" constant="10" id="rh0-c2-pUD"/>
+                                            <constraint firstItem="Pgi-1c-d7m" firstAttribute="leading" secondItem="AuD-io-BtN" secondAttribute="trailing" constant="10" id="NeW-cO-bUt"/>
+                                            <constraint firstItem="AuD-io-BtN" firstAttribute="centerY" secondItem="0km-gS-xct" secondAttribute="centerY" id="M1C-vD-kGq"/>
                                             <constraint firstItem="Knz-Xc-f0E" firstAttribute="leading" secondItem="0km-gS-xct" secondAttribute="leading" constant="10" id="snp-Kg-qYE"/>
                                         </constraints>
                                         <userDefinedRuntimeAttributes>
@@ -10537,6 +10551,7 @@ YWNrIHRvIHlvdSBBU0FQLg
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="audioBtn" destination="AuD-io-BtN" id="FwQ-Jc-9rT"/>
                         <outlet property="chatTblVw" destination="tie-GI-dvp" id="P77-9A-lNW"/>
                         <outlet property="doctorImage" destination="fho-Bh-ZOx" id="qBS-Rb-OGA"/>
                         <outlet property="doctorNameLbl" destination="LkP-BM-jb2" id="wpl-gO-pUO"/>

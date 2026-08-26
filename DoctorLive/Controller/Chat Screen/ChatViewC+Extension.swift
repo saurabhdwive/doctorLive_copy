@@ -8,6 +8,7 @@
 import Foundation
 import AVKit
 import UIKit
+import SafariServices
 
 extension ChatViewC: UITableViewDelegate{
     func numberOfSections(in tableView: UITableView) -> Int {
@@ -84,6 +85,29 @@ extension ChatViewC: UITableViewDataSource{
                     self.navigationController?.pushViewController(viewC, animated: true)
                 }
                 return cell
+            }else if chat?.msgType == "audio"{
+                let cell = self.chatTblVw.dequeueReusableCell(withIdentifier: ChatRightAudioCell.className)as! ChatRightAudioCell
+//                cell.configureAlignment(isSender: true)
+//                cell.timeLbl.text = chat?.time ?? EMPTY
+                
+                if let urlString = chat?.message, let audioURL = URL(string: urlString) {
+                    cell.configureAudio(url: audioURL)
+                }
+                
+                return cell
+            }else if chat?.msgType == "pdf"{
+                let cell = self.chatTblVw.dequeueReusableCell(withIdentifier: "ChatRightPdfCell") as! ChatRightPdfCell
+                cell.timeLbl.text = chat?.time ?? EMPTY
+                if let urlString = chat?.message, let url = URL(string: urlString) {
+                    cell.fileNameLbl.text = url.lastPathComponent
+                }
+                cell.pdfBtnTapped = {
+                    if let urlString = chat?.message, let url = URL(string: urlString) {
+                        let safariVC = SFSafariViewController(url: url)
+                        self.present(safariVC, animated: true, completion: nil)
+                    }
+                }
+                return cell
             }else{
                 let cell = self.chatTblVw.dequeueReusableCell(withIdentifier: ChatRightImageCell.className)as! ChatRightImageCell
                 let mystring1 = chat?.message ?? EMPTY
@@ -156,6 +180,29 @@ extension ChatViewC: UITableViewDataSource{
                     let viewC = DIConfigurator.sharedInst().getImagePopPrieViewC()
                     viewC.imageUrl = chat?.message ?? EMPTY
                     self.navigationController?.pushViewController(viewC, animated: true)
+                }
+                return cell
+            }else if chat?.msgType == "audio"{
+                let cell = self.chatTblVw.dequeueReusableCell(withIdentifier: ChatRightAudioCell.className)as! ChatRightAudioCell
+                cell.configureAlignment(isSender: false)
+                cell.timeLbl.text = chat?.time ?? EMPTY
+                
+                if let urlString = chat?.message, let audioURL = URL(string: urlString) {
+                    cell.configureAudio(url: audioURL)
+                }
+                
+                return cell
+            }else if chat?.msgType == "pdf"{
+                let cell = self.chatTblVw.dequeueReusableCell(withIdentifier: "ChatLeftPdfCell") as! ChatLeftPdfCell
+                cell.timeLbl.text = chat?.time ?? EMPTY
+                if let urlString = chat?.message, let url = URL(string: urlString) {
+                    cell.fileNameLbl.text = url.lastPathComponent
+                }
+                cell.pdfBtnTapped = {
+                    if let urlString = chat?.message, let url = URL(string: urlString) {
+                        let safariVC = SFSafariViewController(url: url)
+                        self.present(safariVC, animated: true, completion: nil)
+                    }
                 }
                 return cell
             }else{

@@ -1,10 +1,5 @@
-//
-//  PushNotification.swift
-//  E-RX
-//
-//  Created by SinhaAirBook on 11/07/20.
-//  Copyright © 2020 macbook. All rights reserved.
-//
+ 
+
 import UIKit
 import UserNotifications
 import Firebase
@@ -25,9 +20,7 @@ enum NotificationRedirection : String {
 }
 
 struct PUSHUD {
-    
     //MESSAGE
-    
     static let sender              =      "sender"
     static let reciever            =      "reciever"
     static let senderProfilePic    =      "senderProfilePic"
@@ -153,7 +146,6 @@ class PushNotification:NSObject, UNUserNotificationCenterDelegate,MessagingDeleg
                 }
                 completionHandler()
             }
-
         }
     }
     

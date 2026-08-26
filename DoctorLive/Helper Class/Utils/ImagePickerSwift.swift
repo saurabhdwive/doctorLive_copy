@@ -9,6 +9,7 @@ import Foundation
 import UIKit
 import MobileCoreServices
 import AVKit
+import UniformTypeIdentifiers
 
 class ImagePickerManagerSwift: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
@@ -158,7 +159,7 @@ extension UIViewController{
   }
 }
 
-class VideoPickerManagerSwift: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate{
+class VideoPickerManagerSwift: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIDocumentPickerDelegate{
     var picker = UIImagePickerController();
     var viewController: UIViewController?
     var pickImageCallback : ((UIImage, URL) -> ())?;
@@ -205,6 +206,10 @@ class VideoPickerManagerSwift: NSObject, UIImagePickerControllerDelegate, UINavi
             UIAlertAction in
             self.openVedio()
         }
+        let documentAction = UIAlertAction(title: "Upload Document", style: UIAlertAction.Style.default){
+            UIAlertAction in
+            self.openDocument()
+        }
         
         let cancelAction = UIAlertAction(title: "Cancel" , style: UIAlertAction.Style.cancel){
             UIAlertAction in
@@ -212,6 +217,7 @@ class VideoPickerManagerSwift: NSObject, UIImagePickerControllerDelegate, UINavi
         picker.delegate = self
         alert.addAction(cameraAction)
         alert.addAction(vedioAction)
+        alert.addAction(documentAction)
         alert.addAction(cancelAction)
         
         viewController?.present(alert, animated: true, completion: nil)
@@ -344,5 +350,17 @@ class VideoPickerManagerSwift: NSObject, UIImagePickerControllerDelegate, UINavi
             return thumbnailImage
         }
         return UIImage()
+    }
+    
+    func openDocument() {
+        let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [.pdf], asCopy: true)
+        documentPicker.delegate = self
+        documentPicker.allowsMultipleSelection = false
+        viewController?.present(documentPicker, animated: true, completion: nil)
+    }
+    
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        guard let url = urls.first else { return }
+        pickImageCallback?(UIImage(), url)
     }
 }

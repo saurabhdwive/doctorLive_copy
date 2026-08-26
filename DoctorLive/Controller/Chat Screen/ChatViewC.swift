@@ -28,6 +28,7 @@ class ChatViewC: UIViewController {
             self.chatTblVw.dataSource = self
         }
     }
+    @IBOutlet weak var audioBtn: UIButton!
     
     var viewmodel = ViewModel()
     var senderId: String?
@@ -127,6 +128,39 @@ private extension ChatViewC {
         self.chatTblVw.register(UINib(nibName: ChatLeftImageCell.className, bundle: nil), forCellReuseIdentifier: ChatLeftImageCell.className)
         self.chatTblVw.register(UINib(nibName: ChatRightImageCell.className, bundle: nil), forCellReuseIdentifier: ChatRightImageCell.className)
         self.chatTblVw.register(UINib(nibName: ChatHeaderCell.className, bundle: nil), forHeaderFooterViewReuseIdentifier: ChatHeaderCell.className)
+        self.chatTblVw.register(UINib(nibName: ChatRightAudioCell.className, bundle: nil), forCellReuseIdentifier: ChatRightAudioCell.className)
+        self.chatTblVw.register(ChatRightPdfCell.self, forCellReuseIdentifier: "ChatRightPdfCell")
+        self.chatTblVw.register(ChatLeftPdfCell.self, forCellReuseIdentifier: "ChatLeftPdfCell")
+    }
+    
+    @IBAction func audioBtn_Action(_ sender: Any) {
+        let viewC = DIConfigurator.sharedInst().getRecorderViewC()
+        viewC.modalTransitionStyle = .crossDissolve
+        viewC.modalPresentationStyle = .overCurrentContext
+        viewC.callBackRecordedFile = { record in
+            Indicator.shared.showProgressView(self.view)
+            let audioUrl = URL(fileURLWithPath: record)
+            guard let fileData = try? Data(contentsOf: audioUrl) else {
+                Indicator.shared.hideProgressView()
+                self.showToast(message: "uploading error")
+                return
+            }
+            let fileName = "chat_audio_\(Int(Date().timeIntervalSince1970)).m4a"
+//            self.uploadChatFileViaPresignedUrl(fileData: fileData, fileName: fileName, fileType: "audio/m4a") { result in
+//                Indicator.shared.hideProgressView()
+//                switch result {
+//                case .success(let publicUrl):
+//                    self.emitChatMediaMessage(url: publicUrl, type: "audio")
+//                    self.chatData.append(ChatData(message: publicUrl, time: Date.getDateStringWithDatee(DateFormat.exactTimeFormat1, date: Date()), msgType: "audio", recieverType: "sender", date: Date.getDateStringWithDatee(DateFormat.dateMonthyear1, date: Date())))
+//                    self.showToast(message: "Audio upload successfully")
+//                    self.setscrollPosition()
+//                    self.setUpChatData()
+//                case .failure:
+//                    self.showToast(message: "uploading error")
+//                }
+//            }
+        }
+        self.navigationController?.present(viewC, animated: true)
     }
     
     @IBAction func backBtn_Action(_ sender: Any) {

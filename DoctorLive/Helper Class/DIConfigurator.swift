@@ -31,6 +31,13 @@ class DIConfigurator {
 //        return tabbarViewC
 //    }
     
+    //MARK: - SIDE MENU
+    
+    func getRecorderViewC() -> RecorderVC {
+          let recorderVC = self.getViewControler(.VideoFlow, indentifier: RecorderVC.className) as! RecorderVC
+          return recorderVC
+      }
+    
     
     //MARK: - SIDE MENU
     

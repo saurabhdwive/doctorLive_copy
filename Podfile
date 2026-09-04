@@ -29,6 +29,7 @@ target 'DoctorLive' do
   pod 'PIPKit'
   pod 'SideMenu'
   pod 'AgoraRtcEngine_iOS'
+  pod 'lottie-ios'
   
   post_install do |installer|
     installer.generated_projects.each do |project|

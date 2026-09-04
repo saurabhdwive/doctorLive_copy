@@ -162,7 +162,7 @@ class HomeVC: UIViewController {
 //        self.previousBookingBtn.setTitle("Accepted Booking", for: .normal)
 //        self.followUpBtn.setTitle("Pending Booking", for: .normal)
 //        self.setUpSegment(selectedBtn: self.followUpBtn, unSelectedBtn: [])
-        if USER_DEFAULTS.bool(forKey: "version") == false{
+        if USER_DEFAULTS.bool(forKey: "version_doctor") == false{
             self.checkAppVersion(controller: self)
         }
         self.typeOn(string: "Search by patient name...")
@@ -302,8 +302,20 @@ class HomeVC: UIViewController {
     @IBAction func switchTapped(_ sender: UISwitch) {
         if (sender.isOn) {
             self.performDoctorAvilability(avilability: "on")
+            var paramDict = [String: String]()
+            paramDict["doctor_id"] = USER_DEFAULTS.string(forKey: Constants.userId)
+            paramDict["status"] = "online"
+            SocketHelper.shared.emit(with: .update_doctor_status, paramDict){ data in
+                print("room joined", data)
+            }
         } else {
             self.performDoctorAvilability(avilability: "off")
+            var paramDict = [String: String]()
+            paramDict["doctor_id"] = USER_DEFAULTS.string(forKey: Constants.userId)
+            paramDict["status"] = "offline"
+            SocketHelper.shared.emit(with: .update_doctor_status, paramDict){ data in
+                print("room joined", data)
+            }
         }
     }
     
@@ -393,20 +405,39 @@ class HomeVC: UIViewController {
 
 extension HomeVC{
     fileprivate func checkAppVersion(controller: UIViewController){
-        let appVersion = ForceUpdateAppVersion.shared.appUpdateAvailable()
-        if appVersion.0 {
-            alertController(controller: controller, title: "Dr. Live New Update", message: "New version \(appVersion.1 ?? "") is available")
+        firstly {
+            service!.appVersionPopup(parameters: [:], header: nil)
+        }.done { (model: AppVersionModel) in
+            if model.status == "SUCCESS" {
+                let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+                if let doctor = model.version.doctor?.first, let apiVersion = doctor.apiVersion {
+                    if apiVersion.compare(currentVersion, options: .numeric) == .orderedDescending {
+                        let isForceUpdate = (doctor.forceUpdate == "1" || doctor.forceUpdate?.lowercased() == "yes" || doctor.forceUpdate?.lowercased() == "true")
+                        self.alertController(controller: controller, title: "Dr. Live New Update", message: doctor.message ?? "New version \(apiVersion) is available", isForceUpdate: isForceUpdate)
+                    }
+                }
+            }
+        }.catch { (error) in
+            print(error)
         }
     }
     
-    private func alertController(controller:UIViewController,title: String,message: String){
+    private func alertController(controller: UIViewController, title: String, message: String, isForceUpdate: Bool = false){
         let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { alert in
-            USER_DEFAULTS.set(true, forKey: "version")
-        }))
+        if !isForceUpdate {
+            alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { alert in
+                USER_DEFAULTS.set(true, forKey: "version_doctor")
+            }))
+        }
         alertController.addAction(UIAlertAction(title: "Update", style: .default, handler: { alert in
             guard let url = URL(string: "https://apps.apple.com/us/app/dr-live-for-doctors/id1592690667") else { return }
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            
+            if isForceUpdate {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    self.alertController(controller: controller, title: title, message: message, isForceUpdate: isForceUpdate)
+                }
+            }
         }))
         DispatchQueue.main.async {
             controller.present(alertController, animated: true)

@@ -10,30 +10,37 @@ import UIKit
 
 extension QuestionListViewC: UITableViewDelegate{
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.viewmodel.questionListData.first?.data?.count ?? INTZERO
+        return self.dataList.count
+    }
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        if indexPath.row == self.dataList.count - 1 && !isFetching && !isLastPage {
+            self.currentPage += 1
+            self.questionListApi()
+        }
     }
 }
 
 extension QuestionListViewC: UITableViewDataSource{
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = self.questionTblVw.dequeueReusableCell(withIdentifier: QuestionCell.className)as! QuestionCell
-        let question = self.viewmodel.questionListData.first?.data?[indexPath.row]
-        cell.titleLbl.text = question?.title ?? EMPTY
-        cell.descriptionLbl.text = question?.description ?? EMPTY
-        cell.answerCountLbl.text = "\(question?.totalAnswerCount ?? INTZERO) answers from doctor"
-        cell.genderLbl.text = "Asked for \(question?.memberDetails?.gender ?? EMPTY)"
-        cell.ageLbl.text = "\(question?.memberDetails?.dob ?? EMPTY) Years"
+        let question = self.dataList[indexPath.row]
+        cell.titleLbl.text = question.title ?? EMPTY
+        cell.descriptionLbl.text = question.description ?? EMPTY
+        cell.answerCountLbl.text = "\(question.totalAnswerCount ?? INTZERO) answers from doctor"
+        cell.genderLbl.text = "Asked for \(question.memberDetails?.gender ?? EMPTY)"
+        cell.ageLbl.text = "\(question.memberDetails?.dob ?? EMPTY) Years"
 //            \(Date.timesinceDate(question?.date ?? EMPTY))"
         cell.doctorFourthImage.isHidden = true
         cell.doctorThirdImage.isHidden = true
         cell.doctorSecondImage.isHidden = true
         cell.doctorFirstImage.isHidden = true
         cell.countLbl.isHidden = true
-        let doctorCount = question?.doctorImages?.count ?? INTZERO
+        let doctorCount = question.doctorImages?.count ?? INTZERO
         if doctorCount > 0 {
             let imageViews = [cell.doctorFourthImage, cell.doctorThirdImage, cell.doctorSecondImage, cell.doctorFirstImage]
             for i in 0..<min(doctorCount, imageViews.count) {
-                if let mystring = question?.doctorImages?[i] {
+                if let mystring = question.doctorImages?[i] {
                     let urlNew = mystring.replacingOccurrences(of: " ", with: "%20")
                     imageViews[i]?.isHidden = false
                     imageViews[i]?.sd_setImage(with: URL(string: urlNew), placeholderImage: UIImage(named: "user_dummy"))

@@ -10,10 +10,19 @@ import UIKit
 
 extension QuestionListViewC{
     func questionListApi(){
+        if isFetching { return }
+        isFetching = true
         let token = USER_DEFAULTS.string(forKey: Constants.accessToken) ?? EMPTY
-        let passDic = ["token": token]
+        let passDic: [String: Any] = ["token": token,"page":currentPage]
         print(passDic)
-        LoaderController.sharedInstance.showLoader(view: self.view)
+        if currentPage == 1 {
+            LoaderController.sharedInstance.showLoader(view: self.view)
+        } else {
+            let spinner = UIActivityIndicatorView(style: .medium)
+            spinner.startAnimating()
+            spinner.frame = CGRect(x: CGFloat(0), y: CGFloat(0), width: self.questionTblVw.bounds.width, height: CGFloat(44))
+            self.questionTblVw.tableFooterView = spinner
+        }
         viewmodel.controller = self
         viewmodel.questionListApi(url: APIEndpoint.questionList, passDict: passDic)
         closureSetUp()
@@ -27,10 +36,30 @@ extension QuestionListViewC{
         //For Success
         viewmodel.success = {[weak self](message) in
             DispatchQueue.main.async{
-                LoaderController.sharedInstance.removeLoader()
+                guard let self = self else { return }
+                self.isFetching = false
+                if self.currentPage == 1 {
+                    LoaderController.sharedInstance.removeLoader()
+                } else {
+                    self.questionTblVw.tableFooterView = nil
+                }
+                
                 if message == "Question List"{
                     print(message)
-                    self?.setUpQuestion()
+                    if let newData = self.viewmodel.questionListData.first?.data {
+                        if newData.isEmpty {
+                            self.isLastPage = true
+                        }
+                        if self.currentPage == 1 {
+                            self.dataList = newData
+                            self.isLastPage = newData.isEmpty
+                        } else {
+                            self.dataList.append(contentsOf: newData)
+                        }
+                    } else {
+                        self.isLastPage = true
+                    }
+                    self.setUpQuestion()
                 }else{
                     print(message)
                     AppToast.showMessage(message: message)
@@ -41,10 +70,19 @@ extension QuestionListViewC{
         // MARK:- For Error Message
         viewmodel.errorMessage = {[weak self](message) in
             DispatchQueue.main.async {
-                LoaderController.sharedInstance.removeLoader()
+                guard let self = self else { return }
+                self.isFetching = false
+                if self.currentPage == 1 {
+                    LoaderController.sharedInstance.removeLoader()
+                } else {
+                    self.questionTblVw.tableFooterView = nil
+                    self.isLastPage = true
+                }
                 print(message)
-                self?.questionTblVw.reloadData()
-                AppToast.showMessage(message: message)
+                self.questionTblVw.reloadData()
+                if self.currentPage == 1 {
+                    AppToast.showMessage(message: message)
+                }
             }
         }
     }

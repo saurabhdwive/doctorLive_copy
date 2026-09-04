@@ -16,14 +16,16 @@ struct ChatData{
     var recieverType: String?
     var date: String?
     var id: String?
+    var isExpired:Int?
     
-    init(message: String = EMPTY, time: String = EMPTY, msgType: String = EMPTY, recieverType: String = EMPTY, date: String = EMPTY, id: String = EMPTY) {
+    init(message: String = EMPTY, time: String = EMPTY, msgType: String = EMPTY, recieverType: String = EMPTY, date: String = EMPTY, id: String = EMPTY,isExpired:Int = 0) {
         self.message = message
         self.time = time
         self.msgType = msgType
         self.recieverType = recieverType
         self.date = date
         self.id = id
+        self.isExpired = isExpired
     }
 }
 
@@ -52,6 +54,7 @@ struct DoctorchathistoryData {
     let userName: String?
     let senderType: String?
     let roomId: String?
+    let isExpired:Int?
 
     init(_ json: JSON) {
         id = json["id"].stringValue
@@ -64,6 +67,7 @@ struct DoctorchathistoryData {
         userName = json["userName"].stringValue
         senderType = json["senderType"].stringValue
         roomId = json["room_id"].stringValue
+        isExpired = json["isExpired"].intValue
     }
 
 }

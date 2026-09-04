@@ -191,6 +191,7 @@ PODS:
   - GTMSessionFetcher/Core (3.5.0)
   - IQKeyboardManagerSwift (7.1.1)
   - KYDrawerController (2.1.0)
+  - lottie-ios (4.6.0)
   - Mobilisten (10.4.1)
   - nanopb (3.30910.0):
     - nanopb/decode (= 3.30910.0)
@@ -236,6 +237,7 @@ DEPENDENCIES:
   - GooglePlaces
   - IQKeyboardManagerSwift
   - KYDrawerController
+  - lottie-ios
   - Mobilisten
   - PIPKit
   - PromiseKit (~> 6.8)
@@ -247,6 +249,7 @@ DEPENDENCIES:
 
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
+    - lottie-ios
     - Mobilisten
   trunk:
     - ADCountryPicker
@@ -319,6 +322,7 @@ SPEC CHECKSUMS:
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   IQKeyboardManagerSwift: d7f3d3a562c237a0e7335e657cd598c452f57f1b
   KYDrawerController: baad0e63b09c0cb564bd48f0f7f70f45d9176ebc
+  lottie-ios: 8f959969761e9c45d70353667d00af0e5b9cadb3
   Mobilisten: 1121b2ce36c6de773a817e9bacbb0f755b4b209b
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   PIPKit: 7f498b6fe98c747b6a10a324fe433c7cc988b386
@@ -333,6 +337,6 @@ SPEC CHECKSUMS:
   Starscream: 4bb2f9942274833f7b4d296a55504dcfc7edb7b0
   SwiftyJSON: f5b1bf1cd8dd53cd25887ac0eabcfd92301c6a5a
 
-PODFILE CHECKSUM: 674d70fb3c218a5c61df9becede9b30239a78943
+PODFILE CHECKSUM: 5286d533d05b11c3957ff4e456ae9d3b008dfcd5
 
 COCOAPODS: 1.16.2

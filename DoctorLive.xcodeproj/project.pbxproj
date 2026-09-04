@@ -13,6 +13,9 @@
 		04289C30303F200400310053 /* RecorderVC+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04289C2E303F200400310053 /* RecorderVC+Extension.swift */; };
 		04289C31303F200400310053 /* RecorderVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04289C2D303F200400310053 /* RecorderVC.swift */; };
 		04289C32303F200400310053 /* AKAudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04289C2C303F200400310053 /* AKAudioRecorder.swift */; };
+		047486DD3040480000A354F2 /* audiofreq.json in Resources */ = {isa = PBXBuildFile; fileRef = 047486DC3040480000A354F2 /* audiofreq.json */; };
+		04F55026303F521200C5801B /* ExpiredOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F55025303F520100C5801B /* ExpiredOverlayView.swift */; };
+		04F5502A303F60F900C5801B /* DeleteConfirmationPopUp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F55029303F60F600C5801B /* DeleteConfirmationPopUp.swift */; };
 		0C201638272A8F680034BBA5 /* MedicineList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C201637272A8F680034BBA5 /* MedicineList.swift */; };
 		0C2A92DF270ED9A8005FD8E4 /* DeleteAvilability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C2A92DE270ED9A8005FD8E4 /* DeleteAvilability.swift */; };
 		0C2A92E2270F281E005FD8E4 /* SettingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C2A92E1270F281E005FD8E4 /* SettingViewController.swift */; };
@@ -378,6 +381,9 @@
 		04289C2C303F200400310053 /* AKAudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AKAudioRecorder.swift; sourceTree = "<group>"; };
 		04289C2D303F200400310053 /* RecorderVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecorderVC.swift; sourceTree = "<group>"; };
 		04289C2E303F200400310053 /* RecorderVC+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RecorderVC+Extension.swift"; sourceTree = "<group>"; };
+		047486DC3040480000A354F2 /* audiofreq.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = audiofreq.json; sourceTree = "<group>"; };
+		04F55025303F520100C5801B /* ExpiredOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpiredOverlayView.swift; sourceTree = "<group>"; };
+		04F55029303F60F600C5801B /* DeleteConfirmationPopUp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteConfirmationPopUp.swift; sourceTree = "<group>"; };
 		0B57CE3221BCE286F910C58A /* Pods-DoctorLive.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DoctorLive.debug.xcconfig"; path = "Target Support Files/Pods-DoctorLive/Pods-DoctorLive.debug.xcconfig"; sourceTree = "<group>"; };
 		0C201637272A8F680034BBA5 /* MedicineList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicineList.swift; sourceTree = "<group>"; };
 		0C2A92DE270ED9A8005FD8E4 /* DeleteAvilability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAvilability.swift; sourceTree = "<group>"; };
@@ -1068,6 +1074,8 @@
 		18E923C92D27AF4800345CBC /* Chat Screen */ = {
 			isa = PBXGroup;
 			children = (
+				04F55029303F60F600C5801B /* DeleteConfirmationPopUp.swift */,
+				04F55025303F520100C5801B /* ExpiredOverlayView.swift */,
 				04289C26303F187C00310053 /* ChatPdfCells.swift */,
 				18E923C32D27AF4800345CBC /* ChatViewC.swift */,
 				18E923C72D27AF4800345CBC /* ChatViewC+KeyBoard.swift */,
@@ -1463,6 +1471,7 @@
 				CEFA0C5426C2FC85006587B2 /* cam_flip.xcassets */,
 				CEFA0C6226C39FEB006587B2 /* PushNotification.swift */,
 				18F587E927EC38FF009DCF35 /* Launch Screen.storyboard */,
+				047486DC3040480000A354F2 /* audiofreq.json */,
 			);
 			path = "System File";
 			sourceTree = "<group>";
@@ -1741,6 +1750,7 @@
 				4F65279426F4C82800450EE8 /* ChatViewController.xib in Resources */,
 				1820D5652C92B8EC00B5C816 /* UpcomingHomeCell.xib in Resources */,
 				0CD73ED927158DC7009B1A73 /* PrescriptionTableViewCell.xib in Resources */,
+				047486DD3040480000A354F2 /* audiofreq.json in Resources */,
 				4F37F0BF26EB2A09007CDB32 /* PersonalProfileEditVC.xib in Resources */,
 				18BBB96A2CDCBC2C00B436BC /* QuestionDetailCell.xib in Resources */,
 				4F67AA5526F7413000944A3B /* SetAvilabilityOnCallVC.xib in Resources */,
@@ -2092,6 +2102,7 @@
 				4F64417226FA418E00EBAFEF /* ChatVC.swift in Sources */,
 				18BBB9712CDCF59600B436BC /* AnswerAddEditViewC+ApiService.swift in Sources */,
 				18F956972C8B0AF3006F6727 /* PendingHomeCell.swift in Sources */,
+				04F5502A303F60F900C5801B /* DeleteConfirmationPopUp.swift in Sources */,
 				4FCCA82226E0AA1A0078641E /* Localisation.swift in Sources */,
 				CEFA0CB426C4435C006587B2 /* AppToast.swift in Sources */,
 				4F37F0A726E87C62007CDB32 /* AddCompleteDetail.swift in Sources */,
@@ -2165,6 +2176,7 @@
 				18F956882C89C578006F6727 /* LoginVC+Extension.swift in Sources */,
 				4F65278426F4B3A400450EE8 /* SocketManager.swift in Sources */,
 				4F6802A726E61FB400DD530B /* Network.swift in Sources */,
+				04F55026303F521200C5801B /* ExpiredOverlayView.swift in Sources */,
 				18BBB94F2CDCA65500B436BC /* QuestionListViewC+ApiService.swift in Sources */,
 				18BBB9472CDC9B6400B436BC /* QuestionListViewC.swift in Sources */,
 				0C91BCFF2712D1D500397F08 /* WidhrawRequest.swift in Sources */,
@@ -2475,7 +2487,7 @@
 				CODE_SIGN_ENTITLEMENTS = DoctorLive/DoctorLive.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2.1.18;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = KGZW38PR5F;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -2488,7 +2500,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1.18;
+				MARKETING_VERSION = 2.1.20;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mobu.doctor;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2510,7 +2522,7 @@
 				CODE_SIGN_ENTITLEMENTS = DoctorLive/DoctorLive.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2.1.18;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = KGZW38PR5F;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)/**";
@@ -2521,7 +2533,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1.18;
+				MARKETING_VERSION = 2.1.20;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mobu.doctor;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

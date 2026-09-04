@@ -128,8 +128,9 @@ extension ChatViewC{
         self.groupByCategoryChat = Dictionary(grouping: self.chatData) { (device) -> String in
             return device.date ?? EMPTY
         }
+        
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "dd-MMM-yyyy"
+        dateFormatter.dateFormat = "yyyy-MM-dd"
 
         // Sorting the array
         let sortedDates = groupByCategoryChat?.keys.sorted { first, second in

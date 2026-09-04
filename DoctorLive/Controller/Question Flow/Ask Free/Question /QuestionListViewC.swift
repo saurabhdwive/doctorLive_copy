@@ -17,6 +17,10 @@ class QuestionListViewC: UIViewController {
     }
     
     var viewmodel = ViewModel()
+    var currentPage = 1
+    var isFetching = false
+    var isLastPage = false
+    var dataList = [QuestionListData]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -39,7 +43,7 @@ class QuestionListViewC: UIViewController {
     
     @objc func didSelectBtnTap(_ sender: UIButton){
         let viewC = DIConfigurator.sharedInst().getQuestionDetailViewC()
-        viewC.questionId = self.viewmodel.questionListData.first?.data?[sender.tag].questionId ?? EMPTY
+        viewC.questionId = self.dataList[sender.tag].questionId ?? EMPTY
         self.navigationController?.pushViewController(viewC, animated: true)
     }
     

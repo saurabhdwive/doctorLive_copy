@@ -93,6 +93,7 @@ private extension ChatViewC {
 
     func setUpViews(){
         self.dotLbl.isHidden = true
+        self.statusLbl.text = "offline"
         self.messageTxt.delegate = self
         self.messageTxt.textColor = .lightGray
         self.navigationController?.isNavigationBarHidden = true
@@ -146,11 +147,11 @@ private extension ChatViewC {
                 return
             }
             let fileName = "chat_audio_\(Int(Date().timeIntervalSince1970)).m4a"
-//            self.uploadChatFileViaPresignedUrl(fileData: fileData, fileName: fileName, fileType: "audio/m4a") { result in
-//                Indicator.shared.hideProgressView()
+            self.uploadViaPresignedUrl(fileName: fileName, filetype: "audio/m4a", fileData: fileData, contentType: "audio/m4a") { result in
+                self.handleMediaUploadResult(result: result, msgType: "audio", successMessage: "Audio upload successfully")
 //                switch result {
 //                case .success(let publicUrl):
-//                    self.emitChatMediaMessage(url: publicUrl, type: "audio")
+////                    self.emitChatMediaMessage(url: publicUrl, type: "audio")
 //                    self.chatData.append(ChatData(message: publicUrl, time: Date.getDateStringWithDatee(DateFormat.exactTimeFormat1, date: Date()), msgType: "audio", recieverType: "sender", date: Date.getDateStringWithDatee(DateFormat.dateMonthyear1, date: Date())))
 //                    self.showToast(message: "Audio upload successfully")
 //                    self.setscrollPosition()
@@ -158,7 +159,7 @@ private extension ChatViewC {
 //                case .failure:
 //                    self.showToast(message: "uploading error")
 //                }
-//            }
+            }
         }
         self.navigationController?.present(viewC, animated: true)
     }
@@ -197,15 +198,37 @@ private extension ChatViewC {
             guard let self = self else { return }
             self.dismiss(animated: true, completion: nil)
             if image.size.height == 0.0 {
-                // Video
-                let videoURL = self.createTemporaryURLforVideoFile(url: url as NSURL) as URL
-                guard let fileData = try? Data(contentsOf: videoURL), !fileData.isEmpty else {
-                    self.showToast(message: "uploading error")
-                    return
+                
+                let isAccessing = url.startAccessingSecurityScopedResource()
+                defer {
+                    if isAccessing {
+                        url.stopAccessingSecurityScopedResource()
+                    }
                 }
-                let fileName = "chat_video_\(Int(Date().timeIntervalSince1970)).mp4"
-                self.uploadViaPresignedUrl(fileName: fileName, filetype: "video/mp4", fileData: fileData, contentType: "video/mp4") { result in
-                    self.handleMediaUploadResult(result: result, msgType: "video", successMessage: "Video upload successfully")
+                if url.pathExtension.lowercased() == "pdf" {
+                    // PDF Document
+                    Indicator.shared.showProgressView(self.view)
+                    guard let fileData = try? Data(contentsOf: url) else {
+                        Indicator.shared.hideProgressView()
+                        self.showToast(message: "uploading error")
+                        self.dismiss(animated: true, completion: nil)
+                        return
+                    }
+                    let fileName = "chat_doc_\(Int(Date().timeIntervalSince1970)).pdf"
+                    self.uploadViaPresignedUrl(fileName: fileName, filetype: "application/pdf", fileData: fileData, contentType: "pdf") { result in
+                        self.handleMediaUploadResult(result: result, msgType: "pdf", successMessage: "pdf upload successfully")
+                    }
+                } else {
+                    // Video
+                    let videoURL = self.createTemporaryURLforVideoFile(url: url as NSURL) as URL
+                    guard let fileData = try? Data(contentsOf: videoURL), !fileData.isEmpty else {
+                        self.showToast(message: "uploading error")
+                        return
+                    }
+                    let fileName = "chat_video_\(Int(Date().timeIntervalSince1970)).mp4"
+                    self.uploadViaPresignedUrl(fileName: fileName, filetype: "video/mp4", fileData: fileData, contentType: "video/mp4") { result in
+                        self.handleMediaUploadResult(result: result, msgType: "video", successMessage: "Video upload successfully")
+                    }
                 }
             } else {
                 // Image

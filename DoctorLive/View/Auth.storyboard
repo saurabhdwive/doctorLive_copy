@@ -10392,7 +10392,7 @@ YWNrIHRvIHlvdSBBU0FQLg
                                                     <constraint firstAttribute="height" constant="25" id="pk9-kV-T5U"/>
                                                 </constraints>
                                                 <color key="tintColor" name="ButtonBlueColor"/>
-                                                <state key="normal" image="camera.fill" catalog="system"/>
+                                                <state key="normal" image="paperclip" catalog="system"/>
                                                 <connections>
                                                     <action selector="cameraBtn_Action:" destination="BZm-TY-HTS" eventType="touchUpInside" id="d9L-pR-1oj"/>
                                                 </connections>

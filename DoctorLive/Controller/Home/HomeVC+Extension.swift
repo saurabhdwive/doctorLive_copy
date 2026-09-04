@@ -218,7 +218,8 @@ extension HomeVC: UITableViewDataSource {
             if cCount == "0" {
                 cell.chatBtn.setTitle("Chat", for: .normal)
             } else {
-                cell.chatBtn.setTitle("Chat(\(cCount))", for: .normal)
+//                cell.chatBtn.setTitle("Chat(\(cCount))", for: .normal)
+                cell.chatBtn.setTitle("Chat", for: .normal)
             }
             cell.videoCallBtn.tag = indexPath.row
             cell.videoCallBtn.addTarget(self, action: #selector(videoCallBtnTap), for: .touchUpInside)
@@ -275,7 +276,8 @@ extension HomeVC: UITableViewDataSource {
             if cCount == "0" {
                 cell.chatBtn.setTitle("Chat", for: .normal)
             } else {
-                cell.chatBtn.setTitle("Chat(\(cCount))", for: .normal)
+//                cell.chatBtn.setTitle("Chat(\(cCount))", for: .normal)
+                cell.chatBtn.setTitle("Chat", for: .normal)
             }
             
             cell.chatBtn.tag = indexPath.row

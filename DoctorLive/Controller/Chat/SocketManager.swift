@@ -30,6 +30,7 @@ enum EventListnerKeys : String {
     case isOnline    = "is_online"
     case startTyping = "start_typing"
     case endTyping = "end_typing"
+    case update_doctor_status = "update_doctor_status"
 }
 
 

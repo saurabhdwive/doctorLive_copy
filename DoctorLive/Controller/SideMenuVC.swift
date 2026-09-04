@@ -157,6 +157,12 @@ extension SideMenuVC: UITableViewDelegate,UITableViewDataSource {
                 videoVC.isLoggingOut = true
                 videoVC.disconnectCallAndDismiss(isLogout: true)
             }else{
+                var paramDict = [String: String]()
+                paramDict["doctor_id"] = USER_DEFAULTS.string(forKey: Constants.userId)
+                paramDict["status"] = "offline"
+                SocketHelper.shared.emit(with: .update_doctor_status, paramDict){ data in
+                    print("room joined", data)
+                }
                 self?.resetDefaults()
                 DIConfigurator.sharedInst().getRootViewC(.Auth, identifer: LoginVC.className)
                 //                let view = UIStoryboard.init(name: "Auth", bundle: nil)

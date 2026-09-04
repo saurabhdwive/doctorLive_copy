@@ -14,8 +14,8 @@
             filePath = "DoctorLive/Controller/SideMenuVC.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "194"
-            endingLineNumber = "194"
+            startingLineNumber = "200"
+            endingLineNumber = "200"
             landmarkName = "doctorProfile(param:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -33,22 +33,6 @@
             startingLineNumber = "322"
             endingLineNumber = "322"
             landmarkName = "requestWithParams(_:parameters:header:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "822C6406-C343-4091-B377-E95028578591"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "DoctorLive/Controller/Home/HomeVC+ApiService.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "45"
-            endingLineNumber = "45"
-            landmarkName = "handleDoctorResponse(model:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -82,6 +66,36 @@
             endingLineNumber = "138"
             landmarkName = "fullProfile(param:)"
             landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "4302C9B8-1BC2-4FD1-B63F-31EB34E9A3AA - f26015bcc878481c"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DoctorLive.FullCompleteProfileVC.fullProfile(param: Swift.Dictionary&lt;Swift.String, Swift.String&gt;) -&gt; ()"
+                  moduleName = "DoctorLive.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mac/Downloads/drlive-doctor-iOS-main/DoctorLive/Controller/CompleteProfile/FullCompleteProfileVC.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "138"
+                  endingLineNumber = "138">
+               </Location>
+               <Location
+                  uuid = "4302C9B8-1BC2-4FD1-B63F-31EB34E9A3AA - 3ea7dd771bfc6e7e"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 () -&gt; PromiseKit.Promise&lt;DoctorLive.FullProfileDetailModel&gt; in DoctorLive.FullCompleteProfileVC.fullProfile(param: Swift.Dictionary&lt;Swift.String, Swift.String&gt;) -&gt; ()"
+                  moduleName = "DoctorLive.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mac/Downloads/drlive-doctor-iOS-main/DoctorLive/Controller/CompleteProfile/FullCompleteProfileVC.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "139"
+                  endingLineNumber = "139">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -114,6 +128,36 @@
             endingLineNumber = "293"
             landmarkName = "fullProfile(param:)"
             landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "DB458DEF-D15A-48D9-A2DF-CA3298095349 - 5db4e58194b39953"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DoctorLive.MyProfileVC.fullProfile(param: Swift.Dictionary&lt;Swift.String, Swift.String&gt;) -&gt; ()"
+                  moduleName = "DoctorLive.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mac/Downloads/drlive-doctor-iOS-main/DoctorLive/Controller/MyProfileVC.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "293"
+                  endingLineNumber = "293">
+               </Location>
+               <Location
+                  uuid = "DB458DEF-D15A-48D9-A2DF-CA3298095349 - af0e39703a76b631"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 () -&gt; PromiseKit.Promise&lt;DoctorLive.FullProfileDetailModel&gt; in DoctorLive.MyProfileVC.fullProfile(param: Swift.Dictionary&lt;Swift.String, Swift.String&gt;) -&gt; ()"
+                  moduleName = "DoctorLive.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mac/Downloads/drlive-doctor-iOS-main/DoctorLive/Controller/MyProfileVC.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "294"
+                  endingLineNumber = "294">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -130,6 +174,36 @@
             endingLineNumber = "471"
             landmarkName = "fullProfile(param:)"
             landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "DDBC7CD5-05B9-49FC-A445-7F219F81609C - c59a304693887b16"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DoctorLive.CompleteProfileVC.fullProfile(param: Swift.Dictionary&lt;Swift.String, Swift.String&gt;) -&gt; ()"
+                  moduleName = "DoctorLive.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mac/Downloads/drlive-doctor-iOS-main/DoctorLive/Controller/CompleteProfile/CompleteProfileVC.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "471"
+                  endingLineNumber = "471">
+               </Location>
+               <Location
+                  uuid = "DDBC7CD5-05B9-49FC-A445-7F219F81609C - b9594b376e45f8c0"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 () -&gt; PromiseKit.Promise&lt;DoctorLive.FullProfileDetailModel&gt; in DoctorLive.CompleteProfileVC.fullProfile(param: Swift.Dictionary&lt;Swift.String, Swift.String&gt;) -&gt; ()"
+                  moduleName = "DoctorLive.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mac/Downloads/drlive-doctor-iOS-main/DoctorLive/Controller/CompleteProfile/CompleteProfileVC.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "472"
+                  endingLineNumber = "472">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -146,6 +220,36 @@
             endingLineNumber = "92"
             landmarkName = "fullProfile(param:)"
             landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "297AE725-8CB5-423B-8DE4-46FE1742D1E8 - 7228687d00d7ace9"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DoctorLive.WriteArticleViewC.fullProfile(param: Swift.Dictionary&lt;Swift.String, Swift.String&gt;) -&gt; ()"
+                  moduleName = "DoctorLive.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mac/Downloads/drlive-doctor-iOS-main/DoctorLive/Controller/Question%20Flow/Article/Write%20Article/WriteArticleViewC+ApiService.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "92"
+                  endingLineNumber = "92">
+               </Location>
+               <Location
+                  uuid = "297AE725-8CB5-423B-8DE4-46FE1742D1E8 - 552f67132fe304a1"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 () -&gt; PromiseKit.Promise&lt;DoctorLive.FullProfileDetailModel&gt; in DoctorLive.WriteArticleViewC.fullProfile(param: Swift.Dictionary&lt;Swift.String, Swift.String&gt;) -&gt; ()"
+                  moduleName = "DoctorLive.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/mac/Downloads/drlive-doctor-iOS-main/DoctorLive/Controller/Question%20Flow/Article/Write%20Article/WriteArticleViewC+ApiService.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "93"
+                  endingLineNumber = "93">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

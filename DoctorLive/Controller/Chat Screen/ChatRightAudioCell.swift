@@ -12,7 +12,8 @@ class ChatRightAudioCell: UITableViewCell {
 //    @IBOutlet weak var lottieVw: LottieAnimationView!
     var audioBtnTapped: (()->())?
     
-    var audioSlider: UISlider!
+//    var audioSlider: UISlider!
+    var waveformView: WaveformView!
     var audioPlayer: AVPlayer?
     var timeObserverToken: Any?
     var audioURL: URL?
@@ -23,7 +24,7 @@ class ChatRightAudioCell: UITableViewCell {
     var playerContainer: UIView!
     var leftConstraint: NSLayoutConstraint!
     var rightConstraint: NSLayoutConstraint!
-    var timeBgView: UIView!
+//    var timeBgView: UIView!
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -60,29 +61,43 @@ class ChatRightAudioCell: UITableViewCell {
         playerContainer.addSubview(customPlayBtn)
         
         // Audio Slider
-        audioSlider = UISlider()
-        audioSlider.translatesAutoresizingMaskIntoConstraints = false
-        audioSlider.minimumTrackTintColor = UIColor(red: 21/255.0, green: 101/255.0, blue: 192/255.0, alpha: 1.0)
-        audioSlider.maximumTrackTintColor = UIColor(red: 190/255.0, green: 190/255.0, blue: 195/255.0, alpha: 1.0)
-        let thumbConfig = UIImage.SymbolConfiguration(pointSize: 14, weight: .black, scale: .medium)
-        audioSlider.setThumbImage(UIImage(systemName: "circle.fill", withConfiguration: thumbConfig)?.withTintColor(UIColor(red: 21/255.0, green: 101/255.0, blue: 192/255.0, alpha: 1.0), renderingMode: .alwaysOriginal), for: .normal)
-        audioSlider.addTarget(self, action: #selector(sliderValueChanged(_:)), for: .valueChanged)
-        playerContainer.addSubview(audioSlider)
+//        audioSlider = UISlider()
+//        audioSlider.translatesAutoresizingMaskIntoConstraints = false
+//        audioSlider.minimumTrackTintColor = UIColor(red: 21/255.0, green: 101/255.0, blue: 192/255.0, alpha: 1.0)
+//        audioSlider.maximumTrackTintColor = UIColor(red: 190/255.0, green: 190/255.0, blue: 195/255.0, alpha: 1.0)
+//        let thumbConfig = UIImage.SymbolConfiguration(pointSize: 14, weight: .black, scale: .medium)
+//        audioSlider.setThumbImage(UIImage(systemName: "circle.fill", withConfiguration: thumbConfig)?.withTintColor(UIColor(red: 21/255.0, green: 101/255.0, blue: 192/255.0, alpha: 1.0), renderingMode: .alwaysOriginal), for: .normal)
+//        audioSlider.addTarget(self, action: #selector(sliderValueChanged(_:)), for: .valueChanged)
+//        playerContainer.addSubview(audioSlider)
+        
+        waveformView = WaveformView()
+        waveformView.translatesAutoresizingMaskIntoConstraints = false
+        waveformView.backgroundColor = .clear
+        waveformView.onSeek = { [weak self] percent in
+            guard let player = self?.audioPlayer, let currentItem = player.currentItem else { return }
+            let duration = CMTimeGetSeconds(currentItem.duration)
+            if !duration.isNaN && duration > 0 {
+                let targetTime = CMTime(seconds: Double(percent) * duration, preferredTimescale: 600)
+                player.seek(to: targetTime)
+                self?.updateTimeLabel()
+            }
+        }
+        playerContainer.addSubview(waveformView)
         
         // Time Label Container (White Pill)
-        timeBgView = UIView()
-        timeBgView.translatesAutoresizingMaskIntoConstraints = false
-        timeBgView.backgroundColor = .white
-        timeBgView.layer.cornerRadius = 10
-        playerContainer.addSubview(timeBgView)
-        
+//        timeBgView = UIView()
+//        timeBgView.translatesAutoresizingMaskIntoConstraints = false
+//        timeBgView.backgroundColor = .white
+//        timeBgView.layer.cornerRadius = 10
+//        playerContainer.addSubview(timeBgView)
+//        
         customTimeLbl = UILabel()
         customTimeLbl.translatesAutoresizingMaskIntoConstraints = false
         customTimeLbl.font = UIFont.systemFont(ofSize: 11, weight: .medium)
         customTimeLbl.textColor = .black
         customTimeLbl.text = "00:00:00/00:00:00"
         customTimeLbl.textAlignment = .center
-        timeBgView.addSubview(customTimeLbl)
+        playerContainer.addSubview(customTimeLbl)
         
         // Move Original timeLbl (Timestamp)
         if let timeLabel = self.timeLbl {
@@ -93,8 +108,9 @@ class ChatRightAudioCell: UITableViewCell {
             timeLabel.textColor = .darkGray
             
             NSLayoutConstraint.activate([
-                timeLabel.trailingAnchor.constraint(equalTo: timeBgView.trailingAnchor),
-                timeLabel.topAnchor.constraint(equalTo: audioSlider.bottomAnchor, constant: -2)
+                timeLabel.trailingAnchor.constraint(equalTo: playerContainer.trailingAnchor,constant: -20),
+//                timeLabel.topAnchor.constraint(equalTo: audioSlider.bottomAnchor, constant: -2)
+                timeLabel.topAnchor.constraint(equalTo: waveformView.bottomAnchor, constant: 0)
             ])
         }
         
@@ -106,18 +122,24 @@ class ChatRightAudioCell: UITableViewCell {
             customPlayBtn.heightAnchor.constraint(equalToConstant: 50),
             
             // Slider Constraints
-            audioSlider.leadingAnchor.constraint(equalTo: customPlayBtn.trailingAnchor, constant: 15),
-            audioSlider.trailingAnchor.constraint(equalTo: playerContainer.trailingAnchor, constant: -20),
-            audioSlider.centerYAnchor.constraint(equalTo: playerContainer.centerYAnchor, constant: 10), // positioned lower for time label
+//            audioSlider.leadingAnchor.constraint(equalTo: customPlayBtn.trailingAnchor, constant: 15),
+//            audioSlider.trailingAnchor.constraint(equalTo: playerContainer.trailingAnchor, constant: -20),
+//            audioSlider.centerYAnchor.constraint(equalTo: playerContainer.centerYAnchor, constant: 10), // positioned lower for time label
+            waveformView.leadingAnchor.constraint(equalTo: customPlayBtn.trailingAnchor, constant: 15),
+            waveformView.trailingAnchor.constraint(equalTo: playerContainer.trailingAnchor, constant: -20),
+            waveformView.centerYAnchor.constraint(equalTo: playerContainer.centerYAnchor, constant: 0),
+            waveformView.heightAnchor.constraint(equalToConstant: 40),
             
             // Time Pill Constraints
-            timeBgView.trailingAnchor.constraint(equalTo: audioSlider.trailingAnchor),
-            timeBgView.bottomAnchor.constraint(equalTo: audioSlider.topAnchor, constant: -2),
-            timeBgView.heightAnchor.constraint(equalToConstant: 20),
-            
-            customTimeLbl.leadingAnchor.constraint(equalTo: timeBgView.leadingAnchor, constant: 8),
-            customTimeLbl.trailingAnchor.constraint(equalTo: timeBgView.trailingAnchor, constant: -8),
-            customTimeLbl.centerYAnchor.constraint(equalTo: timeBgView.centerYAnchor)
+//            timeBgView.trailingAnchor.constraint(equalTo: audioSlider.trailingAnchor),
+//            timeBgView.bottomAnchor.constraint(equalTo: audioSlider.topAnchor, constant: -2),
+//            timeBgView.trailingAnchor.constraint(equalTo: waveformView.trailingAnchor),
+//            timeBgView.bottomAnchor.constraint(equalTo: waveformView.topAnchor, constant: -2),
+//            timeBgView.heightAnchor.constraint(equalToConstant: 20),
+//            
+            customTimeLbl.leadingAnchor.constraint(equalTo: waveformView.leadingAnchor, constant: 8),
+//            customTimeLbl.trailingAnchor.constraint(equalTo: timeBgView.trailingAnchor, constant: -8),
+            customTimeLbl.centerYAnchor.constraint(equalTo: self.timeLbl.centerYAnchor)
         ])
     }
     
@@ -130,15 +152,17 @@ class ChatRightAudioCell: UITableViewCell {
             customPlayBtn.backgroundColor = UIColor(red: 21/255.0, green: 101/255.0, blue: 192/255.0, alpha: 1.0)
             customPlayBtn.tintColor = .white
             
-            audioSlider.minimumTrackTintColor = UIColor(red: 21/255.0, green: 101/255.0, blue: 192/255.0, alpha: 1.0)
-            audioSlider.maximumTrackTintColor = UIColor(red: 190/255.0, green: 190/255.0, blue: 195/255.0, alpha: 1.0)
+//            audioSlider.minimumTrackTintColor = UIColor(red: 21/255.0, green: 101/255.0, blue: 192/255.0, alpha: 1.0)
+//            audioSlider.maximumTrackTintColor = UIColor(red: 190/255.0, green: 190/255.0, blue: 195/255.0, alpha: 1.0)
+            waveformView.activeColor = UIColor(red: 21/255.0, green: 101/255.0, blue: 192/255.0, alpha: 1.0)
+            waveformView.inactiveColor = UIColor(red: 190/255.0, green: 190/255.0, blue: 195/255.0, alpha: 1.0)
             
-            timeBgView.backgroundColor = .white
+//            timeBgView.backgroundColor = .white
             customTimeLbl.textColor = .black
             self.timeLbl.textColor = .darkGray
             
-            let thumbConfig = UIImage.SymbolConfiguration(pointSize: 14, weight: .black, scale: .medium)
-            audioSlider.setThumbImage(UIImage(systemName: "circle.fill", withConfiguration: thumbConfig)?.withTintColor(UIColor(red: 21/255.0, green: 101/255.0, blue: 192/255.0, alpha: 1.0), renderingMode: .alwaysOriginal), for: .normal)
+//            let thumbConfig = UIImage.SymbolConfiguration(pointSize: 14, weight: .black, scale: .medium)
+//            audioSlider.setThumbImage(UIImage(systemName: "circle.fill", withConfiguration: thumbConfig)?.withTintColor(UIColor(red: 21/255.0, green: 101/255.0, blue: 192/255.0, alpha: 1.0), renderingMode: .alwaysOriginal), for: .normal)
         } else {
             rightConstraint.isActive = false
             leftConstraint.isActive = true
@@ -147,15 +171,17 @@ class ChatRightAudioCell: UITableViewCell {
             customPlayBtn.backgroundColor = UIColor(red: 21/255.0, green: 101/255.0, blue: 192/255.0, alpha: 1.0)
             customPlayBtn.tintColor = .white
             
-            audioSlider.minimumTrackTintColor = UIColor(red: 21/255.0, green: 101/255.0, blue: 192/255.0, alpha: 1.0)
-            audioSlider.maximumTrackTintColor = .lightGray
+//            audioSlider.minimumTrackTintColor = UIColor(red: 21/255.0, green: 101/255.0, blue: 192/255.0, alpha: 1.0)
+//            audioSlider.maximumTrackTintColor = .lightGray
+            waveformView.activeColor = UIColor(red: 21/255.0, green: 101/255.0, blue: 192/255.0, alpha: 1.0)
+            waveformView.inactiveColor = .lightGray
             
-            timeBgView.backgroundColor = .white
+//            timeBgView.backgroundColor = .white
             customTimeLbl.textColor = .black
             self.timeLbl.textColor = .darkGray
             
-            let thumbConfig = UIImage.SymbolConfiguration(pointSize: 14, weight: .black, scale: .medium)
-            audioSlider.setThumbImage(UIImage(systemName: "circle.fill", withConfiguration: thumbConfig)?.withTintColor(UIColor(red: 21/255.0, green: 101/255.0, blue: 192/255.0, alpha: 1.0), renderingMode: .alwaysOriginal), for: .normal)
+//            let thumbConfig = UIImage.SymbolConfiguration(pointSize: 14, weight: .black, scale: .medium)
+//            audioSlider.setThumbImage(UIImage(systemName: "circle.fill", withConfiguration: thumbConfig)?.withTintColor(UIColor(red: 21/255.0, green: 101/255.0, blue: 192/255.0, alpha: 1.0), renderingMode: .alwaysOriginal), for: .normal)
         }
     }
     
@@ -166,13 +192,16 @@ class ChatRightAudioCell: UITableViewCell {
         audioPlayer = nil
         NotificationCenter.default.removeObserver(self)
         self.customPlayBtn.setImage(UIImage(systemName: "play.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 20, weight: .bold)), for: .normal)
-        self.audioSlider.value = 0
+//        self.audioSlider.value = 0
+        self.waveformView.progress = 0
+        self.waveformView.waveform = []
         self.customTimeLbl.text = "00:00:00/00:00:00"
     }
     
     func configureAudio(url: URL) {
         self.audioURL = url
-        audioSlider.value = 0
+//        audioSlider.value = 0
+        self.waveformView.progress = 0
         self.customTimeLbl.text = "00:00/00:00"
         
         let fileManager = FileManager.default
@@ -222,10 +251,18 @@ class ChatRightAudioCell: UITableViewCell {
                     let duration = asset.duration
                     let totalSeconds = CMTimeGetSeconds(duration)
                     if !totalSeconds.isNaN && totalSeconds > 0 {
-                        self.audioSlider.maximumValue = Float(totalSeconds)
+//                        self.audioSlider.maximumValue = Float(totalSeconds)
                         let totalString = self.formatTime(TimeInterval(totalSeconds))
                         self.customTimeLbl.text = "00:00/\(totalString)"
                     }
+                }
+            }
+        }
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            if let wave = try? WaveformGenerator.generate(from: localURL) {
+                DispatchQueue.main.async { [weak self] in
+                    self?.waveformView.waveform = wave
                 }
             }
         }
@@ -249,12 +286,15 @@ class ChatRightAudioCell: UITableViewCell {
         let currentTime = CMTimeGetSeconds(player.currentTime())
         let duration = CMTimeGetSeconds(currentItem.duration)
         
-        if !duration.isNaN && duration > 0 {
-            self.audioSlider.maximumValue = Float(duration)
-        }
+//        if !duration.isNaN && duration > 0 {
+//            self.audioSlider.maximumValue = Float(duration)
+//        }
         
         let safeCurrent = currentTime.isNaN ? 0 : currentTime
-        self.audioSlider.value = Float(safeCurrent)
+//        self.audioSlider.value = Float(safeCurrent)
+        if !duration.isNaN && duration > 0 {
+            self.waveformView.progress = Float(safeCurrent / duration)
+        }
         
         let currentString = formatTime(TimeInterval(safeCurrent))
         
@@ -278,11 +318,11 @@ class ChatRightAudioCell: UITableViewCell {
         }
     }
     
-    @objc func sliderValueChanged(_ sender: UISlider) {
-        let targetTime = CMTime(seconds: Double(sender.value), preferredTimescale: 600)
-        audioPlayer?.seek(to: targetTime)
-        updateTimeLabel()
-    }
+//    @objc func sliderValueChanged(_ sender: UISlider) {
+//        let targetTime = CMTime(seconds: Double(sender.value), preferredTimescale: 600)
+//        audioPlayer?.seek(to: targetTime)
+//        updateTimeLabel()
+//    }
     
     @objc func playBtnAction() {
         guard let player = audioPlayer else {
@@ -312,8 +352,206 @@ class ChatRightAudioCell: UITableViewCell {
     @objc func audioPlayerDidFinishPlaying(notification: Notification) {
         let playIcon = UIImage(systemName: "play.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 20, weight: .bold))
         self.customPlayBtn.setImage(playIcon, for: .normal)
-        self.audioSlider.value = 0
+//        self.audioSlider.value = 0
+        self.waveformView.progress = 0
         audioPlayer?.seek(to: CMTime.zero)
         updateTimeLabel()
+    }
+}
+
+class WaveformView: UIView {
+    var waveform: [Float] = [] {
+        didSet { setNeedsDisplay() }
+    }
+    
+    var progress: Float = 0 {
+        didSet { setNeedsDisplay() }
+    }
+    
+    var activeColor: UIColor = UIColor(red: 21/255.0, green: 101/255.0, blue: 192/255.0, alpha: 1.0)
+    var inactiveColor: UIColor = UIColor(red: 190/255.0, green: 190/255.0, blue: 195/255.0, alpha: 1.0)
+    
+    var onSeek: ((Float) -> Void)?
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupGestures()
+    }
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupGestures()
+    }
+    
+    private func setupGestures() {
+        let tap = UITapGestureRecognizer(target: self, action: #selector(handleGesture(_:)))
+        let pan = UIPanGestureRecognizer(target: self, action: #selector(handleGesture(_:)))
+        addGestureRecognizer(tap)
+        addGestureRecognizer(pan)
+    }
+    
+    @objc private func handleGesture(_ gesture: UIGestureRecognizer) {
+        let loc = gesture.location(in: self)
+        let percent = Float(max(0, min(1, loc.x / bounds.width)))
+        progress = percent
+        onSeek?(percent)
+    }
+    
+//    override func draw(_ rect: CGRect) {
+//        guard !waveform.isEmpty else { return }
+//        guard let context = UIGraphicsGetCurrentContext() else { return }
+//        
+//        context.clear(rect)
+//        let barSpacing: CGFloat = 2
+//        let barWidth = max(1, (rect.width - CGFloat(waveform.count - 1) * barSpacing) / CGFloat(waveform.count))
+//        
+//        for (index, amplitude) in waveform.enumerated() {
+//            let barHeight = max(2, CGFloat(amplitude) * rect.height)
+//            let x = CGFloat(index) * (barWidth + barSpacing)
+//            let y = (rect.height - barHeight) / 2
+//            
+//            let barRect = CGRect(x: x, y: y, width: barWidth, height: barHeight)
+//            let path = UIBezierPath(roundedRect: barRect, cornerRadius: barWidth / 2)
+//            
+//            let barProgress = Float(index) / Float(waveform.count)
+//            if barProgress <= progress {
+//                activeColor.setFill()
+//            } else {
+//                inactiveColor.setFill()
+//            }
+//            path.fill()
+//        }
+//    }
+    override func draw(_ rect: CGRect) {
+        guard !waveform.isEmpty else { return }
+        guard let context = UIGraphicsGetCurrentContext() else { return }
+
+        context.clear(rect)
+
+        // Fewer bars = thicker and more visible waveform
+        let barSpacing: CGFloat = 1.0
+
+        let barWidth = max(
+            1.0,
+            (rect.width - CGFloat(waveform.count - 1) * barSpacing)
+            / CGFloat(waveform.count)
+        )
+
+        for (index, amplitude) in waveform.enumerated() {
+
+            // Amplify small audio amplitudes
+            let amplifiedAmplitude = min(
+                1.0,
+                CGFloat(amplitude) * 3.0
+            )
+
+            // Minimum and maximum visual height
+            let minBarHeight: CGFloat = 10.0
+            let maxBarHeight: CGFloat = rect.height * 2
+
+            let barHeight = max(
+                minBarHeight,
+                amplifiedAmplitude * maxBarHeight
+            )
+
+            let x = CGFloat(index) * (barWidth + barSpacing)
+
+            let y = (rect.height - barHeight) / 2.0
+
+            let barRect = CGRect(
+                x: x,
+                y: y,
+                width: barWidth,
+                height: barHeight
+            )
+
+            let path = UIBezierPath(
+                roundedRect: barRect,
+                cornerRadius: barWidth / 2
+            )
+
+            let barProgress = Float(index) / Float(waveform.count)
+
+            if barProgress <= progress {
+                activeColor.setFill()
+            } else {
+                inactiveColor.setFill()
+            }
+
+            path.fill()
+        }
+    }
+}
+
+struct WaveformGenerator {
+
+    static func generate(
+        from url: URL,
+        barCount: Int = 80
+    ) throws -> [Float] {
+
+        let file = try AVAudioFile(forReading: url)
+
+        guard let format = AVAudioFormat(
+            commonFormat: .pcmFormatFloat32,
+            sampleRate: file.fileFormat.sampleRate,
+            channels: 1,
+            interleaved: false
+        ) else {
+            return []
+        }
+
+        let frameCount = AVAudioFrameCount(file.length)
+
+        guard let buffer = AVAudioPCMBuffer(
+            pcmFormat: format,
+            frameCapacity: frameCount
+        ) else {
+            return []
+        }
+
+        try file.read(into: buffer)
+
+        guard let channelData = buffer.floatChannelData?[0] else {
+            return []
+        }
+
+        let sampleCount = Int(buffer.frameLength)
+
+        guard sampleCount > 0 else {
+            return []
+        }
+
+        let samplesPerBar = max(1, sampleCount / barCount)
+
+        var waveform: [Float] = []
+
+        for bar in 0..<barCount {
+
+            let start = bar * samplesPerBar
+            let end = min(start + samplesPerBar, sampleCount)
+
+            if start >= end {
+                break
+            }
+
+            var maxAmplitude: Float = 0
+
+            for index in start..<end {
+                maxAmplitude = max(
+                    maxAmplitude,
+                    abs(channelData[index])
+                )
+            }
+
+            waveform.append(maxAmplitude)
+        }
+
+        // Normalize
+        let maxValue = waveform.max() ?? 1
+
+        return waveform.map {
+            $0 / maxValue
+        }
     }
 }

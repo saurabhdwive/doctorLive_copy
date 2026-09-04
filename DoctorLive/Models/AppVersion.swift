@@ -92,7 +92,7 @@ struct Doctor: Codable {
     let message: String?
 
     private enum CodingKeys: String, CodingKey {
-        case apiVersion = "api_version"
+        case apiVersion = "api_verions_ios"
         case recommendUpdate = "recommend_update"
         case forceUpdate = "force_update"
         case message = "message"
@@ -114,7 +114,7 @@ struct Patient: Codable {
     let message: String?
 
     private enum CodingKeys: String, CodingKey {
-        case apiVersion = "api_version"
+        case apiVersion = "api_verions_ios"
         case recommendUpdate = "recommend_update"
         case forceUpdate = "force_update"
         case message = "message"

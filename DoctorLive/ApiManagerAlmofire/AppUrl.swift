@@ -65,7 +65,7 @@ struct APIEndpoint {
     
     
     //CHAT
-    static let doctorchathistory        =       "doctor/doctorchathistory"
+    static let doctorchathistory        =       "doctor/doctorchathistorynew"
 
     // Presigned URL
     static let signedUrl                =       "Aws_s3/get_signed_url"

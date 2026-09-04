@@ -31,7 +31,7 @@ extension AppDelegate{
     }
     
     func setUpViews(){
-        USER_DEFAULTS.set(false, forKey: "version")
+        USER_DEFAULTS.set(false, forKey: "version_doctor")
         IQKeyboardManager.shared.enable = true
         SocketHelper.shared.connectSocket()
         self.registerNotificationCategories()

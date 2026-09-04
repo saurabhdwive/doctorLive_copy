@@ -18,6 +18,10 @@ class MyArticleViewC: UIViewController {
     }
     
     var viewmodel = ViewModel()
+    var currentPage = 1
+    var isFetching = false
+    var isLastPage = false
+    var dataList = [MyArticlesArticles]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -46,14 +50,14 @@ class MyArticleViewC: UIViewController {
     
     @objc func editBtnTap(_ sender: UIButton){
         let viewC = DIConfigurator.sharedInst().getWriteArticleViewC()
-        viewC.myArticlesArticles = self.viewmodel.myArticleData.first?.articles?[sender.tag]
+        viewC.myArticlesArticles = self.dataList[sender.tag]
         viewC.editDelegate = self
         self.navigationController?.pushViewController(viewC, animated: true)
     }
     
     @objc func deleteBtnTap(_ sender: UIButton){
         self.alertWithHandler1(message: "Are you sure you want to delete this article") {
-            self.articleDeleteApi(id: self.viewmodel.myArticleData.first?.articles?[sender.tag].id ?? EMPTY)
+            self.articleDeleteApi(id: self.dataList[sender.tag].id ?? EMPTY)
         }
     }
 }

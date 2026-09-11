@@ -31,6 +31,12 @@ enum EventListnerKeys : String {
     case startTyping = "start_typing"
     case endTyping = "end_typing"
     case update_doctor_status = "update_doctor_status"
+    case booking_status_update = "booking_status_update"
+    case booking_status_updated = "booking_status_updated"
+    case new_booking_request = "new_booking_request"
+    case send_new_booking_request = "send_new_booking_request"
+    
+    
 }
 
 

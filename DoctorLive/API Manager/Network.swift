@@ -35,6 +35,7 @@ protocol ApiInterface {
     func updateProfessionalDetails<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
     func pendingBooking<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
     func bookingStatus<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
+    func suggestedTime<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
     func upcomingBooking<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
     func pastBooking<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
     func chatHistory<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
@@ -170,6 +171,10 @@ final class Network: ApiInterface {
     
     func bookingStatus<T>(parameters: [String : Any]?, header: String?) -> Promise<T> where T : Decodable {
         client.requestWithParams(.bookingStatus, parameters: parameters,header: header)
+    }
+
+    func suggestedTime<T>(parameters: [String : Any]?, header: String?) -> Promise<T> where T : Decodable {
+        client.requestWithParams(.suggestedTime, parameters: parameters,header: header)
     }
     
     func pendingBooking<T>(parameters: [String : Any]?, header: String?) -> Promise<T> where T : Decodable {

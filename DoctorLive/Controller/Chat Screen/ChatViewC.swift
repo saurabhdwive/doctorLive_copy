@@ -40,6 +40,13 @@ class ChatViewC: UIViewController {
     var groupByCategoryChat: [String : [ChatData]]?
     var keys = [String]()
     
+    var topStatusBarContainer = UIView()
+    var topStatusBarLabel = UILabel()
+    var topStatusBarHeightConstraint: NSLayoutConstraint!
+    
+    var countdownTimer: Timer?
+    var targetDate: Date?
+    
     var comeFromPush = false
     var isOnline = false
 
@@ -75,7 +82,7 @@ extension ChatViewC {
     }
 }
 
-private extension ChatViewC {
+ extension ChatViewC {
     func setUpviewController() {
         setUpPushChatData()
         registerXib()
@@ -91,17 +98,202 @@ private extension ChatViewC {
         setUpKeyBoard()
     }
 
-    func setUpViews(){
-        self.dotLbl.isHidden = true
-        self.statusLbl.text = "offline"
-        self.messageTxt.delegate = self
-        self.messageTxt.textColor = .lightGray
-        self.navigationController?.isNavigationBarHidden = true
-        GlobalMethods.shared.provideCornerRadius(view: self.messageVw, cornerRadius: self.messageVw.bounds.height / 2, borderColor: UIColor.clear.cgColor, borderWidth: 0)
-        GlobalMethods.shared.provideCornerRadius(view: self.doctorImage, cornerRadius: self.doctorImage.bounds.height / 2, borderColor: UIColor.clear.cgColor, borderWidth: 0)
-        GlobalMethods.shared.provideCornerRadius(view: self.statusVw, cornerRadius: self.statusVw.bounds.height / 2, borderColor: UIColor.clear.cgColor, borderWidth: 0)
-        GlobalMethods.shared.provideCornerRadius(view: self.sendBtn, cornerRadius: self.sendBtn.bounds.height / 2, borderColor: UIColor.clear.cgColor, borderWidth: 0)
-        self.typeOn(string: ". . .")
+     func setUpViews(){
+         self.view.backgroundColor = .white
+         chatTblVw.backgroundColor = UIColor.init(red: 246/255, green: 250/255, blue: 253/255, alpha: 1)
+         self.chatTblVw.contentInset = UIEdgeInsets(top: 15, left: 0, bottom: 0, right: 0)
+         self.dotLbl.isHidden = true
+         self.statusLbl.text = "offline"
+         self.messageTxt.delegate = self
+         self.messageTxt.textColor = .lightGray
+         self.navigationController?.isNavigationBarHidden = true
+         GlobalMethods.shared.provideCornerRadius(view: self.messageVw, cornerRadius: self.messageVw.bounds.height / 2, borderColor: UIColor.clear.cgColor, borderWidth: 0)
+         GlobalMethods.shared.provideCornerRadius(view: self.doctorImage, cornerRadius: self.doctorImage.bounds.height / 2, borderColor: UIColor.clear.cgColor, borderWidth: 0)
+         GlobalMethods.shared.provideCornerRadius(view: self.statusVw, cornerRadius: self.statusVw.bounds.height / 2, borderColor: UIColor.clear.cgColor, borderWidth: 0)
+         GlobalMethods.shared.provideCornerRadius(view: self.sendBtn, cornerRadius: self.sendBtn.bounds.height / 2, borderColor: UIColor.clear.cgColor, borderWidth: 0)
+         self.typeOn(string: ". . .")
+         setupStickyStatusBar()
+     }
+    
+    func setupStickyStatusBar() {
+        topStatusBarContainer.backgroundColor = UIColor(red: 254/255, green: 246/255, blue: 231/255, alpha: 1)
+        topStatusBarContainer.isHidden = true
+        
+        topStatusBarLabel.font = .boldSystemFont(ofSize: 13)
+        topStatusBarLabel.textColor = UIColor(red: 176/255, green: 125/255, blue: 24/255, alpha: 1)
+        topStatusBarLabel.textAlignment = .center
+        
+        topStatusBarContainer.addSubview(topStatusBarLabel)
+        self.view.addSubview(topStatusBarContainer)
+        
+        topStatusBarContainer.translatesAutoresizingMaskIntoConstraints = false
+        topStatusBarLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        topStatusBarHeightConstraint = topStatusBarContainer.heightAnchor.constraint(equalToConstant: 0)
+        
+        NSLayoutConstraint.activate([
+            topStatusBarContainer.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+            topStatusBarContainer.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+            topStatusBarContainer.topAnchor.constraint(equalTo: self.chatTblVw.topAnchor),
+            topStatusBarHeightConstraint,
+            
+            topStatusBarLabel.centerXAnchor.constraint(equalTo: topStatusBarContainer.centerXAnchor),
+            topStatusBarLabel.centerYAnchor.constraint(equalTo: topStatusBarContainer.centerYAnchor)
+        ])
+    }
+    
+    func updateStickyStatusBar() {
+        let statusMessages = chatData.filter { $0.historyType == "booking_status" }
+        guard let lastStatusMsg = statusMessages.last else {
+            countdownTimer?.invalidate()
+            countdownTimer = nil
+            hideStickyStatusBar()
+            return
+        }
+        print(lastStatusMsg.createdOn ?? "")
+        
+        switch lastStatusMsg.msgType {
+        case "REQUESTED", "PAYMENT_PENDING", "PAYMENT_COMPLETED":
+            let dateToUse = lastStatusMsg.createdOn ?? ""
+            let parsedDate = Booking.parseDate(dateStr: nil, createdOn: dateToUse)
+            let tenMins: TimeInterval = 10 * 60
+            let target = parsedDate.addingTimeInterval(tenMins)
+            
+            if Date() < target {
+                self.targetDate = target
+                updateTimerLabel()
+                startCountdownTimerIfNeeded()
+            } else {
+                stopTimerAndHide()
+            }
+            
+        case "CALL_STARTED":
+            let parsedDate = Booking.parseDate(dateStr: nil, createdOn: lastStatusMsg.createdOn ?? "")
+            // For CALL_STARTED, targetDate will act as the START date
+            self.targetDate = parsedDate
+            updateTimerLabel()
+            startCountdownTimerIfNeeded()
+            
+        case "CALL_ENDED", "CONSULTATION_COMPLETED":
+            countdownTimer?.invalidate()
+            countdownTimer = nil
+            topStatusBarContainer.backgroundColor = UIColor(red: 236/255, green: 253/255, blue: 243/255, alpha: 1)
+            topStatusBarLabel.textColor = UIColor(red: 2/255, green: 122/255, blue: 72/255, alpha: 1)
+            showStickyStatusBar(text: "✅ Call ended — awaiting summary")
+            
+        case "CLOSED":
+            countdownTimer?.invalidate()
+            countdownTimer = nil
+            topStatusBarContainer.backgroundColor = .systemGray5
+            topStatusBarLabel.textColor = .gray
+            showStickyStatusBar(text: "🔒 Chat Closed")
+            
+        case "REJECTED":
+            countdownTimer?.invalidate()
+            countdownTimer = nil
+            topStatusBarContainer.backgroundColor = UIColor(red: 251/255, green: 228/255, blue: 226/255, alpha: 1)
+            topStatusBarLabel.textColor = UIColor(red: 226/255, green: 72/255, blue: 62/255, alpha: 1)
+            showStickyStatusBar(text: "❌ Booking rejected")
+            
+        case "PAYMENT_EXPIRED":
+            countdownTimer?.invalidate()
+            countdownTimer = nil
+            topStatusBarContainer.backgroundColor = UIColor(red: 251/255, green: 228/255, blue: 226/255, alpha: 1)
+            topStatusBarLabel.textColor = UIColor(red: 226/255, green: 72/255, blue: 62/255, alpha: 1)
+            showStickyStatusBar(text: "⏱ Payment window expired")
+            
+        case "PRESCRIPTION_SENT":
+            let parsedDate = Booking.parseDate(dateStr: nil, createdOn: lastStatusMsg.createdOn ?? "")
+            let oneDay: TimeInterval = 2 * 60 * 60
+            let target = parsedDate.addingTimeInterval(oneDay)
+            
+            if Date() < target {
+                self.targetDate = target
+                updateTimerLabel()
+                startCountdownTimerIfNeeded()
+            } else {
+                stopTimerAndHide()
+            }
+            
+        default:
+            stopTimerAndHide()
+        }
+    }
+    
+    private func startCountdownTimerIfNeeded() {
+        if countdownTimer == nil {
+            countdownTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(updateTimerLabel), userInfo: nil, repeats: true)
+            RunLoop.current.add(countdownTimer!, forMode: .common)
+        }
+    }
+    
+    private func stopTimerAndHide() {
+        countdownTimer?.invalidate()
+        countdownTimer = nil
+        hideStickyStatusBar()
+    }
+
+    @objc private func updateTimerLabel() {
+        guard let target = targetDate else { return }
+        
+        let statusMessages = chatData.filter { $0.historyType == "booking_status" }
+        let lastStatusMsg = statusMessages.last
+        
+        if lastStatusMsg?.msgType == "CALL_STARTED" {
+            let elapsed = Date().timeIntervalSince(target)
+            if elapsed >= 0 {
+                let mins = Int(elapsed) / 60
+                let secs = Int(elapsed) % 60
+                topStatusBarContainer.backgroundColor = UIColor(red: 239/255, green: 246/255, blue: 255/255, alpha: 1)
+                topStatusBarLabel.textColor = UIColor(red: 30/255, green: 64/255, blue: 175/255, alpha: 1)
+                showStickyStatusBar(text: String(format: "🎥 In Call · %02d:%02d", mins, secs))
+            }
+        } else {
+            let remaining = target.timeIntervalSince(Date())
+            if remaining > 0 {
+                let totalMins = Int(remaining) / 60
+                let secs = Int(remaining) % 60
+                let hours = totalMins / 60
+                let mins = totalMins % 60
+                
+                if lastStatusMsg?.msgType == "REQUESTED" {
+                    topStatusBarContainer.backgroundColor = UIColor(red: 255/255, green: 244/255, blue: 224/255, alpha: 1)
+                    topStatusBarLabel.textColor = UIColor(red: 200/255, green: 134/255, blue: 13/255, alpha: 1)
+                    showStickyStatusBar(text: String(format: "⏱ Waiting for Doctor · %02d:%02d", totalMins, secs))
+                } else if lastStatusMsg?.msgType == "PAYMENT_PENDING" {
+                    topStatusBarContainer.backgroundColor = UIColor(red: 251/255, green: 228/255, blue: 226/255, alpha: 1)
+                    topStatusBarLabel.textColor = UIColor(red: 226/255, green: 72/255, blue: 62/255, alpha: 1)
+                    showStickyStatusBar(text: String(format: "⏱ Pay within · %02d:%02d", totalMins, secs))
+                } else if lastStatusMsg?.msgType == "PAYMENT_COMPLETED" {
+                    topStatusBarContainer.backgroundColor = UIColor(red: 239/255, green: 233/255, blue: 254/255, alpha: 1)
+                    topStatusBarLabel.textColor = UIColor(red: 104/255, green: 81/255, blue: 185/255, alpha: 1)
+                    showStickyStatusBar(text: String(format: "📞 Waiting for Call · %02d:%02d", totalMins, secs))
+                } else if lastStatusMsg?.msgType == "PRESCRIPTION_SENT" {
+                    topStatusBarContainer.backgroundColor = UIColor(red: 236/255, green: 253/255, blue: 243/255, alpha: 1)
+                    topStatusBarLabel.textColor = UIColor(red: 2/255, green: 122/255, blue: 72/255, alpha: 1)
+                    if hours > 0 {
+                        showStickyStatusBar(text: String(format: "⏱ Follow-up expires in · %02d:%02d:%02d", hours, mins, secs))
+                    } else {
+                        showStickyStatusBar(text: String(format: "⏱ Follow-up expires in · %02d:%02d", mins, secs))
+                    }
+                }
+            } else {
+                stopTimerAndHide()
+            }
+        }
+    }
+    
+    private func showStickyStatusBar(text: String) {
+        topStatusBarContainer.isHidden = false
+        topStatusBarLabel.text = text
+        topStatusBarHeightConstraint.constant = 36
+        chatTblVw.contentInset = UIEdgeInsets(top: 36, left: 0, bottom: 0, right: 0)
+    }
+    
+    private func hideStickyStatusBar() {
+        topStatusBarContainer.isHidden = true
+        topStatusBarHeightConstraint.constant = 0
+        self.chatTblVw.contentInset = .zero
     }
     
     func setUpPushChatData(){
@@ -132,6 +324,19 @@ private extension ChatViewC {
         self.chatTblVw.register(UINib(nibName: ChatRightAudioCell.className, bundle: nil), forCellReuseIdentifier: ChatRightAudioCell.className)
         self.chatTblVw.register(ChatRightPdfCell.self, forCellReuseIdentifier: "ChatRightPdfCell")
         self.chatTblVw.register(ChatLeftPdfCell.self, forCellReuseIdentifier: "ChatLeftPdfCell")
+        self.chatTblVw.register(ChatRightPdfCell.self, forCellReuseIdentifier: "ChatRightPdfCell")
+        self.chatTblVw.register(ChatLeftPdfCell.self, forCellReuseIdentifier: "ChatLeftPdfCell")
+        self.chatTblVw.register(ChatBookingDividerCell.self, forCellReuseIdentifier: "ChatBookingDividerCell")
+        self.chatTblVw.register(ChatStageChipCell.self, forCellReuseIdentifier: "ChatStageChipCell")
+        self.chatTblVw.register(ChatStageChipCell2.self, forCellReuseIdentifier: "ChatStageChipCell2")
+        self.chatTblVw.register(ChatActionCardCell.self, forCellReuseIdentifier: "ChatActionCardCell")
+        self.chatTblVw.register(ChatPayCardCell.self, forCellReuseIdentifier: "ChatPayCardCell")
+        self.chatTblVw.register(ChatBookingSummaryCardCell.self, forCellReuseIdentifier: "ChatBookingSummaryCardCell")
+        self.chatTblVw.register(ChatRatingCardCell.self, forCellReuseIdentifier: "ChatRatingCardCell")
+        self.chatTblVw.register(ChatMediaMsgCell.self, forCellReuseIdentifier: "ChatMediaMsgCell")
+        self.chatTblVw.register(ChatVideoCallBadgeCell.self, forCellReuseIdentifier: "ChatVideoCallBadgeCell")
+        self.chatTblVw.register(ChatNewBookingRequestCell.self, forCellReuseIdentifier: "ChatNewBookingRequestCell")
+        self.chatTblVw.register(ChatDynamicStackCell.self, forCellReuseIdentifier: "ChatDynamicStackCell")
     }
     
     @IBAction func audioBtn_Action(_ sender: Any) {
@@ -248,8 +453,10 @@ private extension ChatViewC {
         if let _ = self.findVideoCallController() {
             AppToast.showMessage(message: "Video call is already in progress")
         }else{
+            self.emitBookingStatusData(bookingStatus: "CALL_STARTED")
             getToken()
         }
+        
     }
 
     func handleMediaUploadResult(result: Swift.Result<String, Error>, msgType: String, successMessage: String) {
@@ -353,7 +560,7 @@ private extension ChatViewC {
     }
 }
 
-private extension ChatViewC {
+ extension ChatViewC {
     func getTokenApi(param: [String: String]){
         LoaderController.sharedInstance.showLoader(view: self.view)
         firstly {
@@ -428,15 +635,15 @@ private extension ChatViewC {
                 viewC.doctorId = self.doctorId ?? EMPTY
                 viewC.bookingId = self.bookingId ?? EMPTY
                 viewC.delegate = self
-                //            PIPKit.show(with: viewC)
                 DIConfigurator.sharedInst().setVideoCallAsRoot(viewC: viewC)
+//                 PIPKit.show(with: viewC)
             }
         } else {
             AppToast.showMessage(message: model.message ?? "")
         }
     }
 
-    func endVisitBooking(param: [String: String]){
+    func endVisitBooking(param: [String: String]) {
         firstly {
             service!.bookingStatus(parameters: param, header: "DeviceToken")
         }.done { (model: BookingStatusModel) in
@@ -448,6 +655,7 @@ private extension ChatViewC {
          }.finally {
             DispatchQueue.main.async {
                 // Loader.hide()
+                Indicator.shared.hideProgressView()
             }
         }
     }

@@ -36,12 +36,14 @@ extension ChatViewC{
             let timmee = self.timeDateConversion(formateDate: messageListData.createdOn ?? EMPTY)
 //            Date.getDateStringWithDatee(DateFormat.exactTimeFormat1, date: Date.getDate(dateStr: timmee, format: DateFormat.isoFormat) ?? Date())
 //            Date.getDateStringWithDatee(DateFormat.dateMonthyear, date: Date.getDate(dateStr: messageListData.createdOn ?? EMPTY, format: DateFormat.isoFormat) ?? Date())
-            self.chatData.append(ChatData(message:  messageListData.message ?? EMPTY, time: timmee, msgType: messageListData.type ?? EMPTY, recieverType: recieverType, date: String((messageListData.createdOn ?? EMPTY).dropLast(9)), id: messageListData.id ?? EMPTY,isExpired: messageListData.isExpired ?? 0))
+//            self.chatData.append(ChatData(message:  messageListData.message ?? EMPTY, time: timmee, msgType: messageListData.type ?? EMPTY, recieverType: recieverType, date: String((messageListData.createdOn ?? EMPTY).dropLast(9)), id: messageListData.id ?? EMPTY,isExpired: messageListData.isExpired ?? 0))
+            self.chatData.append(ChatData(message:  messageListData.message ?? EMPTY, time: timmee, msgType: messageListData.type ?? EMPTY, recieverType: recieverType, date: String((messageListData.createdOn ?? EMPTY).dropLast(9)), id: messageListData.id ?? EMPTY,isExpired: messageListData.isExpired ?? 0, historyType: messageListData.historyType, bookingId: messageListData.bookingId, statusId: messageListData.statusId, fees:messageListData.fees, changedByType: messageListData.changedByType, changedById: messageListData.changedById, createdOn: messageListData.createdOn,rating:messageListData.rating, is_status:messageListData.is_status ?? "1"))
         })
         if self.chatData.count > INTZERO {
             self.setUpChatData()
             self.setscrollPosition()
         }
+        self.statusLbl.text = "last active:  \(self.viewmodel.doctorChatData.first?.other_details?.last_active ?? "")"
         self.chatTblVw.reloadData()
     }
     

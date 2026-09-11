@@ -229,10 +229,12 @@ extension HomeVC {
         }
         firstly {
             service!.allBooking(parameters: param, header: "DeviceToken")
-        }.done { (model: PastBookingModel) in
+        }.done { (model: AllBookingResponseModel) in
             self.handleAllBookingResponse(model: model, hideLoader: showLoader)
         }.catch { (error) in
             DispatchQueue.main.async {
+                self.currentFetchingPatientId = nil
+                self.isLoadingList = false
                 if showLoader {
                     LoaderController.sharedInstance.removeLoader()
                 }
@@ -250,6 +252,8 @@ extension HomeVC {
         if isRefresh {
             self.currentPage = 1
             self.isLastPage = false
+            self.currentFetchingPatientId = nil
+            self.bookingPages.removeAll()
         }
         
         if self.isLoadingList { return }
@@ -293,34 +297,81 @@ extension HomeVC {
         self.allBooking(param: parameter, showLoader: showMainLoader)
     }
     
-    func handleAllBookingResponse(model: PastBookingModel, hideLoader: Bool = true) {
+    /// Called by the "Load More" button inside a patient card to fetch more bookings for that patient.
+    func performInnerBooking(patientId: String) {
+        guard !self.isLoadingList else { return }
+        self.isLoadingList = true
+        self.currentFetchingPatientId = patientId
+        
+        let innerPage = self.bookingPages[patientId] ?? 1
+        
+        var parameter = [String: String]()
+        guard let token = UserDefaults.standard.string(forKey: Constants.accessToken) else { return }
+        guard let code = UserDefaults.standard.string(forKey: Constants.languageCode) else { return }
+        parameter = ["language_type": code,
+                     "token": token,
+                     "page": "\(self.currentPage)",
+                     "patient_id": patientId,
+                     "booking_page": "\(innerPage)"]
+        
+        self.allBooking(param: parameter, showLoader: false)
+    }
+    
+    func handleAllBookingResponse(model: AllBookingResponseModel, hideLoader: Bool = true) {
         self.isDataFetched = true
         self.isLoadingList = false
         self.refreshControl.endRefreshing()
         self.bottomLoader.stopAnimating()
         self.bookingTblVw.tableFooterView = nil
-        print(model)
-        if model.status == "SUCCESS" {
+        
+        guard model.status == "SUCCESS" else {
+            if model.message == "Your credentials are logged in on another device! Please login again." {
+                if hideLoader { LoaderController.sharedInstance.removeLoader() }
+            } else {
+                AppToast.showMessage(message: model.message ?? "")
+                if hideLoader { LoaderController.sharedInstance.removeLoader() }
+            }
+            self.currentFetchingPatientId = nil
+            return
+        }
+        
+        let newGroups = model.pastbooking ?? []
+        
+        if let patientId = self.currentFetchingPatientId {
+            // INNER PAGINATION: append bookings to the specific patient group
+            if let idx = self.allBookingData.firstIndex(where: { $0.patientId == patientId }) {
+                let newCalls = newGroups.first(where: { $0.patientId == patientId })?.call ?? []
+                if newCalls.isEmpty {
+                    // No more inner bookings — stop incrementing
+                    self.bookingPages[patientId] = (self.bookingPages[patientId] ?? 1)
+                } else {
+                    self.allBookingData[idx].call?.append(contentsOf: newCalls)
+                    self.bookingPages[patientId] = (self.bookingPages[patientId] ?? 1) + 1
+                }
+                // Reload just that row to reflect updated inner list
+                self.bookingTblVw.reloadRows(at: [IndexPath(row: idx, section: 0)], with: .none)
+            }
+            self.currentFetchingPatientId = nil
+        } else {
+            // OUTER PAGINATION: load new patient groups
             if self.currentPage == 1 {
                 self.allBookingData.removeAll()
             }
-            if let calls = model.pastbooking?.call {
-                if calls.count == 0 {
-                    self.isLastPage = true
-                } else {
-                    self.allBookingData.append(contentsOf: calls)
-                }
-            } else {
+            if newGroups.isEmpty {
                 self.isLastPage = true
+            } else {
+                // Initialize inner page tracker for new groups
+                for group in newGroups {
+                    if let pid = group.patientId, self.bookingPages[pid] == nil {
+                        self.bookingPages[pid] = 1
+                    }
+                }
+                self.allBookingData.append(contentsOf: newGroups)
             }
             self.bookingTblVw.reloadData()
-            if hideLoader { LoaderController.sharedInstance.removeLoader() }
-        }else if model.message == "Your credentials are logged in on another device! Please login again."{
-            if hideLoader { LoaderController.sharedInstance.removeLoader() }
-        } else {
-            AppToast.showMessage(message: model.message ?? "")
-            if hideLoader { LoaderController.sharedInstance.removeLoader() }
         }
+        
+        if hideLoader { LoaderController.sharedInstance.removeLoader() }
     }
 }
 

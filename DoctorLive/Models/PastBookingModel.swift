@@ -70,6 +70,9 @@ struct PastCall: Codable {
     let devicetoken: String?
     let rating: String?
     let amount: String?
+    let current_status:String?
+    let status_since:String?
+    
     
     private enum CodingKeys: String, CodingKey {
         case name = "name"
@@ -100,6 +103,8 @@ struct PastCall: Codable {
         case devicetoken = "sinch_key"
         case rating = "rating"
         case amount = "amount"
+        case current_status = "current_status"
+        case status_since = "status_since"
     }
     
     init(from decoder: Decoder) throws {
@@ -132,7 +137,8 @@ struct PastCall: Codable {
         devicetoken = try? values.decode(String.self, forKey: .devicetoken)
         rating = try? values.decode(String.self, forKey: .rating)
         amount = try? values.decode(String.self, forKey: .amount)
-       
+        current_status = try? values.decode(String.self, forKey: .current_status)
+        status_since = try? values.decode(String.self, forKey: .status_since)       
     }
 }
 struct PastVisit: Codable {

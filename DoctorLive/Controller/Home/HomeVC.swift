@@ -35,12 +35,22 @@ class HomeVC: UIViewController {
     var pendingBookingData = PendingBookingData()
     var upcomingBookingData = [UpcomingBooking]()
     var previousBookingData = PreviousBookingData()
-    var allBookingData = [PastCall]()
+    var allBookingData = [PatientBookingGroup]()
     
+    // MARK: - Outer pagination
     var currentPage = 1
     var isLoadingList = false
     var isLastPage = false
     var isDataFetched = false
+    let pageLimit = 10
+    
+    // MARK: - Inner (per-patient) pagination
+    /// Tracks which inner booking page we are on for each patientId
+    var bookingPages: [String: Int] = [:]
+    /// Tracks which patient cells are currently expanded
+    var expandedPatientIds: Set<String> = []
+    /// Non-nil when a fetch is for a specific patient's inner list (not a new outer page)
+    var currentFetchingPatientId: String? = nil
     
     lazy var refreshControl: UIRefreshControl = {
         let refreshControl = UIRefreshControl()
@@ -187,6 +197,8 @@ class HomeVC: UIViewController {
         self.bookingTblVw.register(UINib(nibName: UpcomingHomeCell.className, bundle: nil), forCellReuseIdentifier: UpcomingHomeCell.className)
         self.bookingTblVw.register(UINib(nibName: PreviousHomeCell.className, bundle: nil), forCellReuseIdentifier: PreviousHomeCell.className)
         self.bookingTblVw.register(UINib(nibName: BookingTitleCell.className, bundle: nil), forHeaderFooterViewReuseIdentifier: BookingTitleCell.className)
+        // DoctorCardTableViewCell is a programmatic cell (no NIB)
+        self.bookingTblVw.register(DoctorCardTableViewCell.self, forCellReuseIdentifier: DoctorCardTableViewCell.reuseIdentifier)
     }
     
     func setUpTable() {
@@ -335,7 +347,8 @@ class HomeVC: UIViewController {
     }
     
     @objc func acceptBtnTap(_ sender: UIButton){
-        self.performConfirmBooking(bookingId: self.allBookingData[sender.tag].id ?? EMPTY)
+        let booking = self.allBookingData[sender.tag].call?.first
+        self.performConfirmBooking(bookingId: booking?.id ?? EMPTY)
     }
     
     @objc func swapBtnTap(_ sender: UIButton){
@@ -344,7 +357,7 @@ class HomeVC: UIViewController {
         vc.rejectCallBack = {
             self.performAllBooking(isRefresh: true)
         }
-        vc.bookingId = self.allBookingData[sender.tag].id ?? EMPTY
+        vc.bookingId = self.allBookingData[sender.tag].call?.first?.id ?? EMPTY
         vc.modalPresentationStyle = .overCurrentContext
         vc.modalTransitionStyle = .crossDissolve
         self.present(vc, animated: true, completion: nil)
@@ -352,7 +365,7 @@ class HomeVC: UIViewController {
     
     @objc func reasonForCallBtnTap(_ sender: UIButton){
         let action = ReasonForVisitPopUp()
-        action.message = self.allBookingData[sender.tag].reasonVisit ?? EMPTY
+        action.message = self.allBookingData[sender.tag].call?.first?.reasonVisit ?? EMPTY
         action.modalTransitionStyle = .crossDissolve
         action.modalPresentationStyle = .overCurrentContext
         self.present(action, animated: true)
@@ -362,26 +375,28 @@ class HomeVC: UIViewController {
         if let _ = self.findVideoCallController() {
             AppToast.showMessage(message: "Video call is already in progress")
         }else{
-            self.sinchToken = self.allBookingData[sender.tag].devicetoken ?? EMPTY
-            self.userId = self.allBookingData[sender.tag].userId ?? EMPTY
-            self.patientName = self.allBookingData[sender.tag].memberName ?? EMPTY
-            self.bookingId = self.allBookingData[sender.tag].id ?? EMPTY
+            let call = self.allBookingData[sender.tag].call?.first
+            self.sinchToken = call?.devicetoken ?? EMPTY
+            self.userId = call?.userId ?? EMPTY
+            self.patientName = call?.memberName ?? self.allBookingData[sender.tag].patientName ?? EMPTY
+            self.bookingId = call?.id ?? EMPTY
             self.doctorId = USER_DEFAULTS.string(forKey: Constants.userId) ?? EMPTY
             self.getToken()
         }
     }
     
     @objc func chatBtnTap(_ sender: UIButton){
-        let booking = self.allBookingData[sender.tag]
+        let group = self.allBookingData[sender.tag]
+        let call = group.call?.first
         let viewC = DIConfigurator.sharedInst().getChatViewC()
         viewC.senderId = USER_DEFAULTS.string(forKey: Constants.userId)
-        viewC.recieverId = booking.userId ?? EMPTY
-        viewC.roomId = booking.id ?? EMPTY
+        viewC.recieverId = call?.userId ?? EMPTY
+        viewC.roomId = call?.id ?? EMPTY
         viewC.profilePic = EMPTY
-        viewC.patientName = booking.memberName ?? EMPTY
-        viewC.sinchToken = booking.devicetoken ?? EMPTY
-        viewC.userId = booking.userId ?? EMPTY
-        viewC.bookingId = booking.id ?? EMPTY
+        viewC.patientName = call?.memberName ?? group.patientName ?? EMPTY
+        viewC.sinchToken = call?.devicetoken ?? EMPTY
+        viewC.userId = call?.userId ?? EMPTY
+        viewC.bookingId = call?.id ?? EMPTY
         viewC.doctorId = USER_DEFAULTS.string(forKey: Constants.userId) ?? EMPTY
         self.navigationController?.pushViewController(viewC, animated: true)
     }
@@ -391,13 +406,14 @@ class HomeVC: UIViewController {
     }
     
     @objc func prescriptionBtnTap(_ sender: UIButton){
-        if self.allBookingData[sender.tag].filePdf ?? EMPTY == EMPTY {
+        let call = self.allBookingData[sender.tag].call?.first
+        if call?.filePdf ?? EMPTY == EMPTY {
             let viewC = PrescriptionViewController()
-            viewC.bookingId = self.allBookingData[sender.tag].id ?? EMPTY
+            viewC.bookingId = call?.id ?? EMPTY
             self.navigationController?.pushViewController(viewC, animated: true)
         }else{
             let vc = PrescriptionViewVC()
-            vc.urlString = self.allBookingData[sender.tag].filePdf ?? EMPTY
+            vc.urlString = call?.filePdf ?? EMPTY
             self.navigationController?.pushViewController(vc, animated: true)
         }
     }

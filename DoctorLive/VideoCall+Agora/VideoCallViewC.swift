@@ -238,6 +238,52 @@ class VideoCallViewC: UIViewController, PIPUsable {
                 _ = appDel.initHome()
             }
         }
+       // Remove presented screens
+//         self.dismiss(animated: false)
+//         PIPKit.dismiss(animated: true)
+
+        if isLogout {
+            let appDel = UIApplication.shared.delegate as! AppDelegate
+            appDel.setLoginViewController()
+        }
+
+
+        // if myself{
+        //     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        //         let chatViewC = DIConfigurator.sharedInst().getChatViewC()
+        //         chatViewC.senderId = self.doctorId
+        //         chatViewC.recieverId = self.userId
+        //         chatViewC.roomId = self.bookingId
+        //         chatViewC.profilePic = ""
+        //         chatViewC.patientName = self.patientName
+        //         chatViewC.sinchToken = self.channelId
+        //         chatViewC.userId = self.userId
+        //         chatViewC.bookingId = self.bookingId
+        //         chatViewC.doctorId = self.doctorId
+        //         chatViewC.rtcAgoroToken = self.rtcAgoroToken
+
+        //         DIConfigurator.sharedInst().setVideoCallAsRoot(viewC: chatViewC)
+        //     }
+        // }else if isLogout{
+        //     let appDel = UIApplication.shared.delegate as! AppDelegate
+        //     appDel.setLoginViewController()
+        // }else{
+        //     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        //         let chatViewC = DIConfigurator.sharedInst().getChatViewC()
+        //         chatViewC.senderId = self.doctorId
+        //         chatViewC.recieverId = self.userId
+        //         chatViewC.roomId = self.bookingId
+        //         chatViewC.profilePic = ""
+        //         chatViewC.patientName = self.patientName
+        //         chatViewC.sinchToken = self.channelId
+        //         chatViewC.userId = self.userId
+        //         chatViewC.bookingId = self.bookingId
+        //         chatViewC.doctorId = self.doctorId
+        //         chatViewC.rtcAgoroToken = self.rtcAgoroToken
+
+        //         DIConfigurator.sharedInst().setVideoCallAsRoot(viewC: chatViewC)
+        //     }
+        // }
     }
 }
 

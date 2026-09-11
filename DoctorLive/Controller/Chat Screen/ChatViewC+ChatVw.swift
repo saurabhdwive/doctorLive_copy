@@ -7,9 +7,184 @@
 
 import Foundation
 import UIKit
+import SwiftyJSON
 
 extension ChatViewC{
     func setUpChat(){
+        SocketHelper.shared.on(with: .send_new_booking_request) { (data) in
+            Indicator.shared.hideProgressView()
+            print("new_booking_request ============+>>>>>>>>>>>>>>>", data)
+            do {
+                let json = JSON(data)
+                var firstData: DoctorchathistoryData? = nil
+                for item in json.arrayValue {
+                    if item.type == .dictionary {
+                        firstData = DoctorchathistoryData(item)
+                        break
+                    }
+                }
+                
+                if let firstData = firstData {
+                    var recieverType = EMPTY
+                    if (firstData.senderId ?? EMPTY) == self.senderId {
+                        recieverType = "sender"
+                    } else {
+                        recieverType = "reciever"
+                    }
+                    
+                    var timmee = EMPTY
+                    var dateStr = EMPTY
+                    let dateToUse = (firstData.createdOn?.isEmpty == false) ? firstData.createdOn! : (firstData.statusSince ?? EMPTY)
+                    
+                    if !dateToUse.isEmpty {
+                        timmee = self.timeDateConversion(formateDate: dateToUse)
+                        dateStr = String(dateToUse.prefix(10))
+                    } else if let time = firstData.time, let date = firstData.date {
+                        let inputFormatter = DateFormatter()
+                        inputFormatter.dateFormat = "dd-MMM-yyyy"
+                        if let d = inputFormatter.date(from: date) {
+                            let outputFormatter = DateFormatter()
+                            outputFormatter.dateFormat = "yyyy-MM-dd"
+                            dateStr = outputFormatter.string(from: d)
+                        } else {
+                            dateStr = date
+                        }
+                        
+                        let timeFormatter = DateFormatter()
+                        timeFormatter.dateFormat = "HH:mm:ss"
+                        if let t = timeFormatter.date(from: time) {
+                            let outputFormatter = DateFormatter()
+                            outputFormatter.dateFormat = "hh:mm a"
+                            timmee = outputFormatter.string(from: t)
+                        } else {
+                            timmee = time
+                        }
+                    }
+                    print(firstData.bookingId)
+                    self.bookingId = firstData.bookingId
+                    self.roomId = firstData.bookingId
+                    self.setUpRoom()
+                    let msgType = firstData.type ?? EMPTY
+//                    if msgType == "RATING_SUBMITTED"{
+//                        if let index = self.chatData.lastIndex(where: { $0.msgType == "PRESCRIPTION_SENT" }) {
+//                            self.chatData[index].rating = firstData.rating
+//                            DispatchQueue.main.async {
+//                                self.setUpChatData()
+//                            }
+//                        }
+//                    } else {
+                    self.chatData.append(ChatData(message: firstData.message ?? EMPTY, time: timmee, msgType: msgType, recieverType: recieverType, date: dateStr, id: firstData.id ?? EMPTY, isExpired: firstData.isExpired ?? 0, historyType: firstData.historyType, bookingId: firstData.bookingId, statusId: firstData.statusId, fees:firstData.fees, changedByType: firstData.changedByType, changedById: firstData.changedById, createdOn: dateToUse,is_status: firstData.is_status))
+//                    }
+                    
+                    self.setscrollPosition()
+                    self.messageTxt.text = EMPTY
+                    self.setUpChatData()
+                    NotificationCenter.default.post(name: NSNotification.Name("RefreshScreen"), object: nil)
+                }
+            } catch {
+                print("huihuhiuhi")
+            }
+        }
+        SocketHelper.shared.on(with: .booking_status_updated) { (data) in
+            Indicator.shared.hideProgressView()
+            print("booking_status_updated ============+>>>>>>>>>>>>>>>", data)
+            do {
+                let json = JSON(data)
+                var firstData: DoctorchathistoryData? = nil
+                for item in json.arrayValue {
+                    if item.type == .dictionary {
+                        firstData = DoctorchathistoryData(item)
+                        break
+                    }
+                }
+                
+                if let firstData = firstData {
+                    var recieverType = EMPTY
+                    if (firstData.senderId ?? EMPTY) == self.senderId {
+                        recieverType = "sender"
+                    } else {
+                        recieverType = "reciever"
+                    }
+                    
+                    var timmee = EMPTY
+                    var dateStr = EMPTY
+                    let dateToUse = (firstData.createdOn?.isEmpty == false) ? firstData.createdOn! : (firstData.statusSince ?? EMPTY)
+                    
+                    if !dateToUse.isEmpty {
+                        timmee = self.timeDateConversion(formateDate: dateToUse)
+                        dateStr = String(dateToUse.prefix(10))
+                    } else if let time = firstData.time, let date = firstData.date {
+                        let inputFormatter = DateFormatter()
+                        inputFormatter.dateFormat = "dd-MMM-yyyy"
+                        if let d = inputFormatter.date(from: date) {
+                            let outputFormatter = DateFormatter()
+                            outputFormatter.dateFormat = "yyyy-MM-dd"
+                            dateStr = outputFormatter.string(from: d)
+                        } else {
+                            dateStr = date
+                        }
+                        
+                        let timeFormatter = DateFormatter()
+                        timeFormatter.dateFormat = "HH:mm:ss"
+                        if let t = timeFormatter.date(from: time) {
+                            let outputFormatter = DateFormatter()
+                            outputFormatter.dateFormat = "hh:mm a"
+                            timmee = outputFormatter.string(from: t)
+                        } else {
+                            timmee = time
+                        }
+                    }
+                    
+                    let msgType = firstData.type ?? EMPTY
+//                    var is_status = "1"
+                    if msgType ==  "REJECTED" || msgType == "CANCELLED" || msgType == "PAYMENT_PENDING" || msgType == "SUGGESTED_TIME_PENDING"{
+                        if let index = self.chatData.lastIndex(where: { $0.msgType == "REQUESTED" }) {
+                            self.chatData.remove(at: index)
+                        }
+                    }
+                    if msgType == "CONSULTATION_COMPLETED"{
+                        if let index = self.chatData.lastIndex(where: { $0.msgType == "CALL_ENDED" }) {
+                            self.chatData[index].is_status = "0"
+//                            DispatchQueue.main.async {
+//                                self.setUpChatData()
+//                            }
+                        }
+                    }else if msgType == "PRESCRIPTION_SENT"{
+                        if let index = self.chatData.lastIndex(where: { $0.msgType == "CONSULTATION_COMPLETED" }) {
+                            self.chatData[index].is_status = "0"
+//                            DispatchQueue.main.async {
+//                                self.setUpChatData()
+//                            }
+                        }
+                    }else if msgType == "CALL_STARTED"{
+                        if let index = self.chatData.lastIndex(where: { $0.msgType == "PAYMENT_COMPLETED" }) {
+                            self.chatData[index].is_status = "0"
+//                            DispatchQueue.main.async {
+//                                self.setUpChatData()
+//                            }
+                        }
+                    }
+                    if msgType == "RATING_SUBMITTED"{
+                        if let index = self.chatData.lastIndex(where: { $0.msgType == "PRESCRIPTION_SENT" }) {
+                            self.chatData[index].rating = firstData.rating
+                            DispatchQueue.main.async {
+                                self.setUpChatData()
+                            }
+                        }
+                    }
+                    else{
+                        self.chatData.append(ChatData(message: firstData.message ?? EMPTY, time: timmee, msgType: msgType, recieverType: recieverType, date: dateStr, id: firstData.id ?? EMPTY, isExpired: firstData.isExpired ?? 0, historyType: firstData.historyType, bookingId: firstData.bookingId, statusId: firstData.statusId, fees:firstData.fees, changedByType: firstData.changedByType, changedById: firstData.changedById, createdOn: dateToUse, rating: firstData.rating,prescription_url:firstData.prescription_url,is_status: firstData.is_status))
+                    }
+                        self.setscrollPosition()
+                    self.messageTxt.text = EMPTY
+                    self.setUpChatData()
+                    NotificationCenter.default.post(name: NSNotification.Name("RefreshScreen"), object: nil)
+                }
+            } catch {
+                print("huihuhiuhi")
+            }
+        }
+        
         SocketHelper.shared.on(with: .message) { (data) in
             print("call Back ============+>>>>>>>>>>>>>>>", data)
             do{
@@ -18,7 +193,7 @@ extension ChatViewC{
                 if String(chatModel.first?.sender_id ?? EMPTY) == (self.senderId ?? EMPTY) {
                    print("HUIHUI")
                 }else{
-                    self.chatData.append(ChatData(message: chatModel.first?.message ?? EMPTY, time: Date.getDateStringWithDatee(DateFormat.exactTimeFormat1, date: Date()), msgType: chatModel.first?.type ?? EMPTY, recieverType: "receiver", date: String((chatModel.first?.created_on ?? EMPTY).dropLast(9))))
+                    self.chatData.append(ChatData(message: chatModel.first?.message ?? EMPTY, time: Date.getDateStringWithDatee(DateFormat.exactTimeFormat1, date: Date()), msgType: chatModel.first?.type ?? EMPTY, recieverType: "receiver", date: String((chatModel.first?.created_on ?? EMPTY).prefix(10))))
                 }
                 self.setscrollPosition()
                 self.messageTxt.text = EMPTY
@@ -42,7 +217,8 @@ extension ChatViewC{
                         self.statusLbl.text = "online"
                         self.statusVw.backgroundColor = .systemGreen
                     }else{
-                        self.statusLbl.text = "offline"
+//                        self.statusLbl.text = "offline"
+                        self.statusLbl.text = "last active:  \(self.viewmodel.doctorChatData.first?.other_details?.last_active ?? "")"
                         self.statusVw.backgroundColor = UIColor(named: "PlaceHolderTextColor")
                     }
                     self.statusLbl.isHidden = false
@@ -87,7 +263,8 @@ extension ChatViewC{
                         self.statusLbl.text = "online"
                         self.statusVw.backgroundColor = .systemGreen
                     }else{
-                        self.statusLbl.text = "offline"
+//                        self.statusLbl.text = "offline"
+                        self.statusLbl.text = "last active:  \(self.viewmodel.doctorChatData.first?.other_details?.last_active ?? "")"
                         self.statusVw.backgroundColor = UIColor(named: "PlaceHolderTextColor")
                     }
                     self.statusLbl.isHidden = false
@@ -115,7 +292,11 @@ extension ChatViewC{
         let data = Date()
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         dateFormatter.timeZone = NSTimeZone.local as TimeZone?
-        let date = dateFormatter.date(from: formateDate)
+        var date = dateFormatter.date(from: formateDate)
+        if date == nil {
+            dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+            date = dateFormatter.date(from: formateDate)
+        }
         dateFormatter.dateFormat = "hh:mm a"
         dateFormatter.timeZone = NSTimeZone.local
         let timeStamp = dateFormatter.string(from: date ?? data)
@@ -126,11 +307,12 @@ extension ChatViewC{
         self.groupByCategoryChat?.removeAll()
         self.keys.removeAll()
         self.groupByCategoryChat = Dictionary(grouping: self.chatData) { (device) -> String in
+            print("🥎🥎🥎🥎🥎🥎🥎🥎🥎🥎🥎🥎🥎🥎 \(device) 🥎🥎🥎🥎🥎🥎🥎🥎🥎")
             return device.date ?? EMPTY
         }
-        
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
+        
 
         // Sorting the array
         let sortedDates = groupByCategoryChat?.keys.sorted { first, second in
@@ -145,6 +327,7 @@ extension ChatViewC{
                 self.keys.append("\(key)")
             }
         }
+        self.updateStickyStatusBar()
         self.chatTblVw.reloadData()
     }
     
@@ -201,6 +384,16 @@ extension ChatViewC{
             //            self.chatTblVw.scrollToRow(at: indexPath as IndexPath,at: UITableView.ScrollPosition.bottom, animated: true)
         }
     }
+    func emitBookingStatusData(statusKey:EventListnerKeys = EventListnerKeys.booking_status_update,bookingStatus:String){
+        var passDic = [String: String]()
+        passDic["bookingId"] = self.bookingId ?? EMPTY
+        passDic["doctorId"] = self.senderId ?? EMPTY
+        passDic["patientId"] = self.recieverId ?? EMPTY
+        passDic["status"] = bookingStatus
+        SocketHelper.shared.emit(with: statusKey, passDic){_ in
+            print("Sent Booking Status")
+        }
+    }
 }
 extension ChatViewC{
     func typeOn(string: String) {
@@ -253,6 +446,17 @@ struct Typing_Model: Decodable {
 }
 
 struct chat_Model: Decodable {
+    
+    let senderType: String?
+    let created_on: String?
+    let reciver_id: String?
+    let sender_id: String?
+    let message: String?
+    let type: String?
+    
+}
+
+struct ChatBookingStatus_Model: Decodable {
     
     let senderType: String?
     let created_on: String?

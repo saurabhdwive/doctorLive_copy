@@ -40,11 +40,15 @@ extension PrescriptionViewController{
                    
                     self.navigationController?.pushViewController(vc, animated: true)
                 } else {
-                    let vc = PrescriptionViewVC()
-                    LoaderController.sharedInstance.removeLoader()
-                    vc.urlString = modelData?.filePdf ?? ""
-                    
-                    self.navigationController?.pushViewController(vc, animated: true)
+                    if isComingFromChat{
+                        self.navigationController?.popViewController(animated: true)
+                    }else{
+                        let vc = PrescriptionViewVC()
+                        LoaderController.sharedInstance.removeLoader()
+                        vc.urlString = modelData?.filePdf ?? ""
+                        
+                        self.navigationController?.pushViewController(vc, animated: true)
+                    }
                 }
                 break
             case .failure(let error):

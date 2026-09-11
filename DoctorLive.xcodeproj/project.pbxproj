@@ -14,6 +14,8 @@
 		04289C31303F200400310053 /* RecorderVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04289C2D303F200400310053 /* RecorderVC.swift */; };
 		04289C32303F200400310053 /* AKAudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04289C2C303F200400310053 /* AKAudioRecorder.swift */; };
 		047486DD3040480000A354F2 /* audiofreq.json in Resources */ = {isa = PBXBuildFile; fileRef = 047486DC3040480000A354F2 /* audiofreq.json */; };
+		04E7DCF1304FF9B000FF53CA /* ChatBookingCells.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E7DCF0304FF9B000FF53CA /* ChatBookingCells.swift */; };
+		04E7DCF330507B5800FF53CA /* AllBookingResponseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E7DCF230507B5800FF53CA /* AllBookingResponseModel.swift */; };
 		04F55026303F521200C5801B /* ExpiredOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F55025303F520100C5801B /* ExpiredOverlayView.swift */; };
 		04F5502A303F60F900C5801B /* DeleteConfirmationPopUp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F55029303F60F600C5801B /* DeleteConfirmationPopUp.swift */; };
 		0C201638272A8F680034BBA5 /* MedicineList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C201637272A8F680034BBA5 /* MedicineList.swift */; };
@@ -382,6 +384,8 @@
 		04289C2D303F200400310053 /* RecorderVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecorderVC.swift; sourceTree = "<group>"; };
 		04289C2E303F200400310053 /* RecorderVC+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RecorderVC+Extension.swift"; sourceTree = "<group>"; };
 		047486DC3040480000A354F2 /* audiofreq.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = audiofreq.json; sourceTree = "<group>"; };
+		04E7DCF0304FF9B000FF53CA /* ChatBookingCells.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatBookingCells.swift; sourceTree = "<group>"; };
+		04E7DCF230507B5800FF53CA /* AllBookingResponseModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllBookingResponseModel.swift; sourceTree = "<group>"; };
 		04F55025303F520100C5801B /* ExpiredOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpiredOverlayView.swift; sourceTree = "<group>"; };
 		04F55029303F60F600C5801B /* DeleteConfirmationPopUp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteConfirmationPopUp.swift; sourceTree = "<group>"; };
 		0B57CE3221BCE286F910C58A /* Pods-DoctorLive.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DoctorLive.debug.xcconfig"; path = "Target Support Files/Pods-DoctorLive/Pods-DoctorLive.debug.xcconfig"; sourceTree = "<group>"; };
@@ -1095,6 +1099,7 @@
 				18E923C22D27AF4800345CBC /* ChatRightTextCell.xib */,
 				04289C28303F189700310053 /* ChatRightAudioCell.swift */,
 				04289C29303F189700310053 /* ChatRightAudioCell.xib */,
+				04E7DCF0304FF9B000FF53CA /* ChatBookingCells.swift */,
 			);
 			path = "Chat Screen";
 			sourceTree = "<group>";
@@ -1287,6 +1292,7 @@
 		4FCCA84626E0EAB10078641E /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				04E7DCF230507B5800FF53CA /* AllBookingResponseModel.swift */,
 				4FCCA84726E0EAC30078641E /* LoginModel.swift */,
 				4FCCA84926E0F9970078641E /* SignUpModel.swift */,
 				4FCCA85B26E227E10078641E /* VerificationModel.swift */,
@@ -2014,6 +2020,7 @@
 				1820D5AB2C9AE7B500B5C816 /* MyArticleViewC+Extension.swift in Sources */,
 				CEC9B0A326CD18E0005112D0 /* AddNewClinicVC.swift in Sources */,
 				0CD73ED827158DC7009B1A73 /* PrescriptionTableViewCell.swift in Sources */,
+				04E7DCF1304FF9B000FF53CA /* ChatBookingCells.swift in Sources */,
 				18098F5B2CC621400084A2D0 /* WriteArticleCell.swift in Sources */,
 				0CBFCA902779A429009D967B /* AppColor.swift in Sources */,
 				CEFA0CA326C4435C006587B2 /* SKActivityIndicatorView.swift in Sources */,
@@ -2137,6 +2144,7 @@
 				4F2889BB26F123FE00634D8A /* AboutPopUpVC.swift in Sources */,
 				CEFA0CAF26C4435C006587B2 /* Extension.swift in Sources */,
 				186394D02CD9F66D00F2AD80 /* VideoCallViewC+ApiService.swift in Sources */,
+				04E7DCF330507B5800FF53CA /* AllBookingResponseModel.swift in Sources */,
 				4F74A8282705EA6400A29ECD /* Networking1.swift in Sources */,
 				1834B4A42CE5C23E00266C5E /* MyRatingViewC+ApiService.swift in Sources */,
 				4F3FB5C926F3727000B04DE4 /* UpcomingBookingModel.swift in Sources */,
@@ -2487,7 +2495,7 @@
 				CODE_SIGN_ENTITLEMENTS = DoctorLive/DoctorLive.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = KGZW38PR5F;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -2500,7 +2508,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1.20;
+				MARKETING_VERSION = 2.1.21;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mobu.doctor;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2522,7 +2530,7 @@
 				CODE_SIGN_ENTITLEMENTS = DoctorLive/DoctorLive.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = KGZW38PR5F;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)/**";
@@ -2533,7 +2541,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1.20;
+				MARKETING_VERSION = 2.1.21;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mobu.doctor;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

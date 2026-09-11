@@ -10357,7 +10357,7 @@ YWNrIHRvIHlvdSBBU0FQLg
                                 <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.20000000000000001" colorSpace="custom" customColorSpace="sRGB"/>
                             </view>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" bounces="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" bouncesZoom="NO" dataMode="prototypes" style="plain" separatorStyle="none" allowsSelection="NO" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="tie-GI-dvp">
-                                <rect key="frame" x="0.0" y="88" width="414" height="735"/>
+                                <rect key="frame" x="0.0" y="134.5" width="414" height="688.5"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <color key="tintColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </tableView>
@@ -10368,7 +10368,7 @@ YWNrIHRvIHlvdSBBU0FQLg
                                         <rect key="frame" x="20" y="5" width="324" height="58"/>
                                         <subviews>
                                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="Message..." textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="Knz-Xc-f0E">
-                                                <rect key="frame" x="10" y="10" width="269" height="38"/>
+                                                <rect key="frame" x="10" y="10" width="234" height="38"/>
                                                 <color key="textColor" systemColor="labelColor"/>
                                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
@@ -10403,11 +10403,11 @@ YWNrIHRvIHlvdSBBU0FQLg
                                             <constraint firstItem="Knz-Xc-f0E" firstAttribute="top" secondItem="0km-gS-xct" secondAttribute="top" constant="10" id="35E-uB-Nl4"/>
                                             <constraint firstAttribute="height" constant="58" id="BWA-2t-yd8"/>
                                             <constraint firstAttribute="bottom" secondItem="Knz-Xc-f0E" secondAttribute="bottom" constant="10" id="L5J-Zn-TcB"/>
+                                            <constraint firstItem="AuD-io-BtN" firstAttribute="centerY" secondItem="0km-gS-xct" secondAttribute="centerY" id="M1C-vD-kGq"/>
+                                            <constraint firstItem="Pgi-1c-d7m" firstAttribute="leading" secondItem="AuD-io-BtN" secondAttribute="trailing" constant="10" id="NeW-cO-bUt"/>
                                             <constraint firstAttribute="trailing" secondItem="Pgi-1c-d7m" secondAttribute="trailing" constant="10" id="Svq-33-RtK"/>
                                             <constraint firstItem="Pgi-1c-d7m" firstAttribute="centerY" secondItem="0km-gS-xct" secondAttribute="centerY" id="Ww2-QO-uaN"/>
                                             <constraint firstItem="AuD-io-BtN" firstAttribute="leading" secondItem="Knz-Xc-f0E" secondAttribute="trailing" constant="10" id="rh0-c2-pUD"/>
-                                            <constraint firstItem="Pgi-1c-d7m" firstAttribute="leading" secondItem="AuD-io-BtN" secondAttribute="trailing" constant="10" id="NeW-cO-bUt"/>
-                                            <constraint firstItem="AuD-io-BtN" firstAttribute="centerY" secondItem="0km-gS-xct" secondAttribute="centerY" id="M1C-vD-kGq"/>
                                             <constraint firstItem="Knz-Xc-f0E" firstAttribute="leading" secondItem="0km-gS-xct" secondAttribute="leading" constant="10" id="snp-Kg-qYE"/>
                                         </constraints>
                                         <userDefinedRuntimeAttributes>
@@ -10522,7 +10522,6 @@ YWNrIHRvIHlvdSBBU0FQLg
                             <constraint firstItem="UTF-vc-Mhm" firstAttribute="top" secondItem="TFg-Jp-65Q" secondAttribute="bottom" constant="5" id="3RJ-Ja-haW"/>
                             <constraint firstItem="zy1-lU-pqX" firstAttribute="leading" secondItem="t0t-7d-O0x" secondAttribute="trailing" priority="1" constant="2" id="60Y-bm-x06"/>
                             <constraint firstItem="TFg-Jp-65Q" firstAttribute="leading" secondItem="nMu-KK-bfo" secondAttribute="leading" constant="6" id="62A-A2-czh"/>
-                            <constraint firstItem="tie-GI-dvp" firstAttribute="top" secondItem="g5r-iK-eXM" secondAttribute="top" constant="88" id="Bsy-6n-1mR"/>
                             <constraint firstItem="RcB-Xq-9wS" firstAttribute="top" secondItem="TFg-Jp-65Q" secondAttribute="bottom" constant="5" id="CuJ-XI-Xtk"/>
                             <constraint firstItem="RcB-Xq-9wS" firstAttribute="leading" secondItem="nMu-KK-bfo" secondAttribute="leading" id="FAC-12-7Vo"/>
                             <constraint firstItem="nMu-KK-bfo" firstAttribute="trailing" secondItem="tie-GI-dvp" secondAttribute="trailing" id="Lur-U5-eCg"/>
@@ -10531,6 +10530,7 @@ YWNrIHRvIHlvdSBBU0FQLg
                             <constraint firstItem="t0t-7d-O0x" firstAttribute="centerY" secondItem="hWa-8N-oAD" secondAttribute="centerY" id="QpJ-Ro-KRB"/>
                             <constraint firstItem="fho-Bh-ZOx" firstAttribute="leading" secondItem="TFg-Jp-65Q" secondAttribute="trailing" constant="8" id="VdB-dU-7J1"/>
                             <constraint firstItem="hWa-8N-oAD" firstAttribute="top" secondItem="LkP-BM-jb2" secondAttribute="bottom" constant="2" id="WCH-K2-D2p"/>
+                            <constraint firstItem="tie-GI-dvp" firstAttribute="top" secondItem="Ayg-18-j1X" secondAttribute="bottom" id="Xdb-w2-0vU"/>
                             <constraint firstItem="t0t-7d-O0x" firstAttribute="leading" secondItem="hWa-8N-oAD" secondAttribute="trailing" constant="3" id="aB3-g7-mbo"/>
                             <constraint firstItem="tie-GI-dvp" firstAttribute="leading" secondItem="g5r-iK-eXM" secondAttribute="leading" id="bSN-Iy-bCM"/>
                             <constraint firstAttribute="bottom" secondItem="RcB-Xq-9wS" secondAttribute="bottom" id="bbb-T1-UlY"/>
@@ -10567,7 +10567,7 @@ YWNrIHRvIHlvdSBBU0FQLg
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="cnJ-gK-LdI" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="9101" y="1375"/>
+            <point key="canvasLocation" x="9100" y="1374.7767857142856"/>
         </scene>
         <!--Image Pop Prie ViewC-->
         <scene sceneID="JIE-BI-nCv">
@@ -10671,7 +10671,6 @@ YWNrIHRvIHlvdSBBU0FQLg
         <image name="calldrop" width="8" height="5"/>
         <image name="cam_flip" width="55" height="55"/>
         <image name="camera" catalog="system" width="128" height="93"/>
-        <image name="camera.fill" catalog="system" width="128" height="93"/>
         <image name="chatBg" width="393" height="878"/>
         <image name="check" width="140.75100708007812" height="129.10600280761719"/>
         <image name="chevron.down" catalog="system" width="128" height="70"/>
@@ -10685,6 +10684,7 @@ YWNrIHRvIHlvdSBBU0FQLg
         <image name="mic.fill" catalog="system" width="110" height="128"/>
         <image name="noun-fees-3518678" width="14" height="14"/>
         <image name="open_eye" width="22.5" height="11"/>
+        <image name="paperclip" catalog="system" width="121" height="128"/>
         <image name="patienVideoCall" width="860" height="860"/>
         <image name="phone.bubble.left.fill" catalog="system" width="128" height="110"/>
         <image name="send-svgrepo-com (1)" width="26" height="26"/>
@@ -10731,25 +10731,25 @@ YWNrIHRvIHlvdSBBU0FQLg
             <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
         <systemColor name="linkColor">
-            <color red="0.0" green="0.47843137254901963" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="opaqueSeparatorColor">
-            <color red="0.77647058823529413" green="0.77647058823529413" blue="0.78431372549019607" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.77647058820000003" green="0.77647058820000003" blue="0.7843137255" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
         <systemColor name="systemGray4Color">
-            <color red="0.81960784313725488" green="0.81960784313725488" blue="0.83921568627450982" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.81960784310000001" green="0.81960784310000001" blue="0.83921568629999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="systemGreenColor">
-            <color red="0.20392156862745098" green="0.7803921568627451" blue="0.34901960784313724" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.20392156859999999" green="0.78039215689999997" blue="0.34901960780000002" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="systemPinkColor">
-            <color red="1" green="0.17647058823529413" blue="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="1" green="0.1764705882" blue="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="systemRedColor">
-            <color red="1" green="0.2196078431372549" blue="0.23529411764705882" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="1" green="0.23137254900000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>

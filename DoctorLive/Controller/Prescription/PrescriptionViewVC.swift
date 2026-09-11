@@ -24,7 +24,7 @@ class PrescriptionViewVC: UIViewController, WKNavigationDelegate {
     
     var delegate:PrescriptionPdfData?
     
-    override func viewDidLoad() {1
+    override func viewDidLoad() {
         super.viewDidLoad()
         downloadButton.isHidden = false
         downloadButton.layer.cornerRadius = 10

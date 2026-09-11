@@ -76,6 +76,7 @@ enum MediaType1: String {
     case generateAndSendPush
     case getToken
     case allBooking
+    case suggestedTime
 
     var resource: (method: HTTPMethod, endPoint: String) {
         switch self {
@@ -183,7 +184,10 @@ enum MediaType1: String {
         case .getToken:
             return (.post, "user/getToken")
         case .allBooking:
-            return (.post, "allbooking")
+//            return (.post, "allbooking")
+            return (.post, "allbookingnew")
+        case .suggestedTime:
+            return (.post, "suggestedtime")
         }
     }
 }

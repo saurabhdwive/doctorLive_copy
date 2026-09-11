@@ -51,6 +51,7 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
     var genralSwitchButtonState: Bool = false
     var followUpState: Bool = false
     var bookingIdComeFromChat: String? = ""
+    var isComingFromChat:Bool = false
     
     override func viewDidLoad() {
         super.viewDidLoad()

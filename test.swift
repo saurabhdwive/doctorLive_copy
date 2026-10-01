@@ -1,2 +1,1 @@
-import UIKit
-print("OK")
+print("Testing hypothesis")

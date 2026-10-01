@@ -12,6 +12,20 @@ import SafariServices
 import PromiseKit
 
 extension ChatViewC: UITableViewDelegate{
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard self.isFromPagination else { return }
+        
+        let offsetY = scrollView.contentOffset.y
+        if offsetY <= 0 && scrollView.isDragging {
+            if !self.isLoading && self.hasMoreData && self.chatData.count > 0 {
+                self.currentPage += 1
+                self.chatTblVw.tableHeaderView = self.paginationSpinner
+                self.paginationSpinner.startAnimating()
+                self.getChatHistry()
+            }
+        }
+    }
+    
     func numberOfSections(in tableView: UITableView) -> Int {
         return self.keys.count
     }
@@ -22,9 +36,9 @@ extension ChatViewC: UITableViewDelegate{
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         let chat = self.groupByCategoryChat?[self.keys[indexPath.section]]?[indexPath.row]
-        if chat?.msgType == "REQUESTED" && chat?.is_status != "1" {
-            return 0
-        }
+         if chat?.msgType == "WAITING_FOR_CALL"{
+             return 0
+         }
         return UITableView.automaticDimension
     }
     
@@ -33,6 +47,9 @@ extension ChatViewC: UITableViewDelegate{
 //        guard chat?.recieverType == "sender" else {
 //            return nil
 //        }
+         if let historyType = chat?.historyType, (historyType == "booking_status" || historyType == "new_booking_request") {
+            return nil
+        }
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] (action, view, completionHandler) in
             guard let self = self else {
                 completionHandler(false)
@@ -135,21 +152,38 @@ extension ChatViewC: UITableViewDataSource{
         if let historyType = chat?.historyType, (historyType == "booking_status" || historyType == "new_booking_request") {
             switch chat?.msgType {
             case "REQUESTED":
-                if chat?.is_status == "1" {
+                
                     let containerCell = self.chatTblVw.dequeueReusableCell(withIdentifier: "ChatDynamicStackCell") as! ChatDynamicStackCell
                     containerCell.stackView.spacing = 8
+                    
+                    let dividerCell = ChatBookingDividerCell(style: .default, reuseIdentifier: nil)
+                    let title = "Booking #\(chat?.bookingId ?? "") · \(chat?.booking_date ?? ""), \(chat?.booking_time ?? "")"
+                    dividerCell.configure(title: title, icon: UIImage(systemName: "video"), isRedDot: true)
+                    dividerCell.contentView.translatesAutoresizingMaskIntoConstraints = false
+                    NSLayoutConstraint.activate([
+                        dividerCell.contentView.topAnchor.constraint(equalTo: dividerCell.topAnchor),
+                        dividerCell.contentView.bottomAnchor.constraint(equalTo: dividerCell.bottomAnchor),
+                        dividerCell.contentView.leadingAnchor.constraint(equalTo: dividerCell.leadingAnchor),
+                        dividerCell.contentView.trailingAnchor.constraint(equalTo: dividerCell.trailingAnchor)
+                    ])
+                    containerCell.stackView.addArrangedSubview(dividerCell)
+
+                    if chat?.is_status == "1" {
                     
                     let chipCell = ChatNewBookingRequestCell(style: .default, reuseIdentifier: nil)
                     chipCell.configure(patientName: self.patientName ?? "", fee: "৳\(chat?.fees ?? "0")")
                     chipCell.availableNowTapped = { [weak self] in
+                        AppDelegate.shared.pushNotification?.stopCustomRingtone()
                         Indicator.shared.showProgressView(self?.view ?? UIView())
                         self?.AcceptRejectBooking(status: "1")
                     }
                     chipCell.rejectTapped = { [weak self] in
+                        AppDelegate.shared.pushNotification?.stopCustomRingtone()
                         Indicator.shared.showProgressView(self?.view ?? UIView())
                         self?.AcceptRejectBooking(status: "2")
                     }
                     chipCell.suggestTimeTapped = { [weak self] dateStr in
+                        AppDelegate.shared.pushNotification?.stopCustomRingtone()
                         Indicator.shared.showProgressView(self?.view ?? UIView())
                         self?.SuggestTimeBooking(date: dateStr)
                     }
@@ -163,23 +197,17 @@ extension ChatViewC: UITableViewDataSource{
                         chipCell.contentView.trailingAnchor.constraint(equalTo: chipCell.trailingAnchor)
                     ])
                     containerCell.stackView.addArrangedSubview(chipCell) // Append it
-                    return containerCell
-                } else {
-                    let cell = UITableViewCell()
-                    cell.backgroundColor = .clear
-                    cell.contentView.isHidden = true
-                    return cell
                 }
-            case "No_RESPONSE", "PAYMENT_EXPIRED":
+                return containerCell
+            case "NO_RESPONSE", "PAYMENT_EXPIRED":
                 // 1. Dequeue the generic dynamic stack cell
                 let containerCell = self.chatTblVw.dequeueReusableCell(withIdentifier: "ChatDynamicStackCell") as! ChatDynamicStackCell
                 containerCell.stackView.spacing = 8
                 // 2. Instantiate and configure the first cell
                 let chipCell = ChatStageChipCell(style: .default, reuseIdentifier: nil)
-                chipCell.titleLabel.text = chat?.msgType == "No_RESPONSE" ? "⏱ Doctor Did Not Respond" : "⏱ Payment Window Expired"
+                chipCell.titleLabel.text = chat?.msgType == "NO_RESPONSE" ? "⏱ Doctor Did Not Respond" : "⏱ Payment Window Expired"
                 chipCell.configure(type: chat?.msgType ?? "")
-                
-                // Fix for UIStackView overlap: Constrain contentView to the cell itself
+                 // Fix for UIStackView overlap: Constrain contentView to the cell itself
                 chipCell.contentView.translatesAutoresizingMaskIntoConstraints = false
                 NSLayoutConstraint.activate([
                     chipCell.contentView.topAnchor.constraint(equalTo: chipCell.topAnchor),
@@ -191,7 +219,8 @@ extension ChatViewC: UITableViewDataSource{
                 
                 // 3. Instantiate and configure the second cell
                 let cardCell = ChatStageChipCell2(style: .default, reuseIdentifier: nil)
-                cardCell.titleLabel.text =  chat?.msgType == "No_RESPONSE" ? "Unfortunately, the doctor was unable to respond to your request." : "Patient did not complete payment in time — booking closed automatically."
+                cardCell.titleLabel.text =  chat?.msgType == "NO_RESPONSE" ? "Unfortunately, the doctor was unable to respond to your request." : "Patient did not complete payment in time — booking closed automatically."
+                cardCell.configure(type: chat?.msgType ?? "")
                 cardCell.contentView.translatesAutoresizingMaskIntoConstraints = false
                 NSLayoutConstraint.activate([
                     cardCell.contentView.topAnchor.constraint(equalTo: cardCell.topAnchor),
@@ -253,7 +282,11 @@ extension ChatViewC: UITableViewDataSource{
                 containerCell.stackView.spacing = 8
                 // 2. Instantiate and configure the first cell
                 let chipCell = ChatStageChipCell(style: .default, reuseIdentifier: nil)
-                chipCell.titleLabel.text = "✅ Doctor Accepted"
+                var feesText = ""
+                if let feesStr = chat?.fees, let feesValue = Double(feesStr) {
+                    feesText = feesValue.truncatingRemainder(dividingBy: 1) == 0 ? " (৳\(Int(feesValue)))" : " (৳\(feesStr))"
+                }
+                chipCell.titleLabel.text = "✅ Doctor Accepted\(feesText)"
                 chipCell.configure(type: chat?.msgType ?? "")
                 
                 // Fix for UIStackView overlap: Constrain contentView to the cell itself
@@ -318,7 +351,12 @@ extension ChatViewC: UITableViewDataSource{
                     containerCell.stackView.addArrangedSubview(cardCell) // Append it
                     let consultationCell = ChatActionCardCell(style: .default, reuseIdentifier: nil)
                     consultationCell.titleLabel.text = "Ready to start the consultation?"
-                    consultationCell.subLabel.text = "Patient has paid and is waiting."
+                    
+                    if let bDate = chat?.booking_date, let bTime = chat?.booking_time, !bDate.isEmpty, !bTime.isEmpty {
+                        consultationCell.subLabel.text = "Patient has paid and is waiting.\nBooking Date: \(bDate) Time: \(bTime)"
+                    } else {
+                        consultationCell.subLabel.text = "Patient has paid and is waiting."
+                    }
                     consultationCell.actionBtn.setTitle("📞 Call Now", for: .normal)
                     consultationCell.actionBtnTapped = { [weak self] in
                         self?.emitBookingStatusData(bookingStatus: "CALL_STARTED")
@@ -388,6 +426,23 @@ extension ChatViewC: UITableViewDataSource{
                 ])
                 containerCell.stackView.addArrangedSubview(cardCell) // Append it
                 return containerCell
+                
+            case "CALL_UNANSWERED":
+                let containerCell = self.chatTblVw.dequeueReusableCell(withIdentifier: "ChatDynamicStackCell") as! ChatDynamicStackCell
+                containerCell.stackView.spacing = 8
+                let chipCell = ChatStageChipCell(style: .default, reuseIdentifier: nil)
+                chipCell.titleLabel.text = "📹 Video Call Unanswered"
+                chipCell.configure(type: chat?.msgType ?? "")
+                chipCell.contentView.translatesAutoresizingMaskIntoConstraints = false
+                NSLayoutConstraint.activate([
+                    chipCell.contentView.topAnchor.constraint(equalTo: chipCell.topAnchor),
+                    chipCell.contentView.bottomAnchor.constraint(equalTo: chipCell.bottomAnchor),
+                    chipCell.contentView.leadingAnchor.constraint(equalTo: chipCell.leadingAnchor),
+                    chipCell.contentView.trailingAnchor.constraint(equalTo: chipCell.trailingAnchor)
+                ])
+                containerCell.stackView.addArrangedSubview(chipCell) // Append it
+                return containerCell
+                
             case "CALL_ENDED":
                 let containerCell = self.chatTblVw.dequeueReusableCell(withIdentifier: "ChatDynamicStackCell") as! ChatDynamicStackCell
                 containerCell.stackView.spacing = 8
@@ -417,7 +472,6 @@ extension ChatViewC: UITableViewDataSource{
                 ])
                 containerCell.stackView.addArrangedSubview(chipCell) // Append it
                 
-                
                 if chat?.is_status == "1"{
                     
                     let ConsultationCell = ChatActionCardCell(style: .default, reuseIdentifier: nil)
@@ -426,7 +480,8 @@ extension ChatViewC: UITableViewDataSource{
                     ConsultationCell.actionBtn.setTitle("✅ Complete Consultation", for: .normal)
                     ConsultationCell.actionBtnTapped = {[weak self] in
                         Indicator.shared.showProgressView(self?.view ?? UIView())
-                        self?.emitBookingStatusData(bookingStatus: "CONSULTATION_COMPLETED")
+//                        self?.emitBookingStatusData(bookingStatus: "CONSULTATION_COMPLETED")
+                        self?.performEndCall(bookingId: self?.bookingId ?? "", reason: EMPTY,status:"4")
                     }
                     ConsultationCell.contentView.translatesAutoresizingMaskIntoConstraints = false
                     NSLayoutConstraint.activate([
@@ -456,8 +511,7 @@ extension ChatViewC: UITableViewDataSource{
                 containerCell.stackView.addArrangedSubview(chipCell) // Append it
                 
                 if chat?.is_status == "1"{
-                    
-                    let ConsultationCell = ChatActionCardCell(style: .default, reuseIdentifier: nil)
+                     let ConsultationCell = ChatActionCardCell(style: .default, reuseIdentifier: nil)
                     ConsultationCell.titleLabel.text = "Consultation completed"
                     ConsultationCell.subLabel.text = "Write and send the prescription to finish this consultation."
                     ConsultationCell.actionBtn.setTitle("📝 Prescribe Now", for: .normal)
@@ -479,18 +533,62 @@ extension ChatViewC: UITableViewDataSource{
                     containerCell.stackView.addArrangedSubview(ConsultationCell)
                 }
                 return containerCell
-                
-            case "PRESCRIPTION_SENT":
+             case "PRESCRIPTION_SENT":
                 let containerCell = self.chatTblVw.dequeueReusableCell(withIdentifier: "ChatDynamicStackCell") as! ChatDynamicStackCell
                 containerCell.stackView.spacing = 8
                 
                 let chipCell = ChatBookingSummaryCardCell(style: .default, reuseIdentifier: nil)
-                chipCell.iconView.image = UIImage(systemName: "document")
+                chipCell.iconLabel.text = "📄"
+//                chipCell.iconView.image = UIImage(systemName: "document")
                 chipCell.titleLabel.text = "Prescription sent"
-                chipCell.subLabel.text = "Diagnosis: Viral fever with mild rash"
+                chipCell.subLabel.text = "Your prescription is ready to view."
                 chipCell.expandLabel.text = "View"
-                chipCell.expandLabel2.isHidden = true
-                chipCell.expandLabel2.text = ""
+//                chipCell.expandLabel2.isHidden = true
+                chipCell.expandLabel2.text = "Save"
+                chipCell.expandTapped = { [weak self] in
+                    if let urlStr = chat?.prescription_url, !urlStr.isEmpty {
+                        //                        let vc = self?.storyboard?.instantiateViewController(withIdentifier: "PrescriptionVC") as! PrescriptionViewVC
+                        //                        vc.fileImag = urlStr
+                        //                        vc.filepdf = urlStr
+                        //                        vc.titleText = "Prescription"
+                        //                        self?.navigationController?.pushViewController(vc, animated: true)
+                        let vc = PrescriptionViewVC()
+                        vc.comeFromChat = true
+                        vc.urlString = urlStr
+                        //                        vc.titleString = "Prescription"
+                        self?.navigationController?.pushViewController(vc, animated: true)
+                        //                    }
+                    }
+                }
+                chipCell.expand2Tapped = { [weak self] in
+                    if let urlStr = chat?.prescription_url, let url = URL(string: urlStr) {
+                        Indicator.shared.showProgressView(self?.view ?? UIView())
+                        URLSession.shared.dataTask(with: url) { data, response, error in
+                            DispatchQueue.main.async {
+                                Indicator.shared.hideProgressView()
+                                guard let data = data, error == nil else {
+                                    self?.showToast(message: "Download failed")
+                                    return
+                                }
+                                
+                                if let image = UIImage(data: data) {
+                                    UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
+                                    self?.showToast(message: "Image saved to Photos")
+                                } else {
+                                    let fileName = response?.suggestedFilename ?? url.lastPathComponent
+                                    let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName.isEmpty ? "Prescription.pdf" : fileName)
+                                    do {
+                                        try data.write(to: tempURL)
+                                        let activityVC = UIActivityViewController(activityItems: [tempURL], applicationActivities: nil)
+                                        self?.present(activityVC, animated: true)
+                                    } catch {
+                                        self?.showToast(message: "Failed to save file")
+                                    }
+                                }
+                            }
+                        }.resume()
+                    }
+                }
                 
                 chipCell.contentView.translatesAutoresizingMaskIntoConstraints = false
                 NSLayoutConstraint.activate([
@@ -522,7 +620,7 @@ extension ChatViewC: UITableViewDataSource{
                     }
                 } else {
                     cardCell.titleLabel.text = "Patient rating"
-                    cardCell.subLabel.text = "\(patientName ?? "") rated this consultation"
+                    cardCell.subLabel.text = "Awaiting rating from \(patientName ?? "")"
                     cardCell.starsStackView.isHidden = false
                 }
                 cardCell.contentView.translatesAutoresizingMaskIntoConstraints = false
@@ -550,10 +648,51 @@ extension ChatViewC: UITableViewDataSource{
                 return containerCell
                 
             case "CLOSED":
-                let cell = self.chatTblVw.dequeueReusableCell(withIdentifier: "ChatStageChipCell") as! ChatStageChipCell
-                cell.titleLabel.text = "🔒 Chat Closed"
-                cell.configure(type: chat?.msgType ?? "")
-                return cell
+//                let cell = self.chatTblVw.dequeueReusableCell(withIdentifier: "ChatStageChipCell") as! ChatStageChipCell
+//                cell.titleLabel.text = "🔒 Chat Closed"
+//                cell.configure(type: chat?.msgType ?? "")
+//                return cell
+                
+            let containerCell = self.chatTblVw.dequeueReusableCell(withIdentifier: "ChatDynamicStackCell") as! ChatDynamicStackCell
+               containerCell.stackView.spacing = 8
+               
+               let chipCell = ChatStageChipCell(style: .default, reuseIdentifier: nil)
+               chipCell.titleLabel.text = "🔒 Chat Closed"
+               chipCell.configure(type: chat?.msgType ?? "")
+               chipCell.contentView.translatesAutoresizingMaskIntoConstraints = false
+               NSLayoutConstraint.activate([
+                   chipCell.contentView.topAnchor.constraint(equalTo: chipCell.topAnchor),
+                   chipCell.contentView.bottomAnchor.constraint(equalTo: chipCell.bottomAnchor),
+                   chipCell.contentView.leadingAnchor.constraint(equalTo: chipCell.leadingAnchor),
+                   chipCell.contentView.trailingAnchor.constraint(equalTo: chipCell.trailingAnchor)
+               ])
+               containerCell.stackView.addArrangedSubview(chipCell) // Append it
+                
+                let cardCell = ChatStageChipCell2(style: .default, reuseIdentifier: nil)
+                cardCell.titleLabel.text = "Patient chat is closed. You can still send a message — it will be visible as read-only until they book again."
+                cardCell.contentView.translatesAutoresizingMaskIntoConstraints = false
+                cardCell.contentView.translatesAutoresizingMaskIntoConstraints = false
+                   NSLayoutConstraint.activate([
+                    cardCell.contentView.topAnchor.constraint(equalTo: cardCell.topAnchor),
+                    cardCell.contentView.bottomAnchor.constraint(equalTo: cardCell.bottomAnchor),
+                    cardCell.contentView.leadingAnchor.constraint(equalTo: cardCell.leadingAnchor),
+                    cardCell.contentView.trailingAnchor.constraint(equalTo: cardCell.trailingAnchor)
+                   ])
+                   containerCell.stackView.addArrangedSubview(cardCell)
+                
+                let chipCell2 = ChatStageChipCell3(style: .default, reuseIdentifier: nil)
+                chipCell2.titleLabel.text = "🔒 Chat is closed for patient responses — Book Again will start a new booking."
+                chipCell2.configure(type: chat?.msgType ?? "")
+                chipCell2.contentView.translatesAutoresizingMaskIntoConstraints = false
+                NSLayoutConstraint.activate([
+                    chipCell2.contentView.topAnchor.constraint(equalTo: chipCell2.topAnchor),
+                    chipCell2.contentView.bottomAnchor.constraint(equalTo: chipCell2.bottomAnchor),
+                    chipCell2.contentView.leadingAnchor.constraint(equalTo: chipCell2.leadingAnchor),
+                    chipCell2.contentView.trailingAnchor.constraint(equalTo: chipCell2.trailingAnchor)
+                ])
+                containerCell.stackView.addArrangedSubview(chipCell2) // Append it
+                
+                return containerCell
             default:
                 return UITableViewCell()
             }

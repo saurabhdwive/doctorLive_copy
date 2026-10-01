@@ -10438,7 +10438,7 @@ YWNrIHRvIHlvdSBBU0FQLg
                                         </connections>
                                     </button>
                                 </subviews>
-                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <constraints>
                                     <constraint firstAttribute="trailing" secondItem="0km-gS-xct" secondAttribute="trailing" constant="70" id="4Cp-ux-8Xr"/>
                                     <constraint firstItem="0km-gS-xct" firstAttribute="top" secondItem="Vhf-cF-pjA" secondAttribute="top" constant="5" id="Crh-Rd-v4s"/>

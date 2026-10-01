@@ -200,7 +200,7 @@ extension UpcomingBookingVC {
         parameter = ["language_type": code,
                      "token": token,
                      "booking_id": self.endCallId,
-                     "status": "4",
+                     "status": "6",
                      "reason": ""]
         endVisitBooking(param: parameter)
     }

@@ -12,7 +12,8 @@ import UIKit
 extension VideoCallViewC{
     func cutCallApi(){
         let passDic = ["doctor_id": self.doctorId ?? EMPTY,
-                       "user_id": self.userId ?? EMPTY]
+                       "user_id": self.userId ?? EMPTY,
+                       "booking_id":self.bookingId ?? EMPTY]
         print(passDic)
         LoaderController.sharedInstance.showLoader(view: self.view)
         viewmodel.controller = self

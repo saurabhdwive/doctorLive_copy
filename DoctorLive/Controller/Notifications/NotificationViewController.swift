@@ -98,7 +98,8 @@ extension NotificationViewController: UITableViewDelegate, UITableViewDataSource
              _ = appDel.initHome()
         } else if type == "NotificationPush" && title == "Payout update" {
             let storyboard = UIStoryboard.init(name: "Auth", bundle: nil)
-            let vc = storyboard.instantiateViewController(withIdentifier: "MyEarningViewController") as! MyEarningViewController
+//            let vc = storyboard.instantiateViewController(withIdentifier: "MyEarningViewController") as! MyEarningViewController
+            let vc = EarningViewController()
             self.navigationController?.pushViewController(vc, animated: true)
         } else {
             let appDel = UIApplication.shared.delegate as! AppDelegate

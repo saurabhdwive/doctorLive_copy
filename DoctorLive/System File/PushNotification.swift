@@ -5,6 +5,7 @@ import UserNotifications
 import Firebase
 import FirebaseMessaging
 import KYDrawerController
+import AVFoundation
 
 enum NotificationRedirection : String {
     case addbooking = "addbooking"
@@ -38,6 +39,8 @@ struct PUSHUD {
 class PushNotification:NSObject, UNUserNotificationCenterDelegate,MessagingDelegate {
     var drawerController = KYDrawerController.init(drawerDirection: .left, drawerWidth: UIScreen.main.bounds.width - 75)
     var window: UIWindow?
+    var audioPlayer: AVAudioPlayer?
+    
     public init(application:UIApplication) {
         super.init()
         let center = UNUserNotificationCenter.current()
@@ -69,7 +72,7 @@ class PushNotification:NSObject, UNUserNotificationCenterDelegate,MessagingDeleg
         }
     }
     
-    func userNotification(message: String, title: String, count: Int){
+    func userNotification(message: String, title: String, count: Int) {
         //creating the notification content
         let content = UNMutableNotificationContent()
         content.title = title
@@ -111,6 +114,12 @@ class PushNotification:NSObject, UNUserNotificationCenterDelegate,MessagingDeleg
                 }else if (userInfo["type"] ?? EMPTY) as! String == "callend"{
                     NotificationCenter.default.post(name: .refereshCallData, object: nil)
                     completionHandler([.alert, .badge, .sound])
+                }else if (userInfo["type"] ?? EMPTY) as! String == "addbooking"{
+                    UIApplication.shared.applicationIconBadgeNumber = badge
+                    NotificationCenter.default.post(name: Notification.Name("NotificationIdentifier"), object: nil)
+                    NotificationCenter.default.post(name: Notification.Name("RefreshScreen"), object: nil)
+                    self.playCustomRingtone()
+                    completionHandler([.alert,.badge,.sound])
                 }else{
                     UIApplication.shared.applicationIconBadgeNumber = badge
                     NotificationCenter.default.post(name: Notification.Name("NotificationIdentifier"), object: nil)
@@ -122,8 +131,6 @@ class PushNotification:NSObject, UNUserNotificationCenterDelegate,MessagingDeleg
     }
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-        
-        
         if let userInfo = response.notification.request.content.userInfo as? [String:Any] {
             if (userInfo["aps"] as?NSDictionary) != nil {
                 let badge = userInfo["badge"] as? Int ?? 0
@@ -150,10 +157,11 @@ class PushNotification:NSObject, UNUserNotificationCenterDelegate,MessagingDeleg
     }
     
     func notificationTapped(notificationType: String, userInfo: [String: Any]? = nil) {
-        if notificationType.lowercased() == "doctor" {
-            let viewC = UIStoryboard.init(name: "Auth", bundle: nil)
-            let vc1 = viewC.instantiateViewController(withIdentifier: "MyEarningViewController") as! MyEarningViewController
-            if let userInfo = userInfo, let notifyId = userInfo["notify_id"] as? String ?? (userInfo["notify_id"] as? Int).map({ String($0) }) {
+        if notificationType.lowercased() == "doctor" || notificationType.lowercased() == "notify_id"{
+//            let viewC = UIStoryboard.init(name: "Auth", bundle: nil)
+//            let vc1 = viewC.instantiateViewController(withIdentifier: "MyEarningViewController") as! MyEarningViewController
+            let vc1 = EarningViewController()
+            if let userInfo = userInfo, let notifyId = userInfo["notify_id"] as? String ?? (userInfo["notify_id"] as? Int).map({ String($0) }) ?? userInfo["notification_id"] as? String {
                 vc1.notifyId = notifyId
             }
             let navigationController = UINavigationController(rootViewController: drawerController)
@@ -216,5 +224,21 @@ class PushNotification:NSObject, UNUserNotificationCenterDelegate,MessagingDeleg
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = navigationController
         window?.makeKeyAndVisible()
+    }
+    
+    func playCustomRingtone() {
+        guard let url = Bundle.main.url(forResource: "ringtone", withExtension: "mp3") else { return }
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
+            try AVAudioSession.sharedInstance().setActive(true)
+            audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer?.play()
+        } catch {
+            print("Error playing custom ringtone: \(error.localizedDescription)")
+        }
+    }
+    
+    func stopCustomRingtone() {
+        audioPlayer?.stop()
     }
 }

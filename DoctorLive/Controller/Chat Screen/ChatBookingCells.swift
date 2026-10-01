@@ -110,6 +110,16 @@ class ChatBookingDividerCell: UITableViewCell {
             statusDot.heightAnchor.constraint(equalToConstant: 6)
         ])
     }
+    
+    func configure(title: String, icon: UIImage?, isRedDot: Bool = false) {
+        titleLabel.text = title
+        iconView.image = icon
+        if isRedDot {
+            statusDot.backgroundColor = UIColor(red: 226/255, green: 72/255, blue: 62/255, alpha: 1.0)
+        } else {
+            statusDot.backgroundColor = UIColor(red: 33/255, green: 112/255, blue: 220/255, alpha: 1.0)
+        }
+    }
 }
 
 // MARK: - Stage Chip Cell
@@ -174,31 +184,194 @@ class ChatStageChipCell: UITableViewCell {
             chipView.backgroundColor = UIColor(red: 239/255, green: 233/255, blue: 254/255, alpha: 1)
             chipView.layer.borderColor = UIColor(red: 222/255, green: 221/255, blue: 246/255, alpha: 1).cgColor
             titleLabel.textColor = UIColor(red: 104/255, green: 81/255, blue: 185/255, alpha: 1)
-//            titleLabel.text = "📅 Booking Requested"
         case "REJECTED","CANCELLED","PAYMENT_EXPIRED":
             chipView.backgroundColor = UIColor(red: 251/255, green: 228/255, blue: 226/255, alpha: 1)
             chipView.layer.borderColor = UIColor(red: 246/255, green: 202/255, blue: 198/255, alpha: 1).cgColor
             titleLabel.textColor = UIColor(red: 226/255, green: 72/255, blue: 62/255, alpha: 1)
-//            titleLabel.text = "❌ Cancelled"
-         case "PAYMENT_PENDING":
+        case "PAYMENT_PENDING","SUGGESTED_TIME_ACCEPTED","CONSULTATION_COMPLETED":
             chipView.backgroundColor = UIColor(red: 227/255, green: 246/255, blue: 234/255, alpha: 1)
             chipView.layer.borderColor = UIColor(red: 191/255, green: 231/255, blue: 205/255, alpha: 1).cgColor
             titleLabel.textColor = UIColor(red: 31/255, green: 157/255, blue: 85/255, alpha: 1)
-//            titleLabel.text = "💳 Payment Done"
-         case "PRESCRIPTION_SENT":
+        case "PRESCRIPTION_SENT":
             chipView.backgroundColor = UIColor(red: 255/255, green: 244/255, blue: 224/255, alpha: 1)
             chipView.layer.borderColor = UIColor(red: 243/255, green: 217/255, blue: 160/255, alpha: 1).cgColor
             titleLabel.textColor = UIColor(red: 200/255, green: 134/255, blue: 13/255, alpha: 1)
-         default:
+        default:
             print("❌❌❌❌❌\(type)")
             chipView.backgroundColor = UIColor(red: 238/255, green: 241/255, blue: 245/255, alpha: 1)
             chipView.layer.borderColor = UIColor(red: 219/255, green: 230/255, blue: 244/255, alpha: 1).cgColor
             titleLabel.textColor = UIColor(red: 148/255, green: 161/255, blue: 184/255, alpha: 1)
-         }
+        }
     }
 }
 
+//class ChatStageChipCell2: UITableViewCell {
+//    
+//    let chipView = UIView()
+//    let titleLabel = UILabel()
+//    
+//    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+//        super.init(style: style, reuseIdentifier: reuseIdentifier)
+//        setupViews()
+//    }
+//    
+//    required init?(coder: NSCoder) {
+//        fatalError("init(coder:) has not been implemented")
+//    }
+//    
+//    private func setupViews() {
+//        selectionStyle = .none
+//        backgroundColor = .clear
+//        
+////        chipView.layer.cornerRadius = 14
+////        chipView.layer.borderWidth = 1
+////        chipView.layer.shadowColor = UIColor(red: 20/255, green: 45/255, blue: 90/255, alpha: 1.0).cgColor
+////        chipView.layer.shadowOpacity = 0.06
+////        chipView.layer.shadowOffset = CGSize(width: 0, height: 2)
+////        chipView.layer.shadowRadius = 6
+//        chipView.backgroundColor = .white
+//        chipView.layer.borderColor = UIColor(red: 223/255, green: 234/255, blue: 251/255, alpha: 1).cgColor
+//        chipView.layer.borderWidth = 1.5
+//        chipView.layer.cornerRadius = 13
+//        chipView.layer.shadowColor = UIColor(red: 20/255, green: 45/255, blue: 90/255, alpha: 1).cgColor
+//        chipView.layer.shadowOpacity = 0.06
+//        chipView.layer.shadowOffset = CGSize(width: 0, height: 2)
+//        chipView.layer.shadowRadius = 8
+//        
+//        titleLabel.font = UIFont.systemFont(ofSize: 13.5, weight: .regular)
+//        titleLabel.textAlignment = .center
+//        titleLabel.numberOfLines = 0
+//        
+//        [chipView].forEach {
+//            $0.translatesAutoresizingMaskIntoConstraints = false
+//            contentView.addSubview($0)
+//        }
+//        
+//        [titleLabel].forEach {
+//            $0.translatesAutoresizingMaskIntoConstraints = false
+//            chipView.addSubview($0)
+//        }
+//        
+//        NSLayoutConstraint.activate([
+//            chipView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 50),
+//            chipView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -50),
+//            chipView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
+//            chipView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
+//            
+//            titleLabel.leadingAnchor.constraint(equalTo: chipView.leadingAnchor, constant: 12),
+//            titleLabel.trailingAnchor.constraint(equalTo: chipView.trailingAnchor, constant: -12),
+//            titleLabel.topAnchor.constraint(equalTo: chipView.topAnchor, constant: 6),
+//            titleLabel.bottomAnchor.constraint(equalTo: chipView.bottomAnchor, constant: -6)
+//        ])
+//    }
+//    
+//    func configure(type: String) {
+////        chipView.backgroundColor = .white
+////        chipView.layer.borderColor = UIColor.gray.cgColor
+//        titleLabel.textColor = .black
+//    }
+//}
+
 class ChatStageChipCell2: UITableViewCell {
+
+    let chipView = UIView()
+    let titleLabel = UILabel()
+
+    private let dashedBorderLayer = CAShapeLayer()
+
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        setupViews()
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    private func setupViews() {
+        selectionStyle = .none
+        backgroundColor = .clear
+
+        chipView.backgroundColor = .white
+
+        // Remove the solid border — we'll use a dashed CAShapeLayer instead
+        // chipView.layer.borderColor = ...
+        // chipView.layer.borderWidth = 1.5
+
+        chipView.layer.cornerRadius = 13
+        chipView.layer.shadowColor = UIColor(red: 20/255, green: 45/255, blue: 90/255, alpha: 1).cgColor
+        chipView.layer.shadowOpacity = 0.06
+        chipView.layer.shadowOffset = CGSize(width: 0, height: 2)
+        chipView.layer.shadowRadius = 8
+
+        // MARK: Dashed border layer
+        dashedBorderLayer.strokeColor = UIColor(
+            red: 223/255,
+            green: 234/255,
+            blue: 251/255,
+            alpha: 1
+        ).cgColor
+        dashedBorderLayer.fillColor = UIColor.clear.cgColor
+        dashedBorderLayer.lineWidth = 1.5
+        dashedBorderLayer.lineDashPattern = [4, 3]   // 4pt dash, 3pt gap
+        dashedBorderLayer.lineCap = .round
+
+        chipView.layer.addSublayer(dashedBorderLayer)
+
+        titleLabel.font = UIFont.systemFont(ofSize: 13.5, weight: .regular)
+        titleLabel.textAlignment = .center
+        titleLabel.numberOfLines = 0
+
+        [chipView].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            contentView.addSubview($0)
+        }
+
+        [titleLabel].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            chipView.addSubview($0)
+        }
+
+        NSLayoutConstraint.activate([
+            chipView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 50),
+            chipView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -50),
+            chipView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
+            chipView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
+
+            titleLabel.leadingAnchor.constraint(equalTo: chipView.leadingAnchor, constant: 12),
+            titleLabel.trailingAnchor.constraint(equalTo: chipView.trailingAnchor, constant: -12),
+            titleLabel.topAnchor.constraint(equalTo: chipView.topAnchor, constant: 6),
+            titleLabel.bottomAnchor.constraint(equalTo: chipView.bottomAnchor, constant: -6)
+        ])
+    }
+
+    // MARK: - Layout
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        // Update the dashed path whenever the chip's size changes
+        dashedBorderLayer.frame = chipView.bounds
+
+        let cornerRadius: CGFloat = 13
+        let inset = dashedBorderLayer.lineWidth / 2
+
+        let rect = chipView.bounds.insetBy(dx: inset, dy: inset)
+
+        dashedBorderLayer.path = UIBezierPath(
+            roundedRect: rect,
+            cornerRadius: cornerRadius
+        ).cgPath
+    }
+
+    // MARK: - Configure
+
+    func configure(type: String) {
+        titleLabel.textColor = .gray
+    }
+}
+
+class ChatStageChipCell3: UITableViewCell {
     
     let chipView = UIView()
     let titleLabel = UILabel()
@@ -215,26 +388,21 @@ class ChatStageChipCell2: UITableViewCell {
     private func setupViews() {
         selectionStyle = .none
         backgroundColor = .clear
-        
-//        chipView.layer.cornerRadius = 14
-//        chipView.layer.borderWidth = 1
-//        chipView.layer.shadowColor = UIColor(red: 20/255, green: 45/255, blue: 90/255, alpha: 1.0).cgColor
-//        chipView.layer.shadowOpacity = 0.06
-//        chipView.layer.shadowOffset = CGSize(width: 0, height: 2)
-//        chipView.layer.shadowRadius = 6
-        chipView.backgroundColor = .white
-        chipView.layer.borderColor = UIColor(red: 223/255, green: 234/255, blue: 251/255, alpha: 1).cgColor
-        chipView.layer.borderWidth = 1.5
-        chipView.layer.cornerRadius = 13
-        chipView.layer.shadowColor = UIColor(red: 20/255, green: 45/255, blue: 90/255, alpha: 1).cgColor
+        chipView.layer.cornerRadius = 14
+        chipView.layer.borderWidth = 1
+        chipView.layer.shadowColor = UIColor(red: 20/255, green: 45/255, blue: 90/255, alpha: 1.0).cgColor
         chipView.layer.shadowOpacity = 0.06
         chipView.layer.shadowOffset = CGSize(width: 0, height: 2)
-        chipView.layer.shadowRadius = 8
+        chipView.layer.shadowRadius = 6
         
-        titleLabel.font = UIFont.systemFont(ofSize: 13.5, weight: .regular)
+        titleLabel.font = UIFont.systemFont(ofSize: 13.5, weight: .heavy)
         titleLabel.textAlignment = .center
         titleLabel.numberOfLines = 0
         
+        chipView.backgroundColor = UIColor(red: 238/255, green: 241/255, blue: 245/255, alpha: 1)
+        chipView.layer.borderColor = UIColor(red: 219/255, green: 230/255, blue: 244/255, alpha: 1).cgColor
+        titleLabel.textColor = UIColor(red: 148/255, green: 161/255, blue: 184/255, alpha: 1)
+    
         [chipView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             contentView.addSubview($0)
@@ -259,9 +427,7 @@ class ChatStageChipCell2: UITableViewCell {
     }
     
     func configure(type: String) {
-//        chipView.backgroundColor = .white
-//        chipView.layer.borderColor = UIColor.gray.cgColor
-        titleLabel.textColor = .black
+//        titleLabel.textColor = .black
     }
 }
 
@@ -449,102 +615,343 @@ class ChatPayCardCell: UITableViewCell {
 }
 
 // MARK: - Booking Summary / Prescription Card Cell
+//class ChatBookingSummaryCardCell: UITableViewCell {
+//    
+//    let cardView = UIView()
+//    let iconView = UIImageView()
+//    let titleLabel = UILabel()
+//    let subLabel = UILabel()
+//    let expandLabel = UILabel()
+//    let expandLabel2 = UILabel()
+//    
+//    var expandTapped: (() -> Void)?
+//    var expand2Tapped: (() -> Void)?
+//    
+//    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+//        super.init(style: style, reuseIdentifier: reuseIdentifier)
+//        setupViews()
+//    }
+//    
+//    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+//    
+//    private func setupViews() {
+//        selectionStyle = .none
+//        backgroundColor = .clear
+//        
+//        cardView.backgroundColor = .white
+//        cardView.layer.borderColor = UIColor(red: 223/255, green: 234/255, blue: 251/255, alpha: 1).cgColor
+//        cardView.layer.borderWidth = 1.5
+//        cardView.layer.cornerRadius = 13
+//        cardView.layer.shadowColor = UIColor(red: 20/255, green: 45/255, blue: 90/255, alpha: 1).cgColor
+//        cardView.layer.shadowOpacity = 0.06
+//        cardView.layer.shadowOffset = CGSize(width: 0, height: 2)
+//        cardView.layer.shadowRadius = 8
+//        
+//        iconView.backgroundColor = UIColor(red: 223/255, green: 234/255, blue: 251/255, alpha: 1)
+//        iconView.tintColor = UIColor(red: 28/255, green: 94/255, blue: 201/255, alpha: 1)
+//        iconView.layer.cornerRadius = 8
+//        iconView.contentMode = .center
+//        
+//        titleLabel.font = UIFont.systemFont(ofSize: 13.5, weight: .heavy)
+//        titleLabel.textColor = UIColor(red: 16/255, green: 28/255, blue: 47/255, alpha: 1)
+//        
+//        subLabel.font = UIFont.systemFont(ofSize: 12.5)
+//        subLabel.textColor = UIColor(red: 148/255, green: 161/255, blue: 184/255, alpha: 1)
+//        
+//        expandLabel.font = UIFont.systemFont(ofSize: 13.5, weight: .bold)
+//        expandLabel.textColor = UIColor(red: 28/255, green: 94/255, blue: 201/255, alpha: 1)
+//        
+//        expandLabel2.font = UIFont.systemFont(ofSize: 13.5, weight: .bold)
+//        expandLabel2.textColor = UIColor(red: 28/255, green: 94/255, blue: 201/255, alpha: 1)
+//        
+//        expandLabel.isUserInteractionEnabled = true
+//        expandLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(expandAction)))
+//        
+//        expandLabel2.isUserInteractionEnabled = true
+//        expandLabel2.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(expand2Action)))
+//        
+//        [cardView].forEach {
+//            $0.translatesAutoresizingMaskIntoConstraints = false
+//            contentView.addSubview($0)
+//        }
+//        
+//        [iconView, titleLabel, subLabel, expandLabel,expandLabel2].forEach {
+//            $0.translatesAutoresizingMaskIntoConstraints = false
+//            cardView.addSubview($0)
+//        }
+//        
+//        NSLayoutConstraint.activate([
+//            cardView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
+//            cardView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
+//            cardView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 14),
+//            cardView.widthAnchor.constraint(lessThanOrEqualTo: contentView.widthAnchor, multiplier: 0.84),
+//            
+//            iconView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 11),
+//            iconView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 13),
+//            iconView.widthAnchor.constraint(equalToConstant: 24),
+//            iconView.heightAnchor.constraint(equalToConstant: 24),
+//            
+//            titleLabel.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 11),
+//            titleLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 8),
+//            titleLabel.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -13),
+//            
+//            subLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 1),
+//            subLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 8),
+//            subLabel.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -13),
+//            
+//            expandLabel.topAnchor.constraint(equalTo: subLabel.bottomAnchor, constant: 3),
+//            expandLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 8),
+//            expandLabel.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -11),
+//            
+//            expandLabel2.topAnchor.constraint(equalTo: subLabel.bottomAnchor, constant: 3),
+//            expandLabel2.leadingAnchor.constraint(equalTo: expandLabel.trailingAnchor, constant: 16),
+//            expandLabel2.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -11)
+//        ])
+//    }
+//    
+//    @objc func expandAction() { expandTapped?() }
+//    @objc func expand2Action() { expand2Tapped?() }
+//}
+
 class ChatBookingSummaryCardCell: UITableViewCell {
-    
+
     let cardView = UIView()
-    let iconView = UIImageView()
+
+    let iconView = UIView()
+    let iconLabel = UILabel()
+
     let titleLabel = UILabel()
     let subLabel = UILabel()
     let expandLabel = UILabel()
     let expandLabel2 = UILabel()
-    
+
     var expandTapped: (() -> Void)?
     var expand2Tapped: (() -> Void)?
-    
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupViews()
     }
-    
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-    
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
     private func setupViews() {
+
         selectionStyle = .none
         backgroundColor = .clear
-        
+
+        // MARK: - Card
         cardView.backgroundColor = .white
-        cardView.layer.borderColor = UIColor(red: 223/255, green: 234/255, blue: 251/255, alpha: 1).cgColor
+        cardView.layer.borderColor = UIColor(
+            red: 223/255,
+            green: 234/255,
+            blue: 251/255,
+            alpha: 1
+        ).cgColor
         cardView.layer.borderWidth = 1.5
         cardView.layer.cornerRadius = 13
-        cardView.layer.shadowColor = UIColor(red: 20/255, green: 45/255, blue: 90/255, alpha: 1).cgColor
+        cardView.layer.shadowColor = UIColor(
+            red: 20/255,
+            green: 45/255,
+            blue: 90/255,
+            alpha: 1
+        ).cgColor
         cardView.layer.shadowOpacity = 0.06
         cardView.layer.shadowOffset = CGSize(width: 0, height: 2)
         cardView.layer.shadowRadius = 8
-        
-        iconView.backgroundColor = UIColor(red: 223/255, green: 234/255, blue: 251/255, alpha: 1)
-        iconView.tintColor = UIColor(red: 28/255, green: 94/255, blue: 201/255, alpha: 1)
+
+        // MARK: - Icon View
+        iconView.backgroundColor = UIColor(
+            red: 223/255,
+            green: 234/255,
+            blue: 251/255,
+            alpha: 1
+        )
         iconView.layer.cornerRadius = 8
-        iconView.contentMode = .center
-        
+        iconView.clipsToBounds = true
+
+        iconLabel.text = ""
+        iconLabel.font = UIFont.systemFont(ofSize: 14)
+        iconLabel.textAlignment = .center
+        iconLabel.adjustsFontSizeToFitWidth = true
+
+        // MARK: - Labels
         titleLabel.font = UIFont.systemFont(ofSize: 13.5, weight: .heavy)
-        titleLabel.textColor = UIColor(red: 16/255, green: 28/255, blue: 47/255, alpha: 1)
-        
+        titleLabel.textColor = UIColor(
+            red: 16/255,
+            green: 28/255,
+            blue: 47/255,
+            alpha: 1
+        )
+
         subLabel.font = UIFont.systemFont(ofSize: 12.5)
-        subLabel.textColor = UIColor(red: 148/255, green: 161/255, blue: 184/255, alpha: 1)
-        
+        subLabel.textColor = UIColor(
+            red: 148/255,
+            green: 161/255,
+            blue: 184/255,
+            alpha: 1
+        )
+
         expandLabel.font = UIFont.systemFont(ofSize: 13.5, weight: .bold)
-        expandLabel.textColor = UIColor(red: 28/255, green: 94/255, blue: 201/255, alpha: 1)
-        
+        expandLabel.textColor = UIColor(
+            red: 28/255,
+            green: 94/255,
+            blue: 201/255,
+            alpha: 1
+        )
+
         expandLabel2.font = UIFont.systemFont(ofSize: 13.5, weight: .bold)
-        expandLabel2.textColor = UIColor(red: 28/255, green: 94/255, blue: 201/255, alpha: 1)
-        
-        expandLabel.isUserInteractionEnabled = true
-        expandLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(expandAction)))
-        
-        expandLabel2.isUserInteractionEnabled = true
-        expandLabel2.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(expand2Action)))
-        
-        [cardView].forEach {
-            $0.translatesAutoresizingMaskIntoConstraints = false
-            contentView.addSubview($0)
-        }
-        
-        [iconView, titleLabel, subLabel, expandLabel,expandLabel2].forEach {
+        expandLabel2.textColor = UIColor(
+            red: 28/255,
+            green: 94/255,
+            blue: 201/255,
+            alpha: 1
+        )
+
+        // MARK: - Add Views
+        cardView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(cardView)
+
+        [
+            iconView,
+            titleLabel,
+            subLabel,
+            expandLabel,
+            expandLabel2
+        ].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             cardView.addSubview($0)
         }
-        
+
+        // Emoji inside iconView
+        iconLabel.translatesAutoresizingMaskIntoConstraints = false
+        iconView.addSubview(iconLabel)
+
+        // MARK: - Gestures
+        expandLabel.isUserInteractionEnabled = true
+        expandLabel.addGestureRecognizer(
+            UITapGestureRecognizer(
+                target: self,
+                action: #selector(expandAction)
+            )
+        )
+
+        expandLabel2.isUserInteractionEnabled = true
+        expandLabel2.addGestureRecognizer(
+            UITapGestureRecognizer(
+                target: self,
+                action: #selector(expand2Action)
+            )
+        )
+
+        // MARK: - Constraints
         NSLayoutConstraint.activate([
-            cardView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
-            cardView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
-            cardView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 14),
-            cardView.widthAnchor.constraint(lessThanOrEqualTo: contentView.widthAnchor, multiplier: 0.84),
-            
-            iconView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 11),
-            iconView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 13),
-            iconView.widthAnchor.constraint(equalToConstant: 24),
-            iconView.heightAnchor.constraint(equalToConstant: 24),
-            
-            titleLabel.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 11),
-            titleLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 8),
-            titleLabel.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -13),
-            
-            subLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 1),
-            subLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 8),
-            subLabel.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -13),
-            
-            expandLabel.topAnchor.constraint(equalTo: subLabel.bottomAnchor, constant: 3),
-            expandLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 8),
-            expandLabel.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -11),
-            
-            expandLabel2.topAnchor.constraint(equalTo: subLabel.bottomAnchor, constant: 3),
-            expandLabel2.leadingAnchor.constraint(equalTo: expandLabel.trailingAnchor, constant: 16),
-            expandLabel2.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -11)
+
+            // Card
+            cardView.topAnchor.constraint(
+                equalTo: contentView.topAnchor,
+                constant: 6
+            ),
+            cardView.bottomAnchor.constraint(
+                equalTo: contentView.bottomAnchor,
+                constant: -6
+            ),
+            cardView.leadingAnchor.constraint(
+                equalTo: contentView.leadingAnchor,
+                constant: 14
+            ),
+            cardView.widthAnchor.constraint(
+                lessThanOrEqualTo: contentView.widthAnchor,
+                multiplier: 0.84
+            ),
+
+            // Icon
+            iconView.topAnchor.constraint(
+                equalTo: cardView.topAnchor,
+                constant: 11
+            ),
+            iconView.leadingAnchor.constraint(
+                equalTo: cardView.leadingAnchor,
+                constant: 13
+            ),
+            iconView.widthAnchor.constraint(equalToConstant: 28),
+            iconView.heightAnchor.constraint(equalToConstant: 28),
+
+            // Emoji
+            iconLabel.centerXAnchor.constraint(
+                equalTo: iconView.centerXAnchor
+            ),
+            iconLabel.centerYAnchor.constraint(
+                equalTo: iconView.centerYAnchor
+            ),
+
+            // Title
+            titleLabel.topAnchor.constraint(
+                equalTo: cardView.topAnchor,
+                constant: 11
+            ),
+            titleLabel.leadingAnchor.constraint(
+                equalTo: iconView.trailingAnchor,
+                constant: 8
+            ),
+            titleLabel.trailingAnchor.constraint(
+                equalTo: cardView.trailingAnchor,
+                constant: -13
+            ),
+
+            // Subtitle
+            subLabel.topAnchor.constraint(
+                equalTo: titleLabel.bottomAnchor,
+                constant: 1
+            ),
+            subLabel.leadingAnchor.constraint(
+                equalTo: iconView.trailingAnchor,
+                constant: 8
+            ),
+            subLabel.trailingAnchor.constraint(
+                equalTo: cardView.trailingAnchor,
+                constant: -13
+            ),
+
+            // Expand 1
+            expandLabel.topAnchor.constraint(
+                equalTo: subLabel.bottomAnchor,
+                constant: 3
+            ),
+            expandLabel.leadingAnchor.constraint(
+                equalTo: iconView.trailingAnchor,
+                constant: 8
+            ),
+            expandLabel.bottomAnchor.constraint(
+                equalTo: cardView.bottomAnchor,
+                constant: -11
+            ),
+
+            // Expand 2
+            expandLabel2.topAnchor.constraint(
+                equalTo: subLabel.bottomAnchor,
+                constant: 3
+            ),
+            expandLabel2.leadingAnchor.constraint(
+                equalTo: expandLabel.trailingAnchor,
+                constant: 16
+            ),
+            expandLabel2.bottomAnchor.constraint(
+                equalTo: cardView.bottomAnchor,
+                constant: -11
+            )
         ])
     }
-    
-    @objc func expandAction() { expandTapped?() }
-    @objc func expand2Action() { expand2Tapped?() }
+
+    @objc func expandAction() {
+        expandTapped?()
+    }
+
+    @objc func expand2Action() {
+        expand2Tapped?()
+    }
 }
 
 // MARK: - Rating Card Cell

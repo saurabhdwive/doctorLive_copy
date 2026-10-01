@@ -293,7 +293,7 @@ extension HomeVC {
         if let notifyId = self.notifyId {
             parameter["notify_id"] = notifyId
         }
-        
+        parameter["device_app_version"] = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
         self.allBooking(param: parameter, showLoader: showMainLoader)
     }
     
@@ -441,7 +441,7 @@ extension HomeVC {
         parameter = ["language_type": code,
                      "token": token,
                      "booking_id": bookingId,
-                     "status": "4",
+                     "status": "6",
                      "reason": reason]
         endVisitBooking(param: parameter)
     }

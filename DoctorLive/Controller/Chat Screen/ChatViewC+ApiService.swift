@@ -10,22 +10,114 @@ import UIKit
 
 extension ChatViewC{
     func getChatHistry() {
+        if isLoading || !hasMoreData { return }
+        isLoading = true
+        
         let token = UserDefaults.standard.value(forKey: Constants.accessToken) ?? EMPTY
         let selectedLanguage  = UserDefaults.standard.value(forKey: Constants.languageCode) ?? EMPTY
-        let passDict =  [ "language_type" : selectedLanguage,
+        var passDict =  [ "language_type" : selectedLanguage,
                           "token": token,
                           "room_id" : self.roomId ?? EMPTY]
+        
+        if self.isFromPagination {
+            passDict["page"] = "\(self.currentPage)"
+        }
         print(passDict)
-        Indicator.shared.showProgressView(view)
+        
+        if self.currentPage == 1 {
+            Indicator.shared.showProgressView(view)
+        }
+        
         viewmodel.chatHistryApi(url: APIEndpoint.doctorchathistory, passDict: passDict)
         closureSetUp()
     }
     
+    // fileprivate func setUpMessageList(){
+    //     if self.currentPage != 1 {
+    //         self.chatTblVw.tableHeaderView = nil
+    //     }
+        
+    //     var newChatData = [ChatData]()
+    //     let sortedHistory = self.viewmodel.doctorChatData.first?.doctorchathistory?.sorted {
+    //         ($0.createdOn ?? "") < ($1.createdOn ?? "")
+    //     } ?? []
+        
+    //     sortedHistory.forEach({ messageListData in
+    //         var recieverType = EMPTY
+    //         if (messageListData.senderId ?? EMPTY) == self.senderId {
+    //             recieverType = "sender"
+    //         }else{
+    //             recieverType = "reciever"
+    //         }
+
+    //         let timmee = self.timeDateConversion(formateDate: messageListData.createdOn ?? EMPTY)
+    //         newChatData.append(ChatData(message:  messageListData.message ?? EMPTY, time: timmee, msgType: messageListData.type ?? EMPTY, recieverType: recieverType, date: String((messageListData.createdOn ?? EMPTY).dropLast(9)), id: messageListData.id ?? EMPTY,isExpired: messageListData.isExpired ?? 0, historyType: messageListData.historyType, bookingId: messageListData.bookingId, statusId: messageListData.statusId, fees:messageListData.fees, changedByType: messageListData.changedByType, changedById: messageListData.changedById, createdOn: messageListData.createdOn,rating:messageListData.rating,prescription_url:messageListData.prescription_url, is_status:messageListData.is_status ?? "1", booking_date: messageListData.booking_date, booking_time: messageListData.booking_time))
+    //     })
+        
+    //     let fetchedCount = newChatData.count
+    //     if fetchedCount == 0 {
+    //         self.hasMoreData = false
+    //         return
+    //     }
+        
+    //     if self.currentPage == 1 {
+    //         self.chatData = newChatData
+    //         if self.chatData.count > INTZERO {
+    //             self.setUpChatData()
+    //             self.chatTblVw.reloadData()
+    //             self.chatTblVw.layoutIfNeeded()
+    //             self.setscrollPosition()
+    //         } else {
+    //             self.chatTblVw.reloadData()
+    //         }
+    //     } else {
+    //         let oldTopIndex = newChatData.count
+            
+    //         self.chatData.insert(contentsOf: newChatData, at: 0)
+    //         self.setUpChatData()
+    //         self.chatTblVw.reloadData()
+    //         self.chatTblVw.layoutIfNeeded()
+            
+    //         if let grouped = self.groupByCategoryChat {
+    //             var currentIndex = 0
+    //             var targetIndexPath: IndexPath?
+                
+    //             for (sectionIndex, key) in self.keys.enumerated() {
+    //                 if let chatsInSection = grouped[key] {
+    //                     if currentIndex + chatsInSection.count > oldTopIndex {
+    //                         let rowIndex = oldTopIndex - currentIndex
+    //                         targetIndexPath = IndexPath(row: rowIndex, section: sectionIndex)
+    //                         break
+    //                     }
+    //                     currentIndex += chatsInSection.count
+    //                 }
+    //             }
+                
+    //         if let indexPath = targetIndexPath {
+    //                 // Temporarily disable animation to avoid any visible jump
+    //                 UIView.performWithoutAnimation {
+    //                     self.chatTblVw.scrollToRow(at: indexPath, at: .none, animated: true)
+    //                 }
+    //             }
+    //         }
+    //     }
+        
+    //     if !self.isOnline {
+    //         self.statusLbl.text = "last active:  \(self.viewmodel.doctorChatData.first?.other_details?.last_active ?? "")"
+    //         self.statusVw.backgroundColor = UIColor(named: "PlaceHolderTextColor")
+    //     }
+    // }
+
     fileprivate func setUpMessageList(){
-        self.chatData.removeAll()
+        if self.currentPage != 1 {
+            self.chatTblVw.tableHeaderView = nil
+        }
+        
+        var newChatData = [ChatData]()
         let sortedHistory = self.viewmodel.doctorChatData.first?.doctorchathistory?.sorted {
             ($0.createdOn ?? "") < ($1.createdOn ?? "")
         } ?? []
+        
         sortedHistory.forEach({ messageListData in
             var recieverType = EMPTY
             if (messageListData.senderId ?? EMPTY) == self.senderId {
@@ -33,18 +125,77 @@ extension ChatViewC{
             }else{
                 recieverType = "reciever"
             }
+
             let timmee = self.timeDateConversion(formateDate: messageListData.createdOn ?? EMPTY)
-//            Date.getDateStringWithDatee(DateFormat.exactTimeFormat1, date: Date.getDate(dateStr: timmee, format: DateFormat.isoFormat) ?? Date())
-//            Date.getDateStringWithDatee(DateFormat.dateMonthyear, date: Date.getDate(dateStr: messageListData.createdOn ?? EMPTY, format: DateFormat.isoFormat) ?? Date())
-//            self.chatData.append(ChatData(message:  messageListData.message ?? EMPTY, time: timmee, msgType: messageListData.type ?? EMPTY, recieverType: recieverType, date: String((messageListData.createdOn ?? EMPTY).dropLast(9)), id: messageListData.id ?? EMPTY,isExpired: messageListData.isExpired ?? 0))
-            self.chatData.append(ChatData(message:  messageListData.message ?? EMPTY, time: timmee, msgType: messageListData.type ?? EMPTY, recieverType: recieverType, date: String((messageListData.createdOn ?? EMPTY).dropLast(9)), id: messageListData.id ?? EMPTY,isExpired: messageListData.isExpired ?? 0, historyType: messageListData.historyType, bookingId: messageListData.bookingId, statusId: messageListData.statusId, fees:messageListData.fees, changedByType: messageListData.changedByType, changedById: messageListData.changedById, createdOn: messageListData.createdOn,rating:messageListData.rating, is_status:messageListData.is_status ?? "1"))
+            newChatData.append(ChatData(message:  messageListData.message ?? EMPTY, time: timmee, msgType: messageListData.type ?? EMPTY, recieverType: recieverType, date: String((messageListData.createdOn ?? EMPTY).dropLast(9)), id: messageListData.id ?? EMPTY,isExpired: messageListData.isExpired ?? 0, historyType: messageListData.historyType, bookingId: messageListData.bookingId, statusId: messageListData.statusId, fees:messageListData.fees, changedByType: messageListData.changedByType, changedById: messageListData.changedById, createdOn: messageListData.createdOn,rating:messageListData.rating,prescription_url:messageListData.prescription_url, is_status:messageListData.is_status ?? "1", booking_date: messageListData.booking_date, booking_time: messageListData.booking_time, is_follow_up: messageListData.is_follow_up))
         })
-        if self.chatData.count > INTZERO {
-            self.setUpChatData()
-            self.setscrollPosition()
+        
+        let fetchedCount = newChatData.count
+        if fetchedCount == 0 {
+            self.hasMoreData = false
+            return
         }
-        self.statusLbl.text = "last active:  \(self.viewmodel.doctorChatData.first?.other_details?.last_active ?? "")"
-        self.chatTblVw.reloadData()
+        
+        if self.currentPage == 1 {
+            self.chatData = newChatData
+            if self.chatData.count > INTZERO {
+                self.setUpChatData()
+                self.chatTblVw.reloadData()
+                self.chatTblVw.layoutIfNeeded()
+                self.setscrollPosition()
+            } else {
+                self.chatTblVw.reloadData()
+            }
+        } else {
+            let oldOffset = self.chatTblVw.contentOffset
+            var oldYOffsetWithinCell: CGFloat = 0
+            var targetChatId: String? = nil
+            
+            // 1. Find the top visible cell and its exact offset and ID
+            let firstVisibleIndexPath = self.chatTblVw.indexPathsForVisibleRows?.first
+            if let firstVisibleIndexPath = firstVisibleIndexPath {
+                let oldRect = self.chatTblVw.rectForRow(at: firstVisibleIndexPath)
+                oldYOffsetWithinCell = oldOffset.y - oldRect.origin.y
+                
+                if firstVisibleIndexPath.section < self.keys.count {
+                    let key = self.keys[firstVisibleIndexPath.section]
+                    if let chatsInSection = self.groupByCategoryChat?[key], firstVisibleIndexPath.row < chatsInSection.count {
+                        targetChatId = chatsInSection[firstVisibleIndexPath.row].id
+                    }
+                }
+            }
+            
+            // 2. Load Data
+            self.chatData.insert(contentsOf: newChatData, at: 0)
+            self.setUpChatData()
+            self.chatTblVw.reloadData()
+            self.chatTblVw.layoutIfNeeded()
+            
+            // 3. Find the NEW index path of that exact same cell by ID
+            var targetIndexPath: IndexPath? = nil
+            if let targetChatId = targetChatId, let grouped = self.groupByCategoryChat {
+                for (sectionIndex, key) in self.keys.enumerated() {
+                    if let chatsInSection = grouped[key] {
+                        if let rowIndex = chatsInSection.firstIndex(where: { $0.id == targetChatId }) {
+                            targetIndexPath = IndexPath(row: rowIndex, section: sectionIndex)
+                            break
+                        }
+                    }
+                }
+            }
+            
+            // 4. Restore the exact offset
+            if let indexPath = targetIndexPath {
+                let newRect = self.chatTblVw.rectForRow(at: indexPath)
+                let newContentOffsetY = newRect.origin.y + oldYOffsetWithinCell
+                self.chatTblVw.setContentOffset(CGPoint(x: 0, y: newContentOffsetY), animated: false)
+            }
+        }
+        
+        if !self.isOnline {
+            self.statusLbl.text = "last active:  \(self.viewmodel.doctorChatData.first?.other_details?.last_active ?? "")"
+            self.statusVw.backgroundColor = UIColor(named: "PlaceHolderTextColor")
+        }
     }
     
     func closureSetUp() {
@@ -52,6 +203,8 @@ extension ChatViewC{
         viewmodel.success = {[weak self] (message) in
             DispatchQueue.main.async { [self] in
                 Indicator.shared.hideProgressView()
+                self?.isLoading = false
+                
                 if message == "Chat History" {
                     self?.setUpMessageList()
                 }else{
@@ -64,6 +217,7 @@ extension ChatViewC{
         viewmodel.errorMessage = {[weak self] (message) in
             DispatchQueue.main.async {
                 Indicator.shared.hideProgressView()
+                self?.isLoading = false
                 print(message)
                 self?.showToast(message: message)
             }
@@ -71,6 +225,7 @@ extension ChatViewC{
         viewmodel.invalidToken = {[weak self] (message) in
             DispatchQueue.main.async {
                 Indicator.shared.hideProgressView()
+                self?.isLoading = false
             }
         }
     }

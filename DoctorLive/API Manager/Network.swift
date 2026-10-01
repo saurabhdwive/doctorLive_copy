@@ -62,11 +62,12 @@ protocol ApiInterface {
     func validateMobile<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
     func loginWithOtp<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
     func appVersionPopup<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
-    
-    
     func generateAndSendPush<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
     func getToken<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
     func allBooking<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
+//    func newEarning<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
+    
+    
     
 }
 
@@ -283,6 +284,10 @@ final class Network: ApiInterface {
     func allBooking<T>(parameters: [String : Any]?, header: String?) -> Promise<T> where T : Decodable {
         return client.requestWithParams(.allBooking, parameters: parameters, header: header)
     }
+
+//    func newEarning<T>(parameters: [String : Any]?, header: String?) -> Promise<T> where T : Decodable {
+//        return client.requestWithParams(.myEarningNew, parameters: parameters, header: header)
+//    }
     
    
     private let client = RestClient(baseURL: "https://doctorlivebd.com/api/doctor/")

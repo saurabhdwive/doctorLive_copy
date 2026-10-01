@@ -19,6 +19,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate{
     var nvc : UINavigationController?
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        BookingTimerManager.shared.fetchTimers()
         self.keys()
         self.setUpViews()
         application.registerForRemoteNotifications()

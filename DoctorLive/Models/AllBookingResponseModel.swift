@@ -45,6 +45,7 @@ struct PatientBookingGroup: Codable {
     let deviceToken: String?
     var call: [PastCall]?                    // mutable for inner pagination append
     let visit: [PastVisit]?
+    let chatCount: Int?
     let bookingPagination: BookingPagination?
 
     private enum CodingKeys: String, CodingKey {
@@ -60,6 +61,7 @@ struct PatientBookingGroup: Codable {
         case call = "call"
         case visit = "visit"
         case bookingPagination = "booking_pagination"
+        case chatCount = "chatcount"
     }
 
     init(from decoder: Decoder) throws {
@@ -76,6 +78,7 @@ struct PatientBookingGroup: Codable {
         call = try? values.decode([PastCall].self, forKey: .call)
         visit = try? values.decode([PastVisit].self, forKey: .visit)
         bookingPagination = try? values.decode(BookingPagination.self, forKey: .bookingPagination)
+        chatCount = try? values.decode(Int.self, forKey: .chatCount)
     }
 }
 
@@ -113,15 +116,6 @@ extension PastCall {
         let bookingStatusRaw = self.current_status ?? ""
         let status: BookingStatus
         switch bookingStatusRaw {
-            //        case "Pending":            status = .requested
-            //        case "Accepted":           status = .confirmed
-            //        case "Payment Success":    status = .paymentCompleted
-            //        case "Pending Payment":    status = .paymentPending
-            //        case "Past Booking":       status = .completed
-            //        case "Cancel":             status = .cancelled
-            //        case "Reject":             status = .cancelled   // no .rejected case — treated as cancelled
-            //        default:                   status = .confirmed
-            
         case "REQUESTED": status = .requested
         case "NO_RESPONSE": status = .noResponse
         case "REJECTED": status = .rejected
@@ -137,6 +131,9 @@ extension PastCall {
         case "FOLLOW_UP_STARTED": status = .followUpStarted
         case "FOLLOW_UP_CLOSED": status = .followUpClosed
         case "CLOSED": status = .closed
+        case "SUGGESTED_TIME_PENDING": status = .suggestedTimePending
+        case "SUGGESTED_TIME_ACCEPTED": status = .suggestedTimeAccepted
+        case "CALL_UNANSWERED": status = .callUnanswered
         default:                   status = .closed
             
         }
@@ -151,24 +148,18 @@ extension PastCall {
             time: formattedTime,
             status: status,
             rawDate: self.scheduleDate,
-            rawTime: self.scheduleTime
+            rawTime: self.scheduleTime,
+            doctorSpeciality: nil,
+            memberDob: self.memberDob,
+            memberGender: self.memberGender,
+            bookingNumber: self.booking_number,
+            amount: self.amount
         )
     }
 }
 
 
 enum BookingPhase {
-    // case requested
-    // case noResponse
-    // case rejected
-    // case timeProposed
-    // case paymentPending
-    // case paymentExpired
-    // case waitingForCall
-    // case inCall
-    // case callEnded
-    // case followUp
-    // case closed
     case requested  
     case noResponse
     case rejected  
@@ -183,18 +174,13 @@ enum BookingPhase {
     case prescriptionSent  
     case followUpStarted  
     case followUpClosed  
-    case closed  
+    case closed
+    case suggestedTimePending
+    case suggestedTimeAccepted
+    case callUnanswered
 }
 
 enum BookingStatus: String {
-//    case requested = "REQUESTED"
-//    case confirmed = "CONFIRMED"
-//    case paymentPending = "PAYMENT_PENDING"
-//    case paymentCompleted = "PAYMENT_COMPLETED"
-//    case waitingForCall = "WAITING_FOR_CALL"
-//    case inCall = "IN_CALL"
-//    case completed = "COMPLETED"
-//    case cancelled = "CANCELLED"
     case requested = "REQUESTED"
     case noResponse = "NO_RESPONSE"
     case rejected = "REJECTED"
@@ -210,39 +196,12 @@ enum BookingStatus: String {
     case followUpStarted = "FOLLOW_UP_STARTED"
     case followUpClosed = "FOLLOW_UP_CLOSED"
     case closed = "CLOSED"
+    case suggestedTimePending = "SUGGESTED_TIME_PENDING"
+    case suggestedTimeAccepted = "SUGGESTED_TIME_ACCEPTED"
+    case callUnanswered = "CALL_UNANSWERED"
     
     static func from(type: String?, statusId: String?) -> BookingStatus {
         let normalized = (type ?? "").uppercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        //  switch normalized {
-        //  case "REQUESTED", "0":
-        //      return .requested
-        //  case "CONFIRMED", "2", "TIME_PROPOSED":
-        //      return .confirmed
-        //  case "PAYMENT_PENDING", "3", "PAYMENT":
-        //      return .paymentPending
-        //  case "PAYMENT_COMPLETED", "7", "PAYMENT_SUCCESS":
-        //      return .paymentCompleted
-        //  case "WAITING_FOR_CALL", "WAITING", "6":
-        //      return .waitingForCall
-        //  case "IN_CALL", "LIVE":
-        //      return .inCall
-        //  case "COMPLETED", "CALL_ENDED", "ENDED", "5":
-        //      return .completed
-        //  case "CANCELLED", "CANCEL", "REJECTED", "REJECT", "4":
-        //      return .cancelled
-        //  default:
-        //      if let sid = statusId {
-        //          switch sid {
-        //          case "1": return .requested
-        //          case "4": return .cancelled
-        //          case "3": return .paymentPending
-        //          case "7": return .paymentCompleted
-        //          default: break
-        //          }
-        //      }
-        //      return .requested
-        //  }
-
         switch normalized {
         case "REQUESTED":
             return .requested
@@ -274,8 +233,14 @@ enum BookingStatus: String {
             return .followUpClosed
         case "CLOSED":
             return .closed
+        case "SUGGESTED_TIME_PENDING":
+            return .suggestedTimePending
+        case "SUGGESTED_TIME_ACCEPTED":
+            return .suggestedTimeAccepted
+        case "CALL_UNANSWERED":
+            return .callUnanswered
         default:
-            return .requested
+            return .closed
         }
 
         
@@ -290,6 +255,12 @@ struct Booking {
     let status: BookingStatus
     let rawDate: String?
     let rawTime: String?
+    let doctorSpeciality: String?
+    let memberDob: String?
+    let memberGender: String?
+    let bookingNumber: String?
+    let amount: String?
+    
 
     static func parseDate(dateStr: String?, createdOn: String?) -> Date {
         let formatter = DateFormatter()
@@ -322,7 +293,7 @@ struct Booking {
             }
         }
         
-        return Date()
+        return Date(timeIntervalSince1970: 0)
     }
     // static func parseDate(dateStr: String?, createdOn: String?) -> Date {
     //     let formatter = DateFormatter()
@@ -401,5 +372,215 @@ struct Booking {
             return outFormatter.string(from: d)
         }
         return timeStr
+    }
+    
+    static func formattedDate1(_ date: Date) -> String {
+        let calendar = Calendar.current
+
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+
+        if calendar.isDateInToday(date) {
+            formatter.dateFormat = "'Today,' hh:mm a"
+        } else if calendar.isDateInYesterday(date) {
+            formatter.dateFormat = "'Yesterday,' hh:mm a"
+        } else {
+            formatter.dateFormat = "MMM d, yyyy"
+        }
+
+        return formatter.string(from: date)
+    }
+//    static func formattedDate2(_ dateString: String) -> String {
+//        let inputFormatter = DateFormatter()
+//        inputFormatter.locale = Locale(identifier: "en_US_POSIX")
+//        inputFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+//
+//        guard let date = inputFormatter.date(from: dateString) else {
+//            return dateString
+//        }
+//
+//        let calendar = Calendar.current
+//        let formatter = DateFormatter()
+//        formatter.locale = Locale(identifier: "en_US_POSIX")
+//
+//        if calendar.isDateInToday(date) {
+//            formatter.dateFormat = "'Today,' hh:mm a"
+//        } else if calendar.isDateInYesterday(date) {
+//            formatter.dateFormat = "'Yesterday,' hh:mm a"
+//        } else {
+//            formatter.dateFormat = "MMM d, yyyy"
+//        }
+//
+//        return formatter.string(from: date)
+//    }
+    static func formattedDate2(_ dateString: String) -> String {
+        let inputFormatter = DateFormatter()
+        inputFormatter.locale = Locale(identifier: "en_US_POSIX")
+        inputFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+
+        guard let date = inputFormatter.date(from: dateString) else {
+            return dateString
+        }
+
+        let calendar = Calendar.current
+
+        // Time
+        let timeFormatter = DateFormatter()
+        timeFormatter.locale = Locale(identifier: "en_US_POSIX")
+        timeFormatter.dateFormat = "hh:mm a"
+
+        let time = timeFormatter.string(from: date)
+
+        let today = calendar.startOfDay(for: Date())
+        let givenDate = calendar.startOfDay(for: date)
+
+        guard let daysAgo = calendar.dateComponents(
+            [.day],
+            from: givenDate,
+            to: today
+        ).day else {
+            return dateString
+        }
+
+        // Today
+        if daysAgo == 0 {
+            return "Today, \(time)"
+        }
+
+        // Yesterday
+        if daysAgo == 1 {
+            return "Yesterday, \(time)"
+        }
+
+        // 2 - 6 days ago
+        if daysAgo < 7 {
+            return "\(daysAgo) days ago, \(time)"
+        }
+
+        // Weeks
+        if daysAgo < 30 {
+            let weeksAgo = daysAgo / 7
+
+            if weeksAgo == 1 {
+                return "1 week ago, \(time)"
+            } else {
+                return "\(weeksAgo) weeks ago, \(time)"
+            }
+        }
+
+        // Months
+        let components = calendar.dateComponents(
+            [.month],
+            from: givenDate,
+            to: today
+        )
+
+        let monthsAgo = components.month ?? 0
+
+        if monthsAgo < 12 {
+            if monthsAgo <= 1 {
+                return "1 month ago, \(time)"
+            } else {
+                return "\(monthsAgo) months ago, \(time)"
+            }
+        }
+
+        // Older than 12 months
+        return "Long time ago"
+    }
+    
+    static func formattedDateeee(
+        _ date: Date
+    ) -> String {
+
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "MMM d, yyyy"
+
+        return formatter.string(
+            from: date
+        )
+    }
+    static func formattedDate11(
+        _ date: Date
+    ) -> String {
+
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "MMM d, yyyy"
+
+        return formatter.string(
+            from: date
+        )
+    }
+}
+import SwiftyJSON
+import Alamofire
+
+class BookingTimerManager {
+    static let shared = BookingTimerManager()
+    
+    private var timers: [String: Double] = [:]
+    private var reminderTimers: [String: Double] = [:]
+    
+    private init() {
+        // Default values in seconds (if API fails or before it loads)
+        timers["REQUESTED"] = 10 * 60
+        timers["PAYMENT_PENDING"] = 30 * 60
+        timers["PAYMENT_COMPLETED"] = 10 * 60
+        timers["CONSULTATION_COMPLETED"] = 10 * 60
+        timers["PRESCRIPTION_SENT"] = 120 * 60
+    }
+    
+    func fetchTimers() {
+        guard let url = URL(string: Domain.baseUrl() + "user/booking_status_timer") else { return }
+        
+        print("DEBUG: Requesting timers from URL - \(url)")
+        
+        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+            if let error = error {
+                print("DEBUG: Fetch timers error - \(error)")
+                return
+            }
+            guard let data = data else {
+                print("DEBUG: Fetch timers no data received")
+                return
+            }
+            
+            if let responseStr = String(data: data, encoding: .utf8) {
+                print("DEBUG: Fetch timers response - \(responseStr)")
+            }
+            
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                   json["status"] as? String == "SUCCESS",
+                   let timersArray = json["booking_timer"] as? [[String: Any]] {
+                    
+                    for timerData in timersArray {
+                        if let status = timerData["status"] as? String {
+                            if let timeStr = timerData["time"] as? String, let timeValue = Double(timeStr) {
+                                self?.timers[status] = timeValue * 60
+                            }
+                            if let reminderStr = timerData["reminder_time"] as? String, let reminderValue = Double(reminderStr) {
+                                self?.reminderTimers[status] = reminderValue * 60
+                            }
+                        }
+                    }
+                }
+            } catch {
+                print("Error parsing booking timers: \(error)")
+            }
+        }.resume()
+    }
+    
+    func getTimer(for status: String, defaultMinutes: Double = 10) -> TimeInterval {
+        if let seconds = timers[status] {
+            return seconds
+        }
+        return defaultMinutes * 60
+    }
+    
+    func getTimer(for status: BookingStatus, defaultMinutes: Double = 10) -> TimeInterval {
+        return getTimer(for: status.rawValue, defaultMinutes: defaultMinutes)
     }
 }

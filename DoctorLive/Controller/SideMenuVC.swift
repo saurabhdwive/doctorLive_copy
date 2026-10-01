@@ -102,9 +102,11 @@ extension SideMenuVC: UITableViewDelegate,UITableViewDataSource {
                 navigationController?.pushViewController(viewController, animated: true)
             }
         case 3:
-            if let viewController = storyboard?.instantiateViewController(identifier: MyEarningViewController.className) as? MyEarningViewController {
-                navigationController?.pushViewController(viewController, animated: true)
-            }
+//            if let viewController = storyboard?.instantiateViewController(identifier: MyEarningViewController.className) as? MyEarningViewController {
+//                navigationController?.pushViewController(viewController, animated: true)
+//            }
+            let vc = EarningViewController()
+            navigationController?.pushViewController(vc, animated: true)
         case 4:
             if let viewController = storyboard?.instantiateViewController(identifier: MyProfileVC.className) as? MyProfileVC {
                 navigationController?.pushViewController(viewController, animated: true)

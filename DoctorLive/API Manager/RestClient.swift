@@ -144,11 +144,11 @@ enum MediaType1: String {
         case .deleteAvialability:
             return (.post, "deleteavailability")
         case .myEarning:
-            return (.post, "myearning")
+            return (.post, "myearningnew")
         case .myWidhraw:
-            return (.post, "mywithdraw")
+            return (.post, "mywithdrawnew")
         case .widhrawRequest:
-            return (.post, "withdrawrequest")
+            return (.post, "withdrawrequestnew")
         case .changePass:
             return (.post, "changepassword")
         case .changeLanguage:

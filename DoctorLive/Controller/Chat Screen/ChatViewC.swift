@@ -39,6 +39,7 @@ class ChatViewC: UIViewController {
     var chatData = [ChatData]()
     var groupByCategoryChat: [String : [ChatData]]?
     var keys = [String]()
+    var isFromPagination: Bool = false
     
     var topStatusBarContainer = UIView()
     var topStatusBarLabel = UILabel()
@@ -55,9 +56,23 @@ class ChatViewC: UIViewController {
     var userId: String?
     var bookingId: String?
     var doctorId: String?
+    var isPaymentCompleted = false
+    var isFirstLoadScroll = true
+    
+    // Pagination
+    var currentPage = 1
+    var hasMoreData = true
+    var isLoading = false
+    
+    lazy var paginationSpinner: UIActivityIndicatorView = {
+        let spinner = UIActivityIndicatorView(style: .medium)
+        spinner.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 44)
+        return spinner
+    }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        BookingTimerManager.shared.fetchTimers()
         setUpviewController()
     }
     
@@ -87,11 +102,9 @@ extension ChatViewC {
         setUpPushChatData()
         registerXib()
         setUpChat()
-        Indicator.shared.showProgressView(self.view)
         SocketHelper.shared.connectSocket {
             print("Socket Connected")
             self.setUpRoom()
-            Indicator.shared.hideProgressView()
         }
         setUpViews()
         getChatHistry()
@@ -119,7 +132,7 @@ extension ChatViewC {
         topStatusBarContainer.backgroundColor = UIColor(red: 254/255, green: 246/255, blue: 231/255, alpha: 1)
         topStatusBarContainer.isHidden = true
         
-        topStatusBarLabel.font = .boldSystemFont(ofSize: 13)
+        topStatusBarLabel.font = UIFont.systemFont(ofSize: 13, weight: .heavy)
         topStatusBarLabel.textColor = UIColor(red: 176/255, green: 125/255, blue: 24/255, alpha: 1)
         topStatusBarLabel.textAlignment = .center
         
@@ -143,8 +156,26 @@ extension ChatViewC {
     }
     
     func updateStickyStatusBar() {
+        if let index = chatData.lastIndex(where: { $0.historyType == "booking_status" }) {
+            let lastPaymentCompleted = chatData[index].msgType ?? ""
+            if lastPaymentCompleted == "PAYMENT_COMPLETED" || lastPaymentCompleted == "WAITING_FOR_CALL" || lastPaymentCompleted == "CALL_STARTED" || lastPaymentCompleted == "CALL_ENDED" || lastPaymentCompleted == "CONSULTATION_COMPLETED" || lastPaymentCompleted == "CALL_UNANSWERED" || lastPaymentCompleted == "PRESCRIPTION_SENT"{
+                self.isPaymentCompleted = true
+            }else{
+                self.isPaymentCompleted = false
+            }
+        }else{
+            self.isPaymentCompleted = false
+        }
         let statusMessages = chatData.filter { $0.historyType == "booking_status" }
-        guard let lastStatusMsg = statusMessages.last else {
+        var targetStatusMsg = statusMessages.last
+//        let isFollowUp = (targetStatusMsg?.is_follow_up ?? false)
+        let isFollowUp = (targetStatusMsg?.is_follow_up == "1" || targetStatusMsg?.is_follow_up?.lowercased() == "true")
+        if isFollowUp {
+            if let prescriptionSentMsg = statusMessages.last(where: { $0.msgType == "PRESCRIPTION_SENT" }) {
+                targetStatusMsg = prescriptionSentMsg
+            }
+        }
+        guard let lastStatusMsg = targetStatusMsg else {
             countdownTimer?.invalidate()
             countdownTimer = nil
             hideStickyStatusBar()
@@ -153,11 +184,11 @@ extension ChatViewC {
         print(lastStatusMsg.createdOn ?? "")
         
         switch lastStatusMsg.msgType {
-        case "REQUESTED", "PAYMENT_PENDING", "PAYMENT_COMPLETED":
+        case "REQUESTED", "PAYMENT_PENDING", "PAYMENT_COMPLETED", "SUGGESTED_TIME_ACCEPTED":
             let dateToUse = lastStatusMsg.createdOn ?? ""
             let parsedDate = Booking.parseDate(dateStr: nil, createdOn: dateToUse)
-            let tenMins: TimeInterval = 10 * 60
-            let target = parsedDate.addingTimeInterval(tenMins)
+            let timerInterval = BookingTimerManager.shared.getTimer(for: lastStatusMsg.msgType ?? "", defaultMinutes: 10)
+            let target = parsedDate.addingTimeInterval(timerInterval)
             
             if Date() < target {
                 self.targetDate = target
@@ -180,6 +211,13 @@ extension ChatViewC {
             topStatusBarContainer.backgroundColor = UIColor(red: 236/255, green: 253/255, blue: 243/255, alpha: 1)
             topStatusBarLabel.textColor = UIColor(red: 2/255, green: 122/255, blue: 72/255, alpha: 1)
             showStickyStatusBar(text: "✅ Call ended — awaiting summary")
+            
+        case "CALL_UNANSWERED":
+            countdownTimer?.invalidate()
+            countdownTimer = nil
+            topStatusBarContainer.backgroundColor = UIColor(red: 255/255, green: 244/255, blue: 224/255, alpha: 1)
+            topStatusBarLabel.textColor = UIColor(red: 200/255, green: 134/255, blue: 13/255, alpha: 1)
+            showStickyStatusBar(text: "📞 Call Unanswered")
             
         case "CLOSED":
             countdownTimer?.invalidate()
@@ -204,8 +242,8 @@ extension ChatViewC {
             
         case "PRESCRIPTION_SENT":
             let parsedDate = Booking.parseDate(dateStr: nil, createdOn: lastStatusMsg.createdOn ?? "")
-            let oneDay: TimeInterval = 2 * 60 * 60
-            let target = parsedDate.addingTimeInterval(oneDay)
+            let timerInterval = BookingTimerManager.shared.getTimer(for: "PRESCRIPTION_SENT", defaultMinutes: 120)
+            let target = parsedDate.addingTimeInterval(timerInterval)
             
             if Date() < target {
                 self.targetDate = target
@@ -215,6 +253,18 @@ extension ChatViewC {
                 stopTimerAndHide()
             }
             
+        case "SUGGESTED_TIME_PENDING":
+            countdownTimer?.invalidate()
+            countdownTimer = nil
+            topStatusBarContainer.backgroundColor = UIColor(red: 255/255, green: 244/255, blue: 224/255, alpha: 1)
+            topStatusBarLabel.textColor = UIColor(red: 200/255, green: 134/255, blue: 13/255, alpha: 1)
+            showStickyStatusBar(text: "🕐 Time proposed — awaiting confirmation")
+         case "REMINDER":
+            break
+        case "WAITING_FOR_CALL":
+            break
+//        case "CALL_UNANSWERED":
+//            break
         default:
             stopTimerAndHide()
         }
@@ -260,21 +310,21 @@ extension ChatViewC {
                     topStatusBarContainer.backgroundColor = UIColor(red: 255/255, green: 244/255, blue: 224/255, alpha: 1)
                     topStatusBarLabel.textColor = UIColor(red: 200/255, green: 134/255, blue: 13/255, alpha: 1)
                     showStickyStatusBar(text: String(format: "⏱ Waiting for Doctor · %02d:%02d", totalMins, secs))
-                } else if lastStatusMsg?.msgType == "PAYMENT_PENDING" {
+                } else if lastStatusMsg?.msgType == "PAYMENT_PENDING" || lastStatusMsg?.msgType == "SUGGESTED_TIME_ACCEPTED" {
                     topStatusBarContainer.backgroundColor = UIColor(red: 251/255, green: 228/255, blue: 226/255, alpha: 1)
                     topStatusBarLabel.textColor = UIColor(red: 226/255, green: 72/255, blue: 62/255, alpha: 1)
-                    showStickyStatusBar(text: String(format: "⏱ Pay within · %02d:%02d", totalMins, secs))
+                    showStickyStatusBar(text: String(format: "💳 Pay Now · %02d:%02d", totalMins, secs))
                 } else if lastStatusMsg?.msgType == "PAYMENT_COMPLETED" {
                     topStatusBarContainer.backgroundColor = UIColor(red: 239/255, green: 233/255, blue: 254/255, alpha: 1)
                     topStatusBarLabel.textColor = UIColor(red: 104/255, green: 81/255, blue: 185/255, alpha: 1)
                     showStickyStatusBar(text: String(format: "📞 Waiting for Call · %02d:%02d", totalMins, secs))
                 } else if lastStatusMsg?.msgType == "PRESCRIPTION_SENT" {
-                    topStatusBarContainer.backgroundColor = UIColor(red: 236/255, green: 253/255, blue: 243/255, alpha: 1)
-                    topStatusBarLabel.textColor = UIColor(red: 2/255, green: 122/255, blue: 72/255, alpha: 1)
+                    topStatusBarContainer.backgroundColor = UIColor(red: 239/255, green: 233/255, blue: 254/255, alpha: 1)
+                    topStatusBarLabel.textColor = UIColor(red: 104/255, green: 81/255, blue: 185/255, alpha: 1)
                     if hours > 0 {
-                        showStickyStatusBar(text: String(format: "⏱ Follow-up expires in · %02d:%02d:%02d", hours, mins, secs))
+                        showStickyStatusBar(text: String(format: "⏱ Follow-up · %02d:%02d:%02d", hours, mins, secs))
                     } else {
-                        showStickyStatusBar(text: String(format: "⏱ Follow-up expires in · %02d:%02d", mins, secs))
+                        showStickyStatusBar(text: String(format: "⏱ Follow-up · %02d:%02d", mins, secs))
                     }
                 }
             } else {
@@ -306,12 +356,12 @@ extension ChatViewC {
             self.doctorNameLbl.text = USER_DEFAULTS.string(forKey: PUSHUD.reciverProfileName)
             let mystring = USER_DEFAULTS.string(forKey: PUSHUD.reciverProfilePic) ?? EMPTY
             let urlNew:String = mystring.replacingOccurrences(of: " ", with: "%20")
-            self.doctorImage.sd_setImage(with: URL(string: urlNew), placeholderImage: UIImage(named: "profile_pic"))
+            self.doctorImage.sd_setImage(with: URL(string: urlNew), placeholderImage: UIImage(systemName: "person.crop.circle.fill")?.withTintColor(.systemGray3, renderingMode: .alwaysOriginal))
         }else{
             self.doctorNameLbl.text = self.patientName ?? EMPTY
             let mystring = self.profilePic ?? EMPTY
             let urlNew:String = mystring.replacingOccurrences(of: " ", with: "%20")
-            self.doctorImage.sd_setImage(with: URL(string: urlNew), placeholderImage: UIImage(named: "profile_pic"))
+            self.doctorImage.sd_setImage(with: URL(string: urlNew), placeholderImage: UIImage(systemName: "person.crop.circle.fill")?.withTintColor(.systemGray3, renderingMode: .alwaysOriginal))
         }
     }
     
@@ -450,6 +500,10 @@ extension ChatViewC {
     }
 
     @IBAction func videoCallButtonTapped(_ sender: Any) {
+        guard isPaymentCompleted else {
+            AppToast.showMessage(message: "Payment pending from patient side")
+            return
+        }
         if let _ = self.findVideoCallController() {
             AppToast.showMessage(message: "Video call is already in progress")
         }else{
@@ -660,14 +714,14 @@ extension ChatViewC {
         }
     }
     
-    func performEndCall(bookingId: String, reason: String) {
+     func performEndCall(bookingId: String, reason: String,status:String) {
         var parameter = [String: String]()
         guard let token = UserDefaults.standard.string(forKey: Constants.accessToken) else { return }
         guard let code = UserDefaults.standard.string(forKey: Constants.languageCode) else { return }
         parameter = ["language_type": code,
                      "token": token,
                      "booking_id": bookingId,
-                     "status": "4",
+                     "status": status,
                      "reason": reason]
         endVisitBooking(param: parameter)
     }
@@ -701,6 +755,7 @@ extension ChatViewC: UITextViewDelegate{
 
 extension ChatViewC: VideoCallData{
     func videoCallData(patientName: String, bookingId: String, callDuration: String) {
-        self.performEndCall(bookingId: bookingId, reason: EMPTY)
+        self.performEndCall(bookingId: bookingId, reason: EMPTY, status: "6")
+//        self.emitBookingStatusData(bookingStatus: "CALL_ENDED")
     }
 }

@@ -101,7 +101,8 @@ extension WidhrawViewController {
         if model.status == "SUCCESS" {
             print(model)
             let view = UIStoryboard.init(name: "Auth", bundle: nil)
-            let vc = view.instantiateViewController(withIdentifier: "MyEarningViewController") as! MyEarningViewController
+//            let vc = view.instantiateViewController(withIdentifier: "MyEarningViewController") as! MyEarningViewController
+            let vc = EarningViewController()
             navigationController?.pushViewController(vc, animated: true)
             LoaderController.sharedInstance.removeLoader()
         } else {

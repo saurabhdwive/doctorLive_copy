@@ -30,9 +30,12 @@ struct ChatData{
     var rating: String?
     var prescription_url: String?
     var is_status:String?
+    var booking_date: String?
+    var booking_time: String?
+    let is_follow_up:String?
     
     init(message: String = EMPTY, time: String = EMPTY, msgType: String = EMPTY, recieverType: String = EMPTY, date: String = EMPTY, id: String = EMPTY,isExpired:Int = 0, historyType: String? = nil, bookingId: String? = nil, statusId: String? = nil, fees: String? = nil, patientName: String? = nil, patientId: String? = nil, doctorId: String? = nil, changedByType: String? = nil, changedById: String? = nil, createdOn: String? = nil, rating: String? = nil,prescription_url:String? = nil,
-         is_status:String? = "1") {
+         is_status:String? = "1", booking_date: String? = nil, booking_time: String? = nil, is_follow_up: String? = nil) {
         self.message = message
         self.time = time
         self.msgType = msgType
@@ -53,6 +56,9 @@ struct ChatData{
         self.rating = rating
         self.prescription_url = prescription_url
         self.is_status = is_status
+        self.booking_date = booking_date
+        self.booking_time = booking_time
+        self.is_follow_up = is_follow_up
     }
 }
 
@@ -138,6 +144,9 @@ struct DoctorchathistoryData {
     let rating:String?
     let prescription_url:String?
     let is_status:String?
+    let booking_date: String?
+    let booking_time: String?
+    let is_follow_up:String?
 
     init(_ json: JSON) {
         id = json["id"].stringValue
@@ -180,6 +189,10 @@ struct DoctorchathistoryData {
         } else {
             bookingId = nil
         }
+        booking_date = json["booking_date"].string
+        booking_time = json["booking_time"].string
+        is_follow_up = json["is_follow_up"].stringValue
+         
     }
 
 }

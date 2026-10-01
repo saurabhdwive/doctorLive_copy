@@ -113,14 +113,22 @@ class DIConfigurator {
     }
     func setVideoCallAsRoot(viewC: UIViewController) {
         let nav = UINavigationController(rootViewController: viewC)
+        nav.modalPresentationStyle = .fullScreen
+        nav.isNavigationBarHidden = true
         
-        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let window = scene.windows.first {
-            window.rootViewController = nav
-            window.makeKeyAndVisible()
-            DispatchQueue.main.async {
-                nav.view.layoutIfNeeded()
-                viewC.view.layoutIfNeeded()
+        if let topVC = UIApplication.topViewController() {
+            topVC.present(nav, animated: true, completion: nil)
+        } else {
+            // Fallback if the app was launched from the background and UI isn't ready
+            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let window = scene.windows.first {
+                let appDel = UIApplication.shared.delegate as! AppDelegate
+                _ = appDel.initHome() // Sets HomeVC as root
+                
+                // Now present over the newly created root
+                if let newTopVC = UIApplication.topViewController() {
+                    newTopVC.present(nav, animated: true, completion: nil)
+                }
             }
         }
     }

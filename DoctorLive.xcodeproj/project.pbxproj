@@ -13,7 +13,12 @@
 		04289C30303F200400310053 /* RecorderVC+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04289C2E303F200400310053 /* RecorderVC+Extension.swift */; };
 		04289C31303F200400310053 /* RecorderVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04289C2D303F200400310053 /* RecorderVC.swift */; };
 		04289C32303F200400310053 /* AKAudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04289C2C303F200400310053 /* AKAudioRecorder.swift */; };
+		0445BAB23059121600FA612F /* NewEarningViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0445BAB13059121600FA612F /* NewEarningViewController.swift */; };
+		0445BAB43059508D00FA612F /* RequestPayoutViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0445BAB33059508D00FA612F /* RequestPayoutViewController.swift */; };
+		0445BAB6305950AB00FA612F /* ConsultationDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0445BAB5305950AB00FA612F /* ConsultationDetailViewController.swift */; };
 		047486DD3040480000A354F2 /* audiofreq.json in Resources */ = {isa = PBXBuildFile; fileRef = 047486DC3040480000A354F2 /* audiofreq.json */; };
+		04E231583056EF4700DF18BA /* DoctorTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E231573056EF4700DF18BA /* DoctorTableViewCell.swift */; };
+		04E2315C3057BE8C00DF18BA /* ringtone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 04E2315B3057BE8C00DF18BA /* ringtone.mp3 */; };
 		04E7DCF1304FF9B000FF53CA /* ChatBookingCells.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E7DCF0304FF9B000FF53CA /* ChatBookingCells.swift */; };
 		04E7DCF330507B5800FF53CA /* AllBookingResponseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E7DCF230507B5800FF53CA /* AllBookingResponseModel.swift */; };
 		04F55026303F521200C5801B /* ExpiredOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F55025303F520100C5801B /* ExpiredOverlayView.swift */; };
@@ -383,7 +388,12 @@
 		04289C2C303F200400310053 /* AKAudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AKAudioRecorder.swift; sourceTree = "<group>"; };
 		04289C2D303F200400310053 /* RecorderVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecorderVC.swift; sourceTree = "<group>"; };
 		04289C2E303F200400310053 /* RecorderVC+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RecorderVC+Extension.swift"; sourceTree = "<group>"; };
+		0445BAB13059121600FA612F /* NewEarningViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewEarningViewController.swift; sourceTree = "<group>"; };
+		0445BAB33059508D00FA612F /* RequestPayoutViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestPayoutViewController.swift; sourceTree = "<group>"; };
+		0445BAB5305950AB00FA612F /* ConsultationDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsultationDetailViewController.swift; sourceTree = "<group>"; };
 		047486DC3040480000A354F2 /* audiofreq.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = audiofreq.json; sourceTree = "<group>"; };
+		04E231573056EF4700DF18BA /* DoctorTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoctorTableViewCell.swift; sourceTree = "<group>"; };
+		04E2315B3057BE8C00DF18BA /* ringtone.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = ringtone.mp3; sourceTree = "<group>"; };
 		04E7DCF0304FF9B000FF53CA /* ChatBookingCells.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatBookingCells.swift; sourceTree = "<group>"; };
 		04E7DCF230507B5800FF53CA /* AllBookingResponseModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllBookingResponseModel.swift; sourceTree = "<group>"; };
 		04F55025303F520100C5801B /* ExpiredOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpiredOverlayView.swift; sourceTree = "<group>"; };
@@ -766,6 +776,16 @@
 			path = "Recorder Screen";
 			sourceTree = "<group>";
 		};
+		0445BAB0305911EC00FA612F /* NewEarningScreen */ = {
+			isa = PBXGroup;
+			children = (
+				0445BAB13059121600FA612F /* NewEarningViewController.swift */,
+				0445BAB33059508D00FA612F /* RequestPayoutViewController.swift */,
+				0445BAB5305950AB00FA612F /* ConsultationDetailViewController.swift */,
+			);
+			path = NewEarningScreen;
+			sourceTree = "<group>";
+		};
 		0C2A92E0270F27ED005FD8E4 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
@@ -795,6 +815,7 @@
 				1820D5632C92B8EC00B5C816 /* UpcomingHomeCell.xib */,
 				1820D5662C92D05B00B5C816 /* PreviousHomeCell.swift */,
 				1820D5672C92D05B00B5C816 /* PreviousHomeCell.xib */,
+				04E231573056EF4700DF18BA /* DoctorTableViewCell.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -802,6 +823,7 @@
 		0C2A92EE2711ECD1005FD8E4 /* MyEarnings */ = {
 			isa = PBXGroup;
 			children = (
+				0445BAB0305911EC00FA612F /* NewEarningScreen */,
 				0C2A92EF2711EDAB005FD8E4 /* MyEarningViewController.swift */,
 				0C91BCF2271219DF00397F08 /* MyEarningTableViewCell.swift */,
 				0C91BCF3271219DF00397F08 /* MyEarningTableViewCell.xib */,
@@ -1450,6 +1472,7 @@
 		CEFA0C4A26C2FC82006587B2 /* DoctorLive */ = {
 			isa = PBXGroup;
 			children = (
+				04E2315B3057BE8C00DF18BA /* ringtone.mp3 */,
 				CEFA0C6026C39FEB006587B2 /* System File */,
 				4F74A8232705EA3900A29ECD /* ApiManagerAlmofire */,
 				4F65278126F4A7CF00450EE8 /* DoctorLive.entitlements */,
@@ -1751,6 +1774,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				04E2315C3057BE8C00DF18BA /* ringtone.mp3 in Resources */,
 				1834B49F2CE5C0FB00266C5E /* MyRatingCell.xib in Resources */,
 				CE1BCD6626CBCF2300114787 /* SideMenuCell.xib in Resources */,
 				4F65279426F4C82800450EE8 /* ChatViewController.xib in Resources */,
@@ -1935,6 +1959,7 @@
 				4F67AA6026F7B29900944A3B /* ChatMessageImageRightCell.swift in Sources */,
 				CEFA0CB526C4435C006587B2 /* ValidationController.swift in Sources */,
 				4F2889BE26F1BCA000634D8A /* AddAboutVC.swift in Sources */,
+				0445BAB43059508D00FA612F /* RequestPayoutViewController.swift in Sources */,
 				4F3FB5BD26F1FC4200B04DE4 /* ConfirmBooking.swift in Sources */,
 				4F2889AF26EF753C00634D8A /* ProfileEditExtension.swift in Sources */,
 				CEFA0CB226C4435C006587B2 /* AppFonts.swift in Sources */,
@@ -1948,6 +1973,7 @@
 				CEC9B09D26CD0521005112D0 /* AddBankDetailPopUp.swift in Sources */,
 				18BBB9732CDE1D3200B436BC /* AppDelegate+Extension.swift in Sources */,
 				1820D5732C97FD9300B5C816 /* VideoCallViewC.swift in Sources */,
+				04E231583056EF4700DF18BA /* DoctorTableViewCell.swift in Sources */,
 				1E313DAB63C517A491809251 /* AgoraCallConnectionManager.swift in Sources */,
 				40370CB3B3C4EDBC74DA75DE /* VideoCallViewC+ConnectionState.swift in Sources */,
 				1885A11C2795ACFB00AAB5C6 /* CustomPlayerControlsView.swift in Sources */,
@@ -2087,6 +2113,7 @@
 				4F37F0B226E8C635007CDB32 /* BankTableViewCell.swift in Sources */,
 				CEFA0CAD26C4435C006587B2 /* AppMacros.swift in Sources */,
 				CE10DF0526CAD84100036EF4 /* LoginVC.swift in Sources */,
+				0445BAB23059121600FA612F /* NewEarningViewController.swift in Sources */,
 				CEFA0C6E26C39FEC006587B2 /* PushNotification.swift in Sources */,
 				4F37F0BB26EAFC12007CDB32 /* DoctorProfile.swift in Sources */,
 				4F74A8222705A6F000A29ECD /* AddVisitAvilabilityVC.swift in Sources */,
@@ -2159,6 +2186,7 @@
 				0C5681CA27638380001D5D63 /* MedicineSearchVC.swift in Sources */,
 				0C7BCDD8273E68CD002B6B71 /* DRFeeModel.swift in Sources */,
 				4F6802B226E6906300DD530B /* LocationFunctions.swift in Sources */,
+				0445BAB6305950AB00FA612F /* ConsultationDetailViewController.swift in Sources */,
 				4F2889B926F123DA00634D8A /* YearsExpierncePopUpVC.swift in Sources */,
 				18BBB94D2CDCA61B00B436BC /* QuestionListViewC+Extension.swift in Sources */,
 				0C2A92EB270F8308005FD8E4 /* TermsAndConditionViewController.swift in Sources */,
@@ -2495,7 +2523,7 @@
 				CODE_SIGN_ENTITLEMENTS = DoctorLive/DoctorLive.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = KGZW38PR5F;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -2508,7 +2536,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1.21;
+				MARKETING_VERSION = 2.1.24;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mobu.doctor;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2530,7 +2558,7 @@
 				CODE_SIGN_ENTITLEMENTS = DoctorLive/DoctorLive.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = KGZW38PR5F;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)/**";
@@ -2541,7 +2569,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1.21;
+				MARKETING_VERSION = 2.1.24;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mobu.doctor;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

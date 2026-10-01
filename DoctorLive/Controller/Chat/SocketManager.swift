@@ -61,8 +61,8 @@ class SocketHelper: NSObject {
         self.initializeSocket()
     }
     
-    private func initializeSocket(){
-        
+    func initializeSocket(){
+        self.socket?.disconnect()
         let params: JSONDictionary = ["authorization": UserDefaults.standard.string(forKey: Constants.accessToken) ?? ""]
         
         self.manager = SocketManager(socketURL: URL(string: "http://18.224.216.53:4000")!, config: [.log(true), .forcePolling(true), .forceNew(true), .connectParams(params)])

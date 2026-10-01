@@ -37,6 +37,22 @@ class HomeVC: UIViewController {
     var previousBookingData = PreviousBookingData()
     var allBookingData = [PatientBookingGroup]()
     
+    var yourDoctors: [PatientBookingGroup] {
+        return allBookingData.filter { group in
+            guard let firstCall = group.call?.first else { return false }
+            let booking = firstCall.toBooking()
+            return Calendar.current.isDateInToday(booking.date)
+        }
+    }
+    
+    var moreDoctors: [PatientBookingGroup] {
+        return allBookingData.filter { group in
+            guard let firstCall = group.call?.first else { return true }
+            let booking = firstCall.toBooking()
+            return !Calendar.current.isDateInToday(booking.date)
+        }
+    }
+    
     // MARK: - Outer pagination
     var currentPage = 1
     var isLoadingList = false
@@ -113,6 +129,7 @@ class HomeVC: UIViewController {
         super.viewDidLoad()
         self.registerXib()
         self.setUpViews()
+        BookingTimerManager.shared.fetchTimers()
         self.setUpTable()
         // self.performPendingBooking()
         self.performAllBooking(isRefresh: true)
@@ -161,6 +178,7 @@ class HomeVC: UIViewController {
 //        psHeight.isActive = true
     
         self.navigationController?.isNavigationBarHidden = true
+        self.view.backgroundColor = UIColor( red: 245/255,green: 248/255,blue: 253/255,alpha: 1)
         GlobalMethods.shared.provideCornerRadiusMultipleView(vw: [self.btnMenu, self.btnNotification, self.searchVw], cornerRadius: 12, borderColor: UIColor.gray.cgColor, borderWidth: 1) // Removed stackVw and previousStackVw
         // GlobalMethods.shared.provideCornerRadiusMultipleView(vw: [self.btnMenu, self.btnNotification, self.stackVw, self.searchVw, self.previousStackVw], cornerRadius: 12, borderColor: UIColor.gray.cgColor, borderWidth: 1)
         GlobalMethods.shared.provideCornerRadius(view: self.articleBtn, cornerRadius: 12, borderColor: UIColor.clear.cgColor, borderWidth: 0)
@@ -190,6 +208,9 @@ class HomeVC: UIViewController {
             noInternetView.leadingAnchor.constraint(equalTo: self.bookingTblVw.leadingAnchor),
             noInternetView.trailingAnchor.constraint(equalTo: self.bookingTblVw.trailingAnchor)
         ])
+        if #available(iOS 15.0, *) {
+                    self.bookingTblVw.sectionHeaderTopPadding = 0
+                }
     }
     
     private func registerXib(){

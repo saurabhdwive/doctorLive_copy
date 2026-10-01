@@ -65,6 +65,8 @@ struct Doctorchathistory: Codable {
     let userName: String?
     let senderType: String?
     let room_id: String?
+    let booking_date: String?
+    let booking_time: String?
 
     private enum CodingKeys: String, CodingKey {
         case id = "id"
@@ -77,6 +79,8 @@ struct Doctorchathistory: Codable {
         case userName = "userName"
         case senderType = "senderType"
         case room_id = "room_id"
+        case booking_date = "booking_date"
+        case booking_time = "booking_time"
     }
 
     init(from decoder: Decoder) throws {
@@ -91,6 +95,8 @@ struct Doctorchathistory: Codable {
         userName = try? values.decode(String.self, forKey: .userName)
         senderType = try? values.decode(String.self, forKey: .senderType)
         room_id = try? values.decode(String.self, forKey: .room_id)
+        booking_date = try? values.decode(String.self, forKey: .booking_date)
+        booking_time = try? values.decode(String.self, forKey: .booking_time)
     }
 
 }

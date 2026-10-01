@@ -126,7 +126,7 @@ extension LoginVC {
 //                    if let viewController = self.storyboard?.instantiateViewController(identifier: "HomeVC") as? HomeVC {
 //                        self.navigationController?.isNavigationBarHidden = true
 //                        self.navigationController?.pushViewController(viewController, animated: true)
-//                    }
+                    SocketHelper.shared.initializeSocket()
                     DIConfigurator.sharedInst().getRootViewC(.Auth, identifer: HomeVC.className)
                 }
                 
@@ -213,6 +213,7 @@ extension LoginVC {
             let login = true
             UserDefaults.standard.set(login, forKey: "login")
             let dictionary = [".": "_", " ": "_"]
+            SocketHelper.shared.initializeSocket()
             DIConfigurator.sharedInst().getRootViewC(.Auth, identifer: HomeVC.className)
         } else {
             if model.message == "Your profile is incomplete, Please complete your profile!" || model.message == "আপনার প্রোফাইল কমপ্লিট হয়নি, দয়া করে প্রোফাইল কমপ্লিট করুন।" {

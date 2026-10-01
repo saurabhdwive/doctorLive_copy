@@ -13,7 +13,7 @@ extension ChatViewC{
     func setUpChat(){
         SocketHelper.shared.on(with: .send_new_booking_request) { (data) in
             Indicator.shared.hideProgressView()
-            print("new_booking_request ============+>>>>>>>>>>>>>>>", data)
+            print("send_new_booking_request ============+>>>>>>>>>>>>>>>", data)
             do {
                 let json = JSON(data)
                 var firstData: DoctorchathistoryData? = nil
@@ -73,7 +73,7 @@ extension ChatViewC{
 //                            }
 //                        }
 //                    } else {
-                    self.chatData.append(ChatData(message: firstData.message ?? EMPTY, time: timmee, msgType: msgType, recieverType: recieverType, date: dateStr, id: firstData.id ?? EMPTY, isExpired: firstData.isExpired ?? 0, historyType: firstData.historyType, bookingId: firstData.bookingId, statusId: firstData.statusId, fees:firstData.fees, changedByType: firstData.changedByType, changedById: firstData.changedById, createdOn: dateToUse,is_status: firstData.is_status))
+                    self.chatData.append(ChatData(message: firstData.message ?? EMPTY, time: timmee, msgType: msgType, recieverType: recieverType, date: dateStr, id: firstData.id ?? EMPTY, isExpired: firstData.isExpired ?? 0, historyType: firstData.historyType, bookingId: firstData.bookingId, statusId: firstData.statusId, fees:firstData.fees, changedByType: firstData.changedByType, changedById: firstData.changedById, createdOn: dateToUse,is_status: firstData.is_status, booking_date: firstData.booking_date, booking_time: firstData.booking_time, is_follow_up: firstData.is_follow_up))
 //                    }
                     
                     self.setscrollPosition()
@@ -164,6 +164,14 @@ extension ChatViewC{
 //                            }
                         }
                     }
+                    else if msgType == "CALL_ENDED"{
+                        if let index = self.chatData.lastIndex(where: { $0.msgType == "CALL_ENDED" }) {
+                            self.chatData[index].is_status = "0"
+//                            DispatchQueue.main.async {
+//                                self.setUpChatData()
+//                            }
+                        }
+                    }
                     if msgType == "RATING_SUBMITTED"{
                         if let index = self.chatData.lastIndex(where: { $0.msgType == "PRESCRIPTION_SENT" }) {
                             self.chatData[index].rating = firstData.rating
@@ -171,9 +179,9 @@ extension ChatViewC{
                                 self.setUpChatData()
                             }
                         }
-                    }
-                    else{
-                        self.chatData.append(ChatData(message: firstData.message ?? EMPTY, time: timmee, msgType: msgType, recieverType: recieverType, date: dateStr, id: firstData.id ?? EMPTY, isExpired: firstData.isExpired ?? 0, historyType: firstData.historyType, bookingId: firstData.bookingId, statusId: firstData.statusId, fees:firstData.fees, changedByType: firstData.changedByType, changedById: firstData.changedById, createdOn: dateToUse, rating: firstData.rating,prescription_url:firstData.prescription_url,is_status: firstData.is_status))
+                    }else{
+//                        self.chatData.append(ChatData(message: firstData.message ?? EMPTY, time: timmee, msgType: msgType, recieverType: recieverType, date: dateStr, id: firstData.id ?? EMPTY, isExpired: firstData.isExpired ?? 0, historyType: firstData.historyType, bookingId: firstData.bookingId, statusId: firstData.statusId, fees:firstData.fees, changedByType: firstData.changedByType, changedById: firstData.changedById, createdOn: dateToUse, rating: firstData.rating,prescription_url:firstData.prescription_url,is_status: firstData.is_status))
+                        self.chatData.append(ChatData(message: firstData.message ?? EMPTY, time: timmee, msgType: msgType, recieverType: recieverType, date: dateStr, id: firstData.id ?? EMPTY, isExpired: firstData.isExpired ?? 0, historyType: firstData.historyType, bookingId: firstData.bookingId, statusId: firstData.statusId, fees:firstData.fees, changedByType: firstData.changedByType, changedById: firstData.changedById, createdOn: dateToUse, rating: firstData.rating,prescription_url:firstData.prescription_url,is_status: firstData.is_status ?? "1", booking_date: firstData.booking_date, booking_time: firstData.booking_time, is_follow_up: firstData.is_follow_up))
                     }
                         self.setscrollPosition()
                     self.messageTxt.text = EMPTY
@@ -307,7 +315,6 @@ extension ChatViewC{
         self.groupByCategoryChat?.removeAll()
         self.keys.removeAll()
         self.groupByCategoryChat = Dictionary(grouping: self.chatData) { (device) -> String in
-            print("🥎🥎🥎🥎🥎🥎🥎🥎🥎🥎🥎🥎🥎🥎 \(device) 🥎🥎🥎🥎🥎🥎🥎🥎🥎")
             return device.date ?? EMPTY
         }
         let dateFormatter = DateFormatter()
@@ -375,13 +382,42 @@ extension ChatViewC{
     
     func setscrollPosition(){
         DispatchQueue.main.async {
-            if self.groupByCategoryChat?.count ?? INTZERO > INTZERO {
-                self.chatTblVw.scrollToRow(at: IndexPath(row: (self.groupByCategoryChat?[self.keys[(self.groupByCategoryChat?.count ?? INTZERO) - 1]]?.count ?? INTZERO) - 1, section: (self.groupByCategoryChat?.count ?? INTZERO) - 1), at: .bottom, animated: true)
+            if self.isFromPagination{
+                if self.groupByCategoryChat?.count ?? INTZERO > INTZERO {
+                    self.chatTblVw.scrollToRow(at: IndexPath(row: (self.groupByCategoryChat?[self.keys[(self.groupByCategoryChat?.count ?? INTZERO) - 1]]?.count ?? INTZERO) - 1, section: (self.groupByCategoryChat?.count ?? INTZERO) - 1), at: .bottom, animated: true)
+                }
+            }else{
+                //            let numberOfSections = self.chatTblVw.numberOfSections
+                //            let numberOfRows = self.chatTblVw.numberOfRows(inSection: numberOfSections-1)
+                //            let indexPath = NSIndexPath(row: numberOfRows-1, section: numberOfSections-1)
+                //            self.chatTblVw.scrollToRow(at: indexPath as IndexPath,at: UITableView.ScrollPosition.bottom, animated: true)
+                
+                
+                guard let groupedChat = self.groupByCategoryChat, !groupedChat.isEmpty else { return }
+                
+                var targetIndexPath: IndexPath?
+                if self.isFirstLoadScroll, let targetBookingId = self.bookingId, !targetBookingId.isEmpty {
+                    for (sectionIndex, key) in self.keys.enumerated() {
+                        if let chatsInSection = groupedChat[key] {
+                            if let rowIndex = chatsInSection.firstIndex(where: { $0.bookingId == targetBookingId }) {
+                                targetIndexPath = IndexPath(row: rowIndex, section: sectionIndex)
+                                self.isFirstLoadScroll = false
+                                break
+                            }
+                        }
+                    }
+                }
+                
+                if let indexPath = targetIndexPath {
+                    self.chatTblVw.scrollToRow(at: indexPath, at: .top, animated: true)
+                } else {
+                    let lastSection = groupedChat.count - 1
+                    let lastRow = (groupedChat[self.keys[lastSection]]?.count ?? 1) - 1
+                    if lastSection >= 0 && lastRow >= 0 {
+                        self.chatTblVw.scrollToRow(at: IndexPath(row: lastRow, section: lastSection), at: .bottom, animated: true)
+                    }
+                }
             }
-            //            let numberOfSections = self.chatTblVw.numberOfSections
-            //            let numberOfRows = self.chatTblVw.numberOfRows(inSection: numberOfSections-1)
-            //            let indexPath = NSIndexPath(row: numberOfRows-1, section: numberOfSections-1)
-            //            self.chatTblVw.scrollToRow(at: indexPath as IndexPath,at: UITableView.ScrollPosition.bottom, animated: true)
         }
     }
     func emitBookingStatusData(statusKey:EventListnerKeys = EventListnerKeys.booking_status_update,bookingStatus:String){

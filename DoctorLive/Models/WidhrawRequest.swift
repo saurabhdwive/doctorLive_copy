@@ -19,7 +19,7 @@ struct WidhrawRequestModel: Codable {
 
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
-        withdrawrequest = try values.decode(String.self, forKey: .withdrawrequest)
+        withdrawrequest = try? values.decode(String.self, forKey: .withdrawrequest)
         status = try? values.decode(String.self, forKey: .status)
         message = try? values.decode(String.self, forKey: .message)
     }

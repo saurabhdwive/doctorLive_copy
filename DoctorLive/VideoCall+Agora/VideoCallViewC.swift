@@ -58,6 +58,9 @@ class VideoCallViewC: UIViewController, PIPUsable {
     var pipController: AVPictureInPictureController?
     var pipVideoCallVC: AVPictureInPictureVideoCallViewController?
     
+    // Strong reference to keep the call alive when the modal is dismissed for PiP
+    static var pipKeepAlive: VideoCallViewC?
+    
     // NEW======
     let localVideoView = PiPVideoView()
     let remoteVideoView = PiPVideoView()
@@ -217,30 +220,6 @@ class VideoCallViewC: UIViewController, PIPUsable {
 
         // Remove presented screens
         self.dismiss(animated: false)
-
-        if myself{
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                
-                let appDel = UIApplication.shared.delegate as! AppDelegate
-//                appDel.initControllerrr(identifer: "HomeVC")
-                _ = appDel.initHome()
-            }
-        }else if isLogout{
-//            DIConfigurator.sharedInst().getRootViewC(.Auth, identifer: LoginVC.className)
-//            let loginViewC = DIConfigurator.sharedInst().getLoginViewC()
-//            DIConfigurator.sharedInst().setVideoCallAsRoot(viewC: loginViewC)
-            let appDel = UIApplication.shared.delegate as! AppDelegate
-            appDel.setLoginViewController()
-        }else{
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                let appDel = UIApplication.shared.delegate as! AppDelegate
-//                appDel.initControllerrr(identifer: "HomeVC")
-                _ = appDel.initHome()
-            }
-        }
-       // Remove presented screens
-//         self.dismiss(animated: false)
-//         PIPKit.dismiss(animated: true)
 
         if isLogout {
             let appDel = UIApplication.shared.delegate as! AppDelegate
@@ -676,6 +655,90 @@ AgoraVideoFrameDelegate {
 
 // MARK: - PiP Delegate
 
+//extension VideoCallViewC:
+//AVPictureInPictureControllerDelegate {
+//
+//    func pictureInPictureControllerDidStartPictureInPicture(
+//        _ pictureInPictureController:
+//        AVPictureInPictureController
+//    ) {
+//        print("PiP Started")
+//        if isStartButtonPressed{
+//            DispatchQueue.main.asyncAfter(deadline: .now()+0.3) {
+//                let viewC = (UIApplication.shared.delegate as! AppDelegate).drawerController
+//                self.navigationController?.pushViewController(viewC, animated: true)
+//            }
+//        }
+//        
+//    }
+//
+//    func pictureInPictureControllerDidStopPictureInPicture(
+//        _ pictureInPictureController:
+//        AVPictureInPictureController
+//    ) {
+//        print("PiP Stopped")
+//        guard !isLoggingOut else {
+//              return
+//          }
+//        if isStartButtonPressed{
+//            isStartButtonPressed = false
+//        }
+//        DispatchQueue.main.async {
+//            
+//            self.pipVideoCallVC?.view.removeFromSuperview()
+//            self.pipVideoCallVC = nil
+//            self.pipController = nil
+//            self.videoVw.embed(self.remoteVideoView)
+//            self.draggableView.embed(self.localVideoView)
+//            
+//            // FORCE SWIFTUI TO REBUILD VIEWS
+////            self.refreshID = UUID()
+//            self.restoreToVideoCallScreen()
+//        }
+//    }
+//
+//    func pictureInPictureController(
+//        _ pictureInPictureController:
+//        AVPictureInPictureController,
+//        failedToStartPictureInPictureWithError error: Error
+//    ) {
+//        isStartButtonPressed = false
+//        print(error.localizedDescription)
+//    }
+//    
+//    
+//    func restoreToVideoCallScreen() {
+//
+//        DispatchQueue.main.async {
+//            // 2. Dismiss any presented controllers
+//            self.view.window?.rootViewController?.dismiss(animated: false)
+//
+//            // 3. Pop to VideoCallViewC in navigation stack
+//            if let nav = self.navigationController {
+//                for vc in nav.viewControllers {
+//                    if vc is VideoCallViewC {
+//                        nav.popToViewController(vc, animated: false)
+//                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.0) {
+//                            self.createPiP()
+//                        }
+//                        return
+//                    }
+//                }
+//                // fallback: if not found, reset stack
+//                nav.popToRootViewController(animated: false)
+//            }
+//
+//            // 4. Ensure VideoCallViewC is visible
+//            self.view.isHidden = false
+//            self.view.alpha = 1
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.0) {
+//                self.createPiP()
+//            }
+//        }
+//        
+//    }
+//}
+
 extension VideoCallViewC:
 AVPictureInPictureControllerDelegate {
 
@@ -684,13 +747,17 @@ AVPictureInPictureControllerDelegate {
         AVPictureInPictureController
     ) {
         print("PiP Started")
-        if isStartButtonPressed{
-            DispatchQueue.main.asyncAfter(deadline: .now()+0.3) {
-                let viewC = (UIApplication.shared.delegate as! AppDelegate).drawerController
-                self.navigationController?.pushViewController(viewC, animated: true)
+        
+        // Keep the call alive in memory while it is dismissed
+        VideoCallViewC.pipKeepAlive = self
+        
+        DispatchQueue.main.asyncAfter(deadline: .now()+0.3) {
+            // Dismiss the modal so the user can interact with the app underneath,
+            // but only if PiP is still active (prevents race condition if user restores immediately)
+            if self.pipController?.isPictureInPictureActive == true {
+                self.dismiss(animated: false, completion: nil)
             }
         }
-        
     }
 
     func pictureInPictureControllerDidStopPictureInPicture(
@@ -698,12 +765,24 @@ AVPictureInPictureControllerDelegate {
         AVPictureInPictureController
     ) {
         print("PiP Stopped")
+        
+        // Release the strong reference
+        VideoCallViewC.pipKeepAlive = nil
+        
         guard !isLoggingOut else {
               return
           }
         if isStartButtonPressed{
             isStartButtonPressed = false
         }
+        
+        // If the user closed the PiP window directly (tapped X) instead of restoring
+        if self.view.window == nil {
+            self.disconnectCallAndDismiss(myself: true)
+            self.cutCallApi()
+            return
+        }
+        
         DispatchQueue.main.async {
             
             self.pipVideoCallVC?.view.removeFromSuperview()
@@ -714,7 +793,30 @@ AVPictureInPictureControllerDelegate {
             
             // FORCE SWIFTUI TO REBUILD VIEWS
 //            self.refreshID = UUID()
-            self.restoreToVideoCallScreen()
+        }
+    }
+
+    func pictureInPictureController(
+        _ pictureInPictureController: AVPictureInPictureController,
+        restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void
+    ) {
+        DispatchQueue.main.async {
+            if let topVC = UIApplication.topViewController(), topVC != self, topVC != self.navigationController {
+                if let nav = self.navigationController {
+                    topVC.present(nav, animated: true) {
+                        completionHandler(true)
+                    }
+                } else {
+                    let nav = UINavigationController(rootViewController: self)
+                    nav.modalPresentationStyle = .fullScreen
+                    nav.isNavigationBarHidden = true
+                    topVC.present(nav, animated: true) {
+                        completionHandler(true)
+                    }
+                }
+            } else {
+                completionHandler(true)
+            }
         }
     }
 
@@ -729,34 +831,7 @@ AVPictureInPictureControllerDelegate {
     
     
     func restoreToVideoCallScreen() {
-
-        DispatchQueue.main.async {
-            // 2. Dismiss any presented controllers
-            self.view.window?.rootViewController?.dismiss(animated: false)
-
-            // 3. Pop to VideoCallViewC in navigation stack
-            if let nav = self.navigationController {
-                for vc in nav.viewControllers {
-                    if vc is VideoCallViewC {
-                        nav.popToViewController(vc, animated: false)
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.0) {
-                            self.createPiP()
-                        }
-                        return
-                    }
-                }
-                // fallback: if not found, reset stack
-                nav.popToRootViewController(animated: false)
-            }
-
-            // 4. Ensure VideoCallViewC is visible
-            self.view.isHidden = false
-            self.view.alpha = 1
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.0) {
-                self.createPiP()
-            }
-        }
-        
+        // Obsolete: navigation is now handled automatically via standard PiP delegate methods
     }
 }
 

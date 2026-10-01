@@ -10,11 +10,13 @@ struct PastBookingModel: Codable {
     let pastbooking: Pastbooking?
     let status: String?
     let message: String?
+    let total_bookings:Int?
 
     private enum CodingKeys: String, CodingKey {
         case pastbooking = "pastbooking"
         case status = "status"
         case message = "message"
+        case total_bookings = "total_bookings"
     }
 
     init(from decoder: Decoder) throws {
@@ -22,13 +24,13 @@ struct PastBookingModel: Codable {
         pastbooking = try? values.decode(Pastbooking.self, forKey: .pastbooking)
         status = try? values.decode(String.self, forKey: .status)
         message = try? values.decode(String.self, forKey: .message)
+        total_bookings = try? values.decode(Int.self, forKey: .total_bookings)
     }
  }
 
 struct Pastbooking: Codable {
     let call: [PastCall]?
     let visit: [PastVisit]?
-
     private enum CodingKeys: String, CodingKey {
         case call = "call"
         case visit = "visit"
@@ -72,6 +74,7 @@ struct PastCall: Codable {
     let amount: String?
     let current_status:String?
     let status_since:String?
+    let booking_number: String?
     
     
     private enum CodingKeys: String, CodingKey {
@@ -105,6 +108,7 @@ struct PastCall: Codable {
         case amount = "amount"
         case current_status = "current_status"
         case status_since = "status_since"
+        case booking_number = "booking_number"
     }
     
     init(from decoder: Decoder) throws {
@@ -139,6 +143,7 @@ struct PastCall: Codable {
         amount = try? values.decode(String.self, forKey: .amount)
         current_status = try? values.decode(String.self, forKey: .current_status)
         status_since = try? values.decode(String.self, forKey: .status_since)       
+        booking_number = try? values.decode(String.self, forKey: .booking_number)
     }
 }
 struct PastVisit: Codable {

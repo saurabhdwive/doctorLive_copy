@@ -65,6 +65,7 @@ protocol ApiInterface {
     func generateAndSendPush<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
     func getToken<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
     func allBooking<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
+    func patientCallStatus<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
 //    func newEarning<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
     
     
@@ -72,6 +73,10 @@ protocol ApiInterface {
 }
 
 final class Network: ApiInterface {
+    func patientCallStatus<T>(parameters: [String : Any]?, header: String?) -> Promise<T> where T : Decodable {
+        appVersionPopUp.requestWithParams(.patientCallStatus, parameters: parameters, header: header)
+    }
+    
     func appVersionPopup<T>(parameters: [String : Any]?, header: String?) -> Promise<T> where T : Decodable {
         appVersionPopUp.requestWithParams(.appVersionPopUp, parameters: parameters,header: header)
     }

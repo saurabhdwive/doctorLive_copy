@@ -97,6 +97,8 @@ extension ChatViewC: UITableViewDataSource{
         return header
     }
     func AcceptRejectBooking(status:String){
+        if self.isBookingActionInProgress { return }
+        self.isBookingActionInProgress = true
         var parameter = [String: String]()
         guard let token = UserDefaults.standard.string(forKey: Constants.accessToken) else { return }
         guard let code = UserDefaults.standard.string(forKey: Constants.languageCode) else { return }
@@ -115,6 +117,7 @@ extension ChatViewC: UITableViewDataSource{
             
         }.finally {
             DispatchQueue.main.async {
+                self.isBookingActionInProgress = false
                 Indicator.shared.hideProgressView()
             }
         }
@@ -128,6 +131,8 @@ extension ChatViewC: UITableViewDataSource{
     }
 
     func SuggestTimeBooking(date: String){
+        if self.isBookingActionInProgress { return }
+        self.isBookingActionInProgress = true
         var parameter = [String: String]()
         guard let token = UserDefaults.standard.string(forKey: Constants.accessToken) else { return }
         parameter = ["token": token,
@@ -136,12 +141,12 @@ extension ChatViewC: UITableViewDataSource{
         firstly {
             service!.suggestedTime(parameters: parameter, header: "DeviceToken")
         }.done { (model: BookingStatusModel) in
+            self.isBookingActionInProgress = false
+            Indicator.shared.hideProgressView()
             self.confirmBoking(model: model)
         }.catch { (error) in
             DispatchQueue.main.async {
-            }
-        }.finally {
-            DispatchQueue.main.async {
+                self.isBookingActionInProgress = false
                 Indicator.shared.hideProgressView()
             }
         }
@@ -157,7 +162,9 @@ extension ChatViewC: UITableViewDataSource{
                     containerCell.stackView.spacing = 8
                     
                     let dividerCell = ChatBookingDividerCell(style: .default, reuseIdentifier: nil)
-                    let title = "Booking #\(chat?.bookingId ?? "") · \(chat?.booking_date ?? ""), \(chat?.booking_time ?? "")"
+                    let actualPatient = chat?.patientName ?? self.patientName ?? ""
+                    let forText = (actualPatient == self.patientName || actualPatient.isEmpty) ? actualPatient : actualPatient
+                    let title = "Booking #\(chat?.booking_number ?? chat?.bookingId ?? "") (for \(forText)) · \(chat?.booking_date ?? ""), \(chat?.booking_time ?? "")"
                     dividerCell.configure(title: title, icon: UIImage(systemName: "video"), isRedDot: true)
                     dividerCell.contentView.translatesAutoresizingMaskIntoConstraints = false
                     NSLayoutConstraint.activate([
@@ -171,7 +178,7 @@ extension ChatViewC: UITableViewDataSource{
                     if chat?.is_status == "1" {
                     
                     let chipCell = ChatNewBookingRequestCell(style: .default, reuseIdentifier: nil)
-                    chipCell.configure(patientName: self.patientName ?? "", fee: "৳\(chat?.fees ?? "0")")
+                    chipCell.configure(patientName: actualPatient, fee: "৳\(chat?.fees ?? "0")")
                     chipCell.availableNowTapped = { [weak self] in
                         AppDelegate.shared.pushNotification?.stopCustomRingtone()
                         Indicator.shared.showProgressView(self?.view ?? UIView())
@@ -394,37 +401,39 @@ extension ChatViewC: UITableViewDataSource{
                 ])
                 containerCell.stackView.addArrangedSubview(chipCell) // Append it
                 
-                let cardCell = ChatVideoCallBadgeCell(style: .default, reuseIdentifier: nil)
-                if chat?.is_status == "1" {
-                    // let callStartDate = Booking.parseDate(dateStr: nil, createdOn: chat?.createdOn)
-                    // cardCell.startTimer(with: callStartDate)
-                    //  cardCell.stopTimer()
-                    cardCell.timeLabel.text = "Call in progress"
-                } else {
-                    var durationText = "00:00"
-                    if let startStr = chat?.createdOn,
-                       let endMsg = self.chatData.first(where: { $0.msgType == "CALL_ENDED" && ($0.createdOn ?? "") >= startStr }),
-                       let endStr = endMsg.createdOn {
-                        let startDate = Booking.parseDate(dateStr: nil, createdOn: startStr)
-                        let endDate = Booking.parseDate(dateStr: nil, createdOn: endStr)
-                        let duration = Int(endDate.timeIntervalSince(startDate))
-                        if duration >= 0 {
-                            let mins = duration / 60
-                            let secs = duration % 60
-                            durationText = String(format: "%02d:%02d", mins, secs)
-                        }
-                    }
-                    cardCell.stopTimer(with: durationText)
-                }
+                // let cardCell = ChatVideoCallBadgeCell(style: .default, reuseIdentifier: nil)
+                // if chat?.is_status == "1" {
+                //     // let callStartDate = Booking.parseDate(dateStr: nil, createdOn: chat?.createdOn)
+                //     // cardCell.startTimer(with: callStartDate)
+                //     //  cardCell.stopTimer()
+                //     // cardCell.timeLabel.text = "Call in progress"
+                //     let callStartDate = Booking.parseDate(dateStr: nil, createdOn: chat?.createdOn)
+                //     cardCell.startTimer(with: callStartDate)
+                // } else {
+                //     var durationText = "00:00"
+                //     if let startStr = chat?.createdOn,
+                //        let endMsg = self.chatData.first(where: { $0.msgType == "CALL_ENDED" && ($0.createdOn ?? "") >= startStr }),
+                //        let endStr = endMsg.createdOn {
+                //         let startDate = Booking.parseDate(dateStr: nil, createdOn: startStr)
+                //         let endDate = Booking.parseDate(dateStr: nil, createdOn: endStr)
+                //         let duration = Int(endDate.timeIntervalSince(startDate))
+                //         if duration >= 0 {
+                //             let mins = duration / 60
+                //             let secs = duration % 60
+                //             durationText = String(format: "%02d:%02d", mins, secs)
+                //         }
+                //     }
+                //     cardCell.stopTimer(with: durationText)
+                // }
                 
-                cardCell.contentView.translatesAutoresizingMaskIntoConstraints = false
-                NSLayoutConstraint.activate([
-                    cardCell.contentView.topAnchor.constraint(equalTo: cardCell.topAnchor),
-                    cardCell.contentView.bottomAnchor.constraint(equalTo: cardCell.bottomAnchor),
-                    cardCell.contentView.leadingAnchor.constraint(equalTo: cardCell.leadingAnchor),
-                    cardCell.contentView.trailingAnchor.constraint(equalTo: cardCell.trailingAnchor)
-                ])
-                containerCell.stackView.addArrangedSubview(cardCell) // Append it
+                // cardCell.contentView.translatesAutoresizingMaskIntoConstraints = false
+                // NSLayoutConstraint.activate([
+                //     cardCell.contentView.topAnchor.constraint(equalTo: cardCell.topAnchor),
+                //     cardCell.contentView.bottomAnchor.constraint(equalTo: cardCell.bottomAnchor),
+                //     cardCell.contentView.leadingAnchor.constraint(equalTo: cardCell.leadingAnchor),
+                //     cardCell.contentView.trailingAnchor.constraint(equalTo: cardCell.trailingAnchor)
+                // ])
+                // containerCell.stackView.addArrangedSubview(cardCell) // Append it
                 return containerCell
                 
             case "CALL_UNANSWERED":
@@ -461,7 +470,7 @@ extension ChatViewC: UITableViewDataSource{
                         callDurationText = "\(mins) min \(secs) sec"
                     }
                 }
-                chipCell.titleLabel.text = "📹 Video Call - \(callDurationText)"
+                chipCell.titleLabel.text = "📹 Video Call Ended - \(callDurationText)"
                 chipCell.configure(type: chat?.msgType ?? "")
                 chipCell.contentView.translatesAutoresizingMaskIntoConstraints = false
                 NSLayoutConstraint.activate([
@@ -846,7 +855,6 @@ extension ChatViewC: UITableViewDataSource{
                     longPress.minimumPressDuration = 0.5
                     cell.chatBtn.addGestureRecognizer(longPress)
                     return cell
-                    
                 }else if chat?.msgType == "image"{
                     let cell = self.chatTblVw.dequeueReusableCell(withIdentifier: ChatLeftImageCell.className)as! ChatLeftImageCell
                     let mystring1 = chat?.message ?? EMPTY
@@ -1092,5 +1100,120 @@ class ProgrammaticPDFViewController: UIViewController, WKNavigationDelegate {
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         print("Finish to load PDF")
+    }
+}
+
+class ChatMediaPreviewViewController: UIViewController {
+    var image: UIImage?
+    var fileURL: URL?
+    var onSend: (() -> Void)?
+    var onCancel: (() -> Void)?
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.view.backgroundColor = .black
+        
+        let navBar = UINavigationBar(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: 44))
+        navBar.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
+        navBar.barTintColor = .black
+        navBar.isTranslucent = false
+        navBar.titleTextAttributes = [.foregroundColor: UIColor.white]
+        
+        let navItem = UINavigationItem(title: "Preview")
+        let cancelBtn = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(cancelAction))
+        cancelBtn.tintColor = .white
+        navItem.leftBarButtonItem = cancelBtn
+        navBar.setItems([navItem], animated: false)
+        self.view.addSubview(navBar)
+        
+        let containerView = UIView(frame: CGRect(x: 0, y: 44, width: self.view.frame.width, height: self.view.frame.height - 44 - 80))
+        containerView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        self.view.addSubview(containerView)
+        
+        if let img = image, img.size.height > 0 {
+            let imgView = UIImageView(image: img)
+            imgView.contentMode = .scaleAspectFit
+            imgView.frame = containerView.bounds
+            imgView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            containerView.addSubview(imgView)
+        } else if let url = fileURL {
+            let ext = url.pathExtension.lowercased()
+            if ext == "pdf" {
+                let webView = WKWebView(frame: containerView.bounds)
+                webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+                webView.load(URLRequest(url: url))
+                containerView.addSubview(webView)
+            } else if ["mp4", "mov", "m4v"].contains(ext) {
+                let player = AVPlayer(url: url)
+                let playerLayer = AVPlayerLayer(player: player)
+                playerLayer.frame = containerView.bounds
+                playerLayer.videoGravity = .resizeAspect
+                containerView.layer.addSublayer(playerLayer)
+                player.play()
+            } else if ["mp3", "wav", "m4a", "aac"].contains(ext) {
+                let label = UILabel(frame: containerView.bounds)
+                label.text = "Audio Preview: \(url.lastPathComponent)"
+                label.numberOfLines = 0
+                label.textAlignment = .center
+                label.textColor = .white
+                label.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+                containerView.addSubview(label)
+                
+                let player = AVPlayer(url: url)
+                player.play()
+                objc_setAssociatedObject(self, "audioPlayer", player, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            } else {
+                let label = UILabel(frame: containerView.bounds)
+                label.text = "Preview: \(url.lastPathComponent)"
+                label.numberOfLines = 0
+                label.textAlignment = .center
+                label.textColor = .white
+                label.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+                containerView.addSubview(label)
+            }
+        }
+        
+        let bottomView = UIView(frame: CGRect(x: 0, y: self.view.frame.height - 80, width: self.view.frame.width, height: 80))
+        bottomView.autoresizingMask = [.flexibleWidth, .flexibleTopMargin]
+        bottomView.backgroundColor = UIColor(white: 0.1, alpha: 1.0)
+        self.view.addSubview(bottomView)
+        
+        let sendBtn = UIButton(type: .system)
+        sendBtn.setTitle("Send", for: .normal)
+        sendBtn.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
+        sendBtn.backgroundColor = UIColor(red: 34/255.0, green: 139/255.0, blue: 34/255.0, alpha: 1.0) // Green default
+        if let themeColor = UIColor(named: "ThemeColor") { sendBtn.backgroundColor = themeColor }
+        sendBtn.setTitleColor(.white, for: .normal)
+        sendBtn.frame = CGRect(x: 20, y: 15, width: self.view.frame.width - 40, height: 50)
+        sendBtn.autoresizingMask = [.flexibleWidth]
+        sendBtn.layer.cornerRadius = 8
+        sendBtn.addTarget(self, action: #selector(sendAction), for: .touchUpInside)
+        bottomView.addSubview(sendBtn)
+    }
+    
+    override func viewSafeAreaInsetsDidChange() {
+        super.viewSafeAreaInsetsDidChange()
+        if let navBar = self.view.subviews.first(where: { $0 is UINavigationBar }) {
+            navBar.frame = CGRect(x: 0, y: self.view.safeAreaInsets.top, width: self.view.frame.width, height: 44)
+            if self.view.subviews.count > 1 {
+                let container = self.view.subviews[1]
+                container.frame = CGRect(x: 0, y: self.view.safeAreaInsets.top + 44, width: self.view.frame.width, height: self.view.frame.height - 44 - 80 - self.view.safeAreaInsets.top - self.view.safeAreaInsets.bottom)
+            }
+        }
+        if let bottomView = self.view.subviews.last {
+            bottomView.frame.origin.y = self.view.frame.height - 80 - self.view.safeAreaInsets.bottom
+        }
+    }
+    
+    @objc func cancelAction() {
+        self.dismiss(animated: true) {
+            self.onCancel?()
+        }
+    }
+    
+    @objc func sendAction() {
+        self.dismiss(animated: true) {
+            self.onSend?()
+        }
     }
 }

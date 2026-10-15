@@ -73,7 +73,7 @@ extension ChatViewC{
 //                            }
 //                        }
 //                    } else {
-                    self.chatData.append(ChatData(message: firstData.message ?? EMPTY, time: timmee, msgType: msgType, recieverType: recieverType, date: dateStr, id: firstData.id ?? EMPTY, isExpired: firstData.isExpired ?? 0, historyType: firstData.historyType, bookingId: firstData.bookingId, statusId: firstData.statusId, fees:firstData.fees, changedByType: firstData.changedByType, changedById: firstData.changedById, createdOn: dateToUse,is_status: firstData.is_status, booking_date: firstData.booking_date, booking_time: firstData.booking_time, is_follow_up: firstData.is_follow_up))
+                    self.chatData.append(ChatData(message: firstData.message ?? EMPTY, time: timmee, msgType: msgType, recieverType: recieverType, date: dateStr, id: firstData.id ?? EMPTY, isExpired: firstData.isExpired ?? 0, historyType: firstData.historyType, bookingId: firstData.bookingId, statusId: firstData.statusId, fees:firstData.fees, changedByType: firstData.changedByType, changedById: firstData.changedById, createdOn: dateToUse,is_status: firstData.is_status, booking_date: firstData.booking_date, booking_time: firstData.booking_time, is_follow_up: firstData.is_follow_up, follow_up_time: firstData.follow_up_time, is_videocall: firstData.is_videocall))
 //                    }
                     
                     self.setscrollPosition()
@@ -136,28 +136,36 @@ extension ChatViewC{
                     }
                     
                     let msgType = firstData.type ?? EMPTY
+                    
+                    print("======== SOCKET PAYLOAD DATA ========")
+                    print("MsgType: \(msgType)")
+                    print("BookingID: \(String(describing: firstData.bookingId))")
+                    print("Rating: \(String(describing: firstData.rating))")
+                    print("Full data: \(json.arrayValue.first?.dictionaryValue ?? [:])")
+                    print("=====================================")
+                    
 //                    var is_status = "1"
                     if msgType ==  "REJECTED" || msgType == "CANCELLED" || msgType == "PAYMENT_PENDING" || msgType == "SUGGESTED_TIME_PENDING"{
-                        if let index = self.chatData.lastIndex(where: { $0.msgType == "REQUESTED" }) {
+                        if let index = self.chatData.lastIndex(where: { $0.msgType == "REQUESTED" && $0.bookingId == firstData.bookingId }) {
                             self.chatData.remove(at: index)
                         }
                     }
                     if msgType == "CONSULTATION_COMPLETED"{
-                        if let index = self.chatData.lastIndex(where: { $0.msgType == "CALL_ENDED" }) {
+                        if let index = self.chatData.lastIndex(where: { $0.msgType == "CALL_ENDED" && $0.bookingId == firstData.bookingId }) {
                             self.chatData[index].is_status = "0"
 //                            DispatchQueue.main.async {
 //                                self.setUpChatData()
 //                            }
                         }
                     }else if msgType == "PRESCRIPTION_SENT"{
-                        if let index = self.chatData.lastIndex(where: { $0.msgType == "CONSULTATION_COMPLETED" }) {
+                        if let index = self.chatData.lastIndex(where: { $0.msgType == "CONSULTATION_COMPLETED" && $0.bookingId == firstData.bookingId }) {
                             self.chatData[index].is_status = "0"
 //                            DispatchQueue.main.async {
 //                                self.setUpChatData()
 //                            }
                         }
                     }else if msgType == "CALL_STARTED"{
-                        if let index = self.chatData.lastIndex(where: { $0.msgType == "PAYMENT_COMPLETED" }) {
+                        if let index = self.chatData.lastIndex(where: { $0.msgType == "PAYMENT_COMPLETED" && $0.bookingId == firstData.bookingId }) {
                             self.chatData[index].is_status = "0"
 //                            DispatchQueue.main.async {
 //                                self.setUpChatData()
@@ -165,7 +173,7 @@ extension ChatViewC{
                         }
                     }
                     else if msgType == "CALL_ENDED"{
-                        if let index = self.chatData.lastIndex(where: { $0.msgType == "CALL_ENDED" }) {
+                        if let index = self.chatData.lastIndex(where: { $0.msgType == "CALL_ENDED" && $0.bookingId == firstData.bookingId }) {
                             self.chatData[index].is_status = "0"
 //                            DispatchQueue.main.async {
 //                                self.setUpChatData()
@@ -173,7 +181,7 @@ extension ChatViewC{
                         }
                     }
                     if msgType == "RATING_SUBMITTED"{
-                        if let index = self.chatData.lastIndex(where: { $0.msgType == "PRESCRIPTION_SENT" }) {
+                        if let index = self.chatData.lastIndex(where: { $0.msgType == "PRESCRIPTION_SENT" && $0.bookingId == firstData.bookingId }) {
                             self.chatData[index].rating = firstData.rating
                             DispatchQueue.main.async {
                                 self.setUpChatData()
@@ -181,7 +189,7 @@ extension ChatViewC{
                         }
                     }else{
 //                        self.chatData.append(ChatData(message: firstData.message ?? EMPTY, time: timmee, msgType: msgType, recieverType: recieverType, date: dateStr, id: firstData.id ?? EMPTY, isExpired: firstData.isExpired ?? 0, historyType: firstData.historyType, bookingId: firstData.bookingId, statusId: firstData.statusId, fees:firstData.fees, changedByType: firstData.changedByType, changedById: firstData.changedById, createdOn: dateToUse, rating: firstData.rating,prescription_url:firstData.prescription_url,is_status: firstData.is_status))
-                        self.chatData.append(ChatData(message: firstData.message ?? EMPTY, time: timmee, msgType: msgType, recieverType: recieverType, date: dateStr, id: firstData.id ?? EMPTY, isExpired: firstData.isExpired ?? 0, historyType: firstData.historyType, bookingId: firstData.bookingId, statusId: firstData.statusId, fees:firstData.fees, changedByType: firstData.changedByType, changedById: firstData.changedById, createdOn: dateToUse, rating: firstData.rating,prescription_url:firstData.prescription_url,is_status: firstData.is_status ?? "1", booking_date: firstData.booking_date, booking_time: firstData.booking_time, is_follow_up: firstData.is_follow_up))
+                        self.chatData.append(ChatData(message: firstData.message ?? EMPTY, time: timmee, msgType: msgType, recieverType: recieverType, date: dateStr, id: firstData.id ?? EMPTY, isExpired: firstData.isExpired ?? 0, historyType: firstData.historyType, bookingId: firstData.bookingId, statusId: firstData.statusId, fees:firstData.fees, changedByType: firstData.changedByType, changedById: firstData.changedById, createdOn: dateToUse, rating: firstData.rating,prescription_url:firstData.prescription_url,is_status: firstData.is_status ?? "1", booking_date: firstData.booking_date, booking_time: firstData.booking_time, is_follow_up: firstData.is_follow_up, follow_up_time: firstData.follow_up_time, is_videocall: firstData.is_videocall))
                     }
                         self.setscrollPosition()
                     self.messageTxt.text = EMPTY

@@ -65,6 +65,8 @@ class ChatBookingDividerCell: UITableViewCell {
         
         titleLabel.font = UIFont.systemFont(ofSize: 13.5, weight: .bold)
         titleLabel.textColor = UIColor(red: 44/255, green: 58/255, blue: 82/255, alpha: 1.0)
+        titleLabel.numberOfLines = 0
+        titleLabel.textAlignment = .center
         
         statusDot.backgroundColor = UIColor(red: 33/255, green: 112/255, blue: 220/255, alpha: 1.0)
         statusDot.layer.cornerRadius = 3
@@ -83,7 +85,9 @@ class ChatBookingDividerCell: UITableViewCell {
             chipView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             chipView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 14),
             chipView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
-            chipView.heightAnchor.constraint(equalToConstant: 30),
+//            let h = chipView.heightAnchor.constraint(greaterThanOrEqualToConstant: 30)
+//            h.priority = .defaultHigh
+//            h.isActive = true,
             
             line1.centerYAnchor.constraint(equalTo: chipView.centerYAnchor),
             line1.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
@@ -101,7 +105,8 @@ class ChatBookingDividerCell: UITableViewCell {
             iconView.heightAnchor.constraint(equalToConstant: 20),
             
             titleLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 6),
-            titleLabel.centerYAnchor.constraint(equalTo: chipView.centerYAnchor),
+            titleLabel.topAnchor.constraint(equalTo: chipView.topAnchor, constant: 6),
+            titleLabel.bottomAnchor.constraint(equalTo: chipView.bottomAnchor, constant: -6),
             
             statusDot.leadingAnchor.constraint(equalTo: titleLabel.trailingAnchor, constant: 6),
             statusDot.trailingAnchor.constraint(equalTo: chipView.trailingAnchor, constant: -8),
@@ -112,13 +117,20 @@ class ChatBookingDividerCell: UITableViewCell {
     }
     
     func configure(title: String, icon: UIImage?, isRedDot: Bool = false) {
-        titleLabel.text = title
         iconView.image = icon
-        if isRedDot {
-            statusDot.backgroundColor = UIColor(red: 226/255, green: 72/255, blue: 62/255, alpha: 1.0)
-        } else {
-            statusDot.backgroundColor = UIColor(red: 33/255, green: 112/255, blue: 220/255, alpha: 1.0)
+        
+        let color = isRedDot ? UIColor(red: 226/255, green: 72/255, blue: 62/255, alpha: 1.0) : UIColor(red: 33/255, green: 112/255, blue: 220/255, alpha: 1.0)
+        
+        let fullString = NSMutableAttributedString(string: title + "  ")
+        if let circleImage = UIImage(systemName: "circle.fill")?.withTintColor(color, renderingMode: .alwaysOriginal) {
+            let attachment = NSTextAttachment()
+            attachment.image = circleImage
+            attachment.bounds = CGRect(x: 0, y: 1.5, width: 6, height: 6)
+            fullString.append(NSAttributedString(attachment: attachment))
         }
+        
+        titleLabel.attributedText = fullString
+        statusDot.isHidden = true
     }
 }
 
@@ -1342,6 +1354,7 @@ class ChatNewBookingRequestCell: UITableViewCell {
         suggestTimeBtn.layer.cornerRadius = 12
         suggestTimeBtn.setTitle("⏱ Suggest Time", for: .normal)
         suggestTimeBtn.contentEdgeInsets = UIEdgeInsets(top: 8, left: 12, bottom: 8, right: 12)
+        suggestTimeBtn.isHidden = true
         
 //        chatBtn.backgroundColor = grayBgColor
 //        chatBtn.setTitleColor(blueTextColor, for: .normal)
@@ -1371,20 +1384,13 @@ class ChatNewBookingRequestCell: UITableViewCell {
             $0.addTarget(self, action: #selector(buttonAction(_:)), for: .touchUpInside)
         }
         
-        let row1Stack = UIStackView(arrangedSubviews: [availableNowBtn, suggestTimeBtn])
+        let row1Stack = UIStackView(arrangedSubviews: [availableNowBtn, rejectBtn])
         row1Stack.axis = .horizontal
         row1Stack.spacing = 8
         row1Stack.alignment = .fill
         row1Stack.distribution = .fill
         
-//        let row2Stack = UIStackView(arrangedSubviews: [chatBtn, callBtn, rejectBtn])
-        let row2Stack = UIStackView(arrangedSubviews: [rejectBtn])
-        row2Stack.axis = .horizontal
-        row2Stack.spacing = 8
-        row2Stack.alignment = .fill
-        row2Stack.distribution = .fill
-        
-        let contentStack = UIStackView(arrangedSubviews: [titleLabel, subLabel, row1Stack, row2Stack])
+        let contentStack = UIStackView(arrangedSubviews: [titleLabel, subLabel, row1Stack])
         contentStack.axis = .vertical
         contentStack.spacing = 10
         contentStack.alignment = .leading

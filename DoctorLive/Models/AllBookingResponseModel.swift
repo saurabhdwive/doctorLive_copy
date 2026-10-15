@@ -153,7 +153,10 @@ extension PastCall {
             memberDob: self.memberDob,
             memberGender: self.memberGender,
             bookingNumber: self.booking_number,
-            amount: self.amount
+            amount: self.amount,
+            prescriptionId: self.prescription_id,
+            filePdf: self.filePdf,
+            fileImg: self.fileImg
         )
     }
 }
@@ -260,8 +263,10 @@ struct Booking {
     let memberGender: String?
     let bookingNumber: String?
     let amount: String?
+    let prescriptionId: String?
+    let filePdf: String?
+    let fileImg: String?
     
-
     static func parseDate(dateStr: String?, createdOn: String?) -> Date {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")

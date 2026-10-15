@@ -14,6 +14,7 @@ final class DoctorCardTableViewCell: UITableViewCell {
     var onToggleExpand: (() -> Void)?
     var onLoadMore: (() -> Void)?
     var onBookingTap: ((Booking) -> Void)?
+    var onPrescriptionOpen: ((String) -> Void)?
 
     // MARK: - State
 
@@ -720,7 +721,7 @@ final class DoctorCardTableViewCell: UITableViewCell {
                 countdownTimer = nil
                 timerPillView.backgroundColor = UIColor(red: 236/255, green: 253/255, blue: 243/255, alpha: 1)
                 timerPillLabel.textColor = UIColor(red: 2/255, green: 122/255, blue: 72/255, alpha: 1)
-                showTimerPill(text: "✅ Call ended — awaiting summary")
+                showTimerPill(text: "✅ Call ended — awaiting prescription")
                 
             case .callUnanswered:
                 countdownTimer?.invalidate()
@@ -803,6 +804,13 @@ final class DoctorCardTableViewCell: UITableViewCell {
 
             bookingView.onTap = { [weak self] in
                 self?.onBookingTap?(booking)
+            }
+
+            bookingView.onPrescriptionTap = { [weak self] in
+                let urlString = (booking.filePdf?.isEmpty == false) ? booking.filePdf : booking.fileImg
+                if let urlString = urlString {
+                    self?.onPrescriptionOpen?(urlString)
+                }
             }
 
             bookingsStackView.addArrangedSubview(
@@ -968,6 +976,7 @@ final class DoctorCardTableViewCell: UITableViewCell {
 final class BookingRowView: UIView {
 
     var onTap: (() -> Void)?
+    var onPrescriptionTap: (() -> Void)?
 
         // MARK: - UI
 
@@ -982,6 +991,7 @@ final class BookingRowView: UIView {
         private let feesLabel = UILabel()
 
         private let statusPill = StatusPillView()
+        private let prescriptionBtn = UIButton(type: .system)
 
         // MARK: - Init
 
@@ -1084,6 +1094,15 @@ final class BookingRowView: UIView {
             containerView.addSubview(timeLabel)
             containerView.addSubview(feesLabel)
             containerView.addSubview(statusPill)
+            
+            prescriptionBtn.titleLabel?.font = .boldSystemFont(ofSize: 12)
+            prescriptionBtn.layer.cornerRadius = 10
+            prescriptionBtn.contentEdgeInsets = UIEdgeInsets(top: 4, left: 8, bottom: 4, right: 8)
+            prescriptionBtn.backgroundColor = UIColor(red: 0.11, green: 0.37, blue: 0.79, alpha: 1)
+            prescriptionBtn.setTitleColor(.white, for: .normal)
+            prescriptionBtn.isHidden = true
+            prescriptionBtn.addTarget(self, action: #selector(prescriptionTapped), for: .touchUpInside)
+            containerView.addSubview(prescriptionBtn)
 
             // IMPORTANT:
             // All views are now in the same hierarchy BEFORE constraints.
@@ -1102,6 +1121,7 @@ final class BookingRowView: UIView {
             timeLabel.translatesAutoresizingMaskIntoConstraints = false
             feesLabel.translatesAutoresizingMaskIntoConstraints = false
             statusPill.translatesAutoresizingMaskIntoConstraints = false
+            prescriptionBtn.translatesAutoresizingMaskIntoConstraints = false
 
             NSLayoutConstraint.activate([
 
@@ -1186,6 +1206,10 @@ final class BookingRowView: UIView {
                     equalTo: containerView.topAnchor,
                     constant: 16
                 ),
+                bookingIdLabel.trailingAnchor.constraint(
+                    lessThanOrEqualTo: feesLabel.leadingAnchor,
+                    constant: -8
+                ),
 
                 // MARK: Time
 
@@ -1196,6 +1220,14 @@ final class BookingRowView: UIView {
                 timeLabel.topAnchor.constraint(
                     equalTo: bookingIdLabel.bottomAnchor,
                     constant: 4
+                ),
+                timeLabel.trailingAnchor.constraint(
+                    lessThanOrEqualTo: statusPill.leadingAnchor,
+                    constant: -8
+                ),
+                timeLabel.trailingAnchor.constraint(
+                    lessThanOrEqualTo: prescriptionBtn.leadingAnchor,
+                    constant: -8
                 ),
                 
                 // MARK: Fees
@@ -1218,6 +1250,14 @@ final class BookingRowView: UIView {
 
                 statusPill.centerYAnchor.constraint(
                     equalTo: timeLabel.centerYAnchor
+                ),
+                
+                prescriptionBtn.trailingAnchor.constraint(
+                    equalTo: containerView.trailingAnchor,
+                    constant: -12
+                ),
+                prescriptionBtn.centerYAnchor.constraint(
+                    equalTo: timeLabel.centerYAnchor
                 )
             ])
 
@@ -1232,6 +1272,9 @@ final class BookingRowView: UIView {
             containerView.addGestureRecognizer(tap)
         }
 
+    @objc private func prescriptionTapped() {
+        onPrescriptionTap?()
+    }
 
     @objc private func rowTapped() {
         onTap?()
@@ -1290,11 +1333,29 @@ final class BookingRowView: UIView {
             feesLabel.text = "৳\(amt)"
         }
         
-        statusPill.configure(
-            phase: convertStatusToPhase(
-                booking.status
+        if let pId = booking.prescriptionId, !pId.isEmpty {
+            statusPill.isHidden = true
+            prescriptionBtn.isHidden = false
+            
+            let hasPdf = (booking.filePdf?.isEmpty == false)
+            let hasImg = (booking.fileImg?.isEmpty == false)
+            
+            if hasPdf {
+                prescriptionBtn.setTitle("Prescription (PDF)", for: .normal)
+            } else if hasImg {
+                prescriptionBtn.setTitle("Prescription (JPG)", for: .normal)
+            } else {
+                prescriptionBtn.setTitle("Prescription", for: .normal)
+            }
+        } else {
+            statusPill.isHidden = false
+            prescriptionBtn.isHidden = true
+            statusPill.configure(
+                phase: convertStatusToPhase(
+                    booking.status
+                )
             )
-        )
+        }
     }
 
 //    private func formattedDate(

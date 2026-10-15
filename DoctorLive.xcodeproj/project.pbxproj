@@ -2523,7 +2523,7 @@
 				CODE_SIGN_ENTITLEMENTS = DoctorLive/DoctorLive.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = KGZW38PR5F;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -2536,7 +2536,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1.24;
+				MARKETING_VERSION = 2.1.26;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mobu.doctor;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2558,7 +2558,7 @@
 				CODE_SIGN_ENTITLEMENTS = DoctorLive/DoctorLive.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = KGZW38PR5F;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)/**";
@@ -2569,7 +2569,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1.24;
+				MARKETING_VERSION = 2.1.26;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mobu.doctor;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

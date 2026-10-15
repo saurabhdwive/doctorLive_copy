@@ -58,7 +58,7 @@ extension HomeVC: UITableViewDelegate{
                 return nil
             }
             let header = tableView.dequeueReusableHeaderFooterView(withIdentifier: BookingTitleCell.className) as! BookingTitleCell
-            header.pendingLbl.text = "Your Doctors"
+            header.pendingLbl.text = "Your Patients"
             header.pendingLbl.textColor = UIColor(red: 150/255, green: 161/255, blue: 182/255, alpha: 1)
             return header
         } else {
@@ -66,7 +66,7 @@ extension HomeVC: UITableViewDelegate{
                 return nil
             }
             let header = tableView.dequeueReusableHeaderFooterView(withIdentifier: BookingTitleCell.className) as! BookingTitleCell
-            header.pendingLbl.text = "More Doctors"
+            header.pendingLbl.text = "More Patients"
             header.pendingLbl.textColor = UIColor(red: 150/255, green: 161/255, blue: 182/255, alpha: 1)
             return header
         }
@@ -153,6 +153,13 @@ extension HomeVC: UITableViewDataSource {
             vc.bookingId = booking.id
             vc.doctorId = USER_DEFAULTS.string(forKey: Constants.userId) ?? ""
            
+            self.navigationController?.pushViewController(vc, animated: true)
+        }
+        
+        cell.onPrescriptionOpen = { [weak self] urlString in
+            guard let self = self else { return }
+            let vc = PrescriptionViewVC()
+            vc.urlString = urlString
             self.navigationController?.pushViewController(vc, animated: true)
         }
         

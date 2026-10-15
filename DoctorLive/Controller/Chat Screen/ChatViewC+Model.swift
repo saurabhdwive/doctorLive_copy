@@ -33,9 +33,12 @@ struct ChatData{
     var booking_date: String?
     var booking_time: String?
     let is_follow_up:String?
+    var booking_number: String?
+    var follow_up_time: String?
+    var is_videocall: String?
     
     init(message: String = EMPTY, time: String = EMPTY, msgType: String = EMPTY, recieverType: String = EMPTY, date: String = EMPTY, id: String = EMPTY,isExpired:Int = 0, historyType: String? = nil, bookingId: String? = nil, statusId: String? = nil, fees: String? = nil, patientName: String? = nil, patientId: String? = nil, doctorId: String? = nil, changedByType: String? = nil, changedById: String? = nil, createdOn: String? = nil, rating: String? = nil,prescription_url:String? = nil,
-         is_status:String? = "1", booking_date: String? = nil, booking_time: String? = nil, is_follow_up: String? = nil) {
+         is_status:String? = "1", booking_date: String? = nil, booking_time: String? = nil, is_follow_up: String? = nil, booking_number: String? = nil, follow_up_time: String? = nil, is_videocall: String? = nil) {
         self.message = message
         self.time = time
         self.msgType = msgType
@@ -59,6 +62,9 @@ struct ChatData{
         self.booking_date = booking_date
         self.booking_time = booking_time
         self.is_follow_up = is_follow_up
+        self.booking_number = booking_number
+        self.follow_up_time = follow_up_time
+        self.is_videocall = is_videocall
     }
 }
 
@@ -108,9 +114,17 @@ struct DoctorchathistoryModal {
 struct other_detailssss {
 
     let last_active: String?
+    let is_videocall: String?
 
     init(_ json: JSON) {
         last_active = json["last_active"].string
+        if let value = json["is_videocall"].string {
+            is_videocall = value
+        } else if let value = json["is_videocall"].int {
+            is_videocall = String(value)
+        } else {
+            is_videocall = nil
+        }
     }
 }
 
@@ -147,6 +161,9 @@ struct DoctorchathistoryData {
     let booking_date: String?
     let booking_time: String?
     let is_follow_up:String?
+    let booking_number: String?
+    let follow_up_time: String?
+    let is_videocall: String?
 
     init(_ json: JSON) {
         id = json["id"].stringValue
@@ -192,6 +209,15 @@ struct DoctorchathistoryData {
         booking_date = json["booking_date"].string
         booking_time = json["booking_time"].string
         is_follow_up = json["is_follow_up"].stringValue
+        booking_number = json["booking_number"].string
+        follow_up_time = json["follow_up_time"].string
+        if let value = json["is_videocall"].string {
+            is_videocall = value
+        } else if let value = json["is_videocall"].int {
+            is_videocall = String(value)
+        } else {
+            is_videocall = nil
+        }
          
     }
 

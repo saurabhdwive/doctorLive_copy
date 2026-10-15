@@ -150,29 +150,21 @@ extension SideMenuVC: UITableViewDelegate,UITableViewDataSource {
     }
     
     func logoutButtonTapped() {
+        if self.findVideoCallController() != nil || VideoCallViewC.pipKeepAlive != nil {
+            AppToast.showMessage(message: "Cannot logout while a video call is running".localized())
+            return
+        }
+        
         let actionSheet = UIAlertController(title: "", message: "Are you sure, You want to Logout?".localized(), preferredStyle: .actionSheet)
         actionSheet.addAction(UIAlertAction(title: "Yes".localized(), style: .destructive, handler: { [weak self]_ in
-          
-
-            if let videoVC = self?.findVideoCallController() {
-                self?.resetDefaults()
-                videoVC.isLoggingOut = true
-                videoVC.disconnectCallAndDismiss(isLogout: true)
-            }else{
-                var paramDict = [String: String]()
-                paramDict["doctor_id"] = USER_DEFAULTS.string(forKey: Constants.userId)
-                paramDict["status"] = "offline"
-                SocketHelper.shared.emit(with: .update_doctor_status, paramDict){ data in
-                    print("room joined", data)
-                }
-                self?.resetDefaults()
-                DIConfigurator.sharedInst().getRootViewC(.Auth, identifer: LoginVC.className)
-                //                let view = UIStoryboard.init(name: "Auth", bundle: nil)
-                //                let vc = view.instantiateViewController(withIdentifier: "LoginVC") as! LoginVC
-                //                self?.resetDefaults()
-                //                self?.navigationController?.pushViewController(vc, animated: true)
+            var paramDict = [String: String]()
+            paramDict["doctor_id"] = USER_DEFAULTS.string(forKey: Constants.userId)
+            paramDict["status"] = "offline"
+            SocketHelper.shared.emit(with: .update_doctor_status, paramDict){ data in
+                print("room joined", data)
             }
-           
+            self?.resetDefaults()
+            DIConfigurator.sharedInst().getRootViewC(.Auth, identifer: LoginVC.className)
         }))
         actionSheet.addAction(UIAlertAction(title: "No".localized(), style: .cancel, handler: { [self]_ in
             self.dismiss(animated: true, completion: nil)

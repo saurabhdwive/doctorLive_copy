@@ -77,6 +77,7 @@ enum MediaType1: String {
     case getToken
     case allBooking
     case suggestedTime
+    case patientCallStatus
 
     var resource: (method: HTTPMethod, endPoint: String) {
         switch self {
@@ -188,6 +189,8 @@ enum MediaType1: String {
             return (.post, "allbookingnew")
         case .suggestedTime:
             return (.post, "suggestedtime")
+        case .patientCallStatus:
+            return (.post, "user/patient_call_status")
         }
     }
 }

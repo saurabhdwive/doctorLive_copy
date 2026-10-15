@@ -23,11 +23,6 @@ extension HomeVC {
             DispatchQueue.main.async {
                 LoaderController.sharedInstance.removeLoader()
             }
-            
-        }.finally {
-            DispatchQueue.main.async {
-                LoaderController.sharedInstance.removeLoader()
-            }
         }
     }
     
@@ -239,12 +234,6 @@ extension HomeVC {
                     LoaderController.sharedInstance.removeLoader()
                 }
             }
-        }.finally {
-            DispatchQueue.main.async {
-                if showLoader {
-                    LoaderController.sharedInstance.removeLoader()
-                }
-            }
         }
     }
     
@@ -378,17 +367,14 @@ extension HomeVC {
 //MARK: - CONFIRM BOOKING
 extension HomeVC {
     func confirmBooking(param: [String: String]){
+        LoaderController.sharedInstance.showLoader(view: self.view)
         firstly {
             service!.bookingStatus(parameters: param, header: "DeviceToken")
         }.done { (model: BookingStatusModel) in
             self.confirmBoking(model: model)
         }.catch { (error) in
             DispatchQueue.main.async {
-            }
-            
-        }.finally {
-            DispatchQueue.main.async {
-                // Loader.hide()
+                LoaderController.sharedInstance.removeLoader()
             }
         }
     }
@@ -403,13 +389,13 @@ extension HomeVC {
                      "status": "1",
                      "reason": ""]
         confirmBooking(param: parameter)
-        
-    }
+     }
     
     func confirmBoking(model: BookingStatusModel){
         if model.status == "SUCCESS" {
             self.performAllBooking(isRefresh: true)
         } else {
+            LoaderController.sharedInstance.removeLoader()
             AppToast.showMessage(message: model.message ?? "")
         }
     }
@@ -418,18 +404,14 @@ extension HomeVC {
 //MARK: - REJECT BOOKING
 extension HomeVC {
     func endVisitBooking(param: [String: String]){
+        LoaderController.sharedInstance.showLoader(view: self.view)
         firstly {
             service!.bookingStatus(parameters: param, header: "DeviceToken")
         }.done { (model: BookingStatusModel) in
             self.endBooking(model: model)
         }.catch { (error) in
             DispatchQueue.main.async {
-                
-            }
-            
-        }.finally {
-            DispatchQueue.main.async {
-                // Loader.hide()
+                LoaderController.sharedInstance.removeLoader()
             }
         }
     }
@@ -451,6 +433,7 @@ extension HomeVC {
         if model.status == "SUCCESS" {
             self.performAllBooking(isRefresh: true)
         } else {
+            LoaderController.sharedInstance.removeLoader()
             AppToast.showMessage(message: model.message ?? "")
         }
     }

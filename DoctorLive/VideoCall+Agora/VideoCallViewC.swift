@@ -153,8 +153,10 @@ class VideoCallViewC: UIViewController, PIPUsable {
         self.agoraKit?.enableLocalVideo(self.isUsingLocalCamera)
         if self.isUsingLocalCamera {
             self.cameraBtn.setImage(UIImage(named: "videoOn"), for: .normal)
+            self.localVideoView.setPaused(false)
         }else{
             self.cameraBtn.setImage(UIImage(named: "videoOff"), for: .normal)
+            self.localVideoView.setPaused(true)
         }
     }
     
@@ -570,6 +572,16 @@ extension VideoCallViewC: AgoraRtcEngineDelegate {
     func rtcEngine(_ engine: AgoraRtcEngineKit, didjoin channel: String, withUid uid: UInt, elapsed: Int) {
         print("didjoin channel")
     }
+    
+    func rtcEngine(_ engine: AgoraRtcEngineKit, remoteVideoStateChangedOfUid uid: UInt, state: AgoraVideoRemoteState, reason: AgoraVideoRemoteReason, elapsed: Int) {
+        DispatchQueue.main.async {
+            if reason == .remoteMuted {
+                self.remoteVideoView.setPaused(true)
+            } else if reason == .remoteUnmuted {
+                self.remoteVideoView.setPaused(false)
+            }
+        }
+    }
 }
 
 // MARK: - Agora Video Frame Delegate
@@ -791,8 +803,8 @@ AVPictureInPictureControllerDelegate {
             self.videoVw.embed(self.remoteVideoView)
             self.draggableView.embed(self.localVideoView)
             
-            // FORCE SWIFTUI TO REBUILD VIEWS
-//            self.refreshID = UUID()
+            // Re-create PiP so it is ready for the next time the app is backgrounded
+            self.createPiP()
         }
     }
 
@@ -1051,6 +1063,7 @@ import AVFoundation
 final class PiPVideoView: UIView {
 
     let displayLayer = AVSampleBufferDisplayLayer()
+    let pausedLabel = UILabel()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -1061,6 +1074,13 @@ final class PiPVideoView: UIView {
         displayLayer.videoGravity = .resizeAspectFill
 
         layer.addSublayer(displayLayer)
+        
+        pausedLabel.text = "Video paused"
+        pausedLabel.textColor = .white
+        pausedLabel.textAlignment = .center
+        pausedLabel.font = UIFont.systemFont(ofSize: 14, weight: .medium)
+        pausedLabel.isHidden = true
+        addSubview(pausedLabel)
     }
 
     required init?(coder: NSCoder) {
@@ -1069,22 +1089,24 @@ final class PiPVideoView: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-
         displayLayer.frame = bounds
+        pausedLabel.frame = bounds
     }
 
     func enqueue(_ sampleBuffer: CMSampleBuffer) {
-
         guard displayLayer.isReadyForMoreMediaData else {
             return
         }
-
         displayLayer.enqueue(sampleBuffer)
     }
 
     func flush() {
-
         displayLayer.flushAndRemoveImage()
+    }
+    
+    func setPaused(_ isPaused: Bool) {
+        pausedLabel.isHidden = !isPaused
+        displayLayer.isHidden = isPaused
     }
 }
 

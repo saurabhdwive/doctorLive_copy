@@ -75,6 +75,7 @@ struct PastCall: Codable {
     let current_status:String?
     let status_since:String?
     let booking_number: String?
+    let prescription_id: String?
     
     
     private enum CodingKeys: String, CodingKey {
@@ -109,6 +110,7 @@ struct PastCall: Codable {
         case current_status = "current_status"
         case status_since = "status_since"
         case booking_number = "booking_number"
+        case prescription_id = "prescription_id"
     }
     
     init(from decoder: Decoder) throws {
@@ -142,8 +144,9 @@ struct PastCall: Codable {
         rating = try? values.decode(String.self, forKey: .rating)
         amount = try? values.decode(String.self, forKey: .amount)
         current_status = try? values.decode(String.self, forKey: .current_status)
-        status_since = try? values.decode(String.self, forKey: .status_since)       
+        status_since = try? values.decode(String.self, forKey: .status_since)
         booking_number = try? values.decode(String.self, forKey: .booking_number)
+        prescription_id = try? values.decode(String.self, forKey: .prescription_id)
     }
 }
 struct PastVisit: Codable {

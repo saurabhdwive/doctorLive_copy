@@ -58,6 +58,7 @@ class ChatViewC: UIViewController {
     var doctorId: String?
     var isPaymentCompleted = false
     var isFirstLoadScroll = true
+    var isBookingActionInProgress = false
     
     // Pagination
     var currentPage = 1
@@ -155,120 +156,239 @@ extension ChatViewC {
         ])
     }
     
-    func updateStickyStatusBar() {
-        if let index = chatData.lastIndex(where: { $0.historyType == "booking_status" }) {
-            let lastPaymentCompleted = chatData[index].msgType ?? ""
-            if lastPaymentCompleted == "PAYMENT_COMPLETED" || lastPaymentCompleted == "WAITING_FOR_CALL" || lastPaymentCompleted == "CALL_STARTED" || lastPaymentCompleted == "CALL_ENDED" || lastPaymentCompleted == "CONSULTATION_COMPLETED" || lastPaymentCompleted == "CALL_UNANSWERED" || lastPaymentCompleted == "PRESCRIPTION_SENT"{
-                self.isPaymentCompleted = true
-            }else{
-                self.isPaymentCompleted = false
-            }
-        }else{
-            self.isPaymentCompleted = false
-        }
-        let statusMessages = chatData.filter { $0.historyType == "booking_status" }
-        var targetStatusMsg = statusMessages.last
-//        let isFollowUp = (targetStatusMsg?.is_follow_up ?? false)
-        let isFollowUp = (targetStatusMsg?.is_follow_up == "1" || targetStatusMsg?.is_follow_up?.lowercased() == "true")
-        if isFollowUp {
-            if let prescriptionSentMsg = statusMessages.last(where: { $0.msgType == "PRESCRIPTION_SENT" }) {
-                targetStatusMsg = prescriptionSentMsg
-            }
-        }
-        guard let lastStatusMsg = targetStatusMsg else {
-            countdownTimer?.invalidate()
-            countdownTimer = nil
-            hideStickyStatusBar()
-            return
-        }
-        print(lastStatusMsg.createdOn ?? "")
-        
-        switch lastStatusMsg.msgType {
-        case "REQUESTED", "PAYMENT_PENDING", "PAYMENT_COMPLETED", "SUGGESTED_TIME_ACCEPTED":
-            let dateToUse = lastStatusMsg.createdOn ?? ""
-            let parsedDate = Booking.parseDate(dateStr: nil, createdOn: dateToUse)
-            let timerInterval = BookingTimerManager.shared.getTimer(for: lastStatusMsg.msgType ?? "", defaultMinutes: 10)
-            let target = parsedDate.addingTimeInterval(timerInterval)
-            
-            if Date() < target {
-                self.targetDate = target
-                updateTimerLabel()
-                startCountdownTimerIfNeeded()
-            } else {
-                stopTimerAndHide()
-            }
-            
-        case "CALL_STARTED":
-            let parsedDate = Booking.parseDate(dateStr: nil, createdOn: lastStatusMsg.createdOn ?? "")
-            // For CALL_STARTED, targetDate will act as the START date
-            self.targetDate = parsedDate
-            updateTimerLabel()
-            startCountdownTimerIfNeeded()
-            
-        case "CALL_ENDED", "CONSULTATION_COMPLETED":
-            countdownTimer?.invalidate()
-            countdownTimer = nil
-            topStatusBarContainer.backgroundColor = UIColor(red: 236/255, green: 253/255, blue: 243/255, alpha: 1)
-            topStatusBarLabel.textColor = UIColor(red: 2/255, green: 122/255, blue: 72/255, alpha: 1)
-            showStickyStatusBar(text: "✅ Call ended — awaiting summary")
-            
-        case "CALL_UNANSWERED":
-            countdownTimer?.invalidate()
-            countdownTimer = nil
-            topStatusBarContainer.backgroundColor = UIColor(red: 255/255, green: 244/255, blue: 224/255, alpha: 1)
-            topStatusBarLabel.textColor = UIColor(red: 200/255, green: 134/255, blue: 13/255, alpha: 1)
-            showStickyStatusBar(text: "📞 Call Unanswered")
-            
-        case "CLOSED":
-            countdownTimer?.invalidate()
-            countdownTimer = nil
-            topStatusBarContainer.backgroundColor = .systemGray5
-            topStatusBarLabel.textColor = .gray
-            showStickyStatusBar(text: "🔒 Chat Closed")
-            
-        case "REJECTED":
-            countdownTimer?.invalidate()
-            countdownTimer = nil
-            topStatusBarContainer.backgroundColor = UIColor(red: 251/255, green: 228/255, blue: 226/255, alpha: 1)
-            topStatusBarLabel.textColor = UIColor(red: 226/255, green: 72/255, blue: 62/255, alpha: 1)
-            showStickyStatusBar(text: "❌ Booking rejected")
-            
-        case "PAYMENT_EXPIRED":
-            countdownTimer?.invalidate()
-            countdownTimer = nil
-            topStatusBarContainer.backgroundColor = UIColor(red: 251/255, green: 228/255, blue: 226/255, alpha: 1)
-            topStatusBarLabel.textColor = UIColor(red: 226/255, green: 72/255, blue: 62/255, alpha: 1)
-            showStickyStatusBar(text: "⏱ Payment window expired")
-            
-        case "PRESCRIPTION_SENT":
-            let parsedDate = Booking.parseDate(dateStr: nil, createdOn: lastStatusMsg.createdOn ?? "")
-            let timerInterval = BookingTimerManager.shared.getTimer(for: "PRESCRIPTION_SENT", defaultMinutes: 120)
-            let target = parsedDate.addingTimeInterval(timerInterval)
-            
-            if Date() < target {
-                self.targetDate = target
-                updateTimerLabel()
-                startCountdownTimerIfNeeded()
-            } else {
-                stopTimerAndHide()
-            }
-            
-        case "SUGGESTED_TIME_PENDING":
-            countdownTimer?.invalidate()
-            countdownTimer = nil
-            topStatusBarContainer.backgroundColor = UIColor(red: 255/255, green: 244/255, blue: 224/255, alpha: 1)
-            topStatusBarLabel.textColor = UIColor(red: 200/255, green: 134/255, blue: 13/255, alpha: 1)
-            showStickyStatusBar(text: "🕐 Time proposed — awaiting confirmation")
+     //    func updateStickyStatusBar() {
+     //        if let index = chatData.lastIndex(where: { $0.historyType == "booking_status" }) {
+     //            let lastPaymentCompleted = chatData[index].msgType ?? ""
+     //            if lastPaymentCompleted == "PAYMENT_COMPLETED" || lastPaymentCompleted == "WAITING_FOR_CALL" || lastPaymentCompleted == "CALL_STARTED" || lastPaymentCompleted == "CALL_ENDED" || lastPaymentCompleted == "CONSULTATION_COMPLETED" || lastPaymentCompleted == "CALL_UNANSWERED" || lastPaymentCompleted == "PRESCRIPTION_SENT"{
+     //                self.isPaymentCompleted = true
+     //            }else{
+     //                self.isPaymentCompleted = false
+     //            }
+     //        }else{
+     //            self.isPaymentCompleted = false
+     //        }
+     //        let statusMessages = chatData.filter { $0.historyType == "booking_status" }
+     //        var targetStatusMsg = statusMessages.last
+     ////        let isFollowUp = (targetStatusMsg?.is_follow_up ?? false)
+     //        let isFollowUp = (targetStatusMsg?.is_follow_up == "1" || targetStatusMsg?.is_follow_up?.lowercased() == "true")
+     //        if isFollowUp {
+     //            if let prescriptionSentMsg = statusMessages.last(where: { $0.msgType == "PRESCRIPTION_SENT" }) {
+     //                targetStatusMsg = prescriptionSentMsg
+     //            }
+     //        }
+     //        guard let lastStatusMsg = targetStatusMsg else {
+     //            countdownTimer?.invalidate()
+     //            countdownTimer = nil
+     //            hideStickyStatusBar()
+     //            return
+     //        }
+     //        print(lastStatusMsg.createdOn ?? "")
+     //
+     //        switch lastStatusMsg.msgType {
+     //        case "REQUESTED", "PAYMENT_PENDING", "PAYMENT_COMPLETED", "SUGGESTED_TIME_ACCEPTED":
+     //            let dateToUse = lastStatusMsg.createdOn ?? ""
+     //            let parsedDate = Booking.parseDate(dateStr: nil, createdOn: dateToUse)
+     //            let timerInterval = BookingTimerManager.shared.getTimer(for: lastStatusMsg.msgType ?? "", defaultMinutes: 10)
+     //            let target = parsedDate.addingTimeInterval(timerInterval)
+     //
+     //            if Date() < target {
+     //                self.targetDate = target
+     //                updateTimerLabel()
+     //                startCountdownTimerIfNeeded()
+     //            } else {
+     //                stopTimerAndHide()
+     //            }
+     //
+     //        case "CALL_STARTED":
+     //            let parsedDate = Booking.parseDate(dateStr: nil, createdOn: lastStatusMsg.createdOn ?? "")
+     //            // For CALL_STARTED, targetDate will act as the START date
+     //            self.targetDate = parsedDate
+     //            updateTimerLabel()
+     //            startCountdownTimerIfNeeded()
+     //
+     //        case "CALL_ENDED", "CONSULTATION_COMPLETED":
+     //            countdownTimer?.invalidate()
+     //            countdownTimer = nil
+     //            topStatusBarContainer.backgroundColor = UIColor(red: 236/255, green: 253/255, blue: 243/255, alpha: 1)
+     //            topStatusBarLabel.textColor = UIColor(red: 2/255, green: 122/255, blue: 72/255, alpha: 1)
+     //            showStickyStatusBar(text: "✅ Call ended — awaiting prescription")
+     //
+     //        case "CALL_UNANSWERED":
+     //            countdownTimer?.invalidate()
+     //            countdownTimer = nil
+     //            topStatusBarContainer.backgroundColor = UIColor(red: 255/255, green: 244/255, blue: 224/255, alpha: 1)
+     //            topStatusBarLabel.textColor = UIColor(red: 200/255, green: 134/255, blue: 13/255, alpha: 1)
+     //            showStickyStatusBar(text: "📞 Call Unanswered")
+     //
+     //        case "CLOSED":
+     //            countdownTimer?.invalidate()
+     //            countdownTimer = nil
+     //            topStatusBarContainer.backgroundColor = .systemGray5
+     //            topStatusBarLabel.textColor = .gray
+     //            showStickyStatusBar(text: "🔒 Chat Closed")
+     //
+     //        case "REJECTED":
+     //            countdownTimer?.invalidate()
+     //            countdownTimer = nil
+     //            topStatusBarContainer.backgroundColor = UIColor(red: 251/255, green: 228/255, blue: 226/255, alpha: 1)
+     //            topStatusBarLabel.textColor = UIColor(red: 226/255, green: 72/255, blue: 62/255, alpha: 1)
+     //            showStickyStatusBar(text: "❌ Booking rejected")
+     //
+     //        case "PAYMENT_EXPIRED":
+     //            countdownTimer?.invalidate()
+     //            countdownTimer = nil
+     //            topStatusBarContainer.backgroundColor = UIColor(red: 251/255, green: 228/255, blue: 226/255, alpha: 1)
+     //            topStatusBarLabel.textColor = UIColor(red: 226/255, green: 72/255, blue: 62/255, alpha: 1)
+     //            showStickyStatusBar(text: "⏱ Payment window expired")
+     //
+     //        case "PRESCRIPTION_SENT":
+     //            let parsedDate = Booking.parseDate(dateStr: nil, createdOn: lastStatusMsg.createdOn ?? "")
+     //            let timerInterval = BookingTimerManager.shared.getTimer(for: "PRESCRIPTION_SENT", defaultMinutes: 120)
+     //            let target = parsedDate.addingTimeInterval(timerInterval)
+     //
+     //            if Date() < target {
+     //                self.targetDate = target
+     //                updateTimerLabel()
+     //                startCountdownTimerIfNeeded()
+     //            } else {
+     //                stopTimerAndHide()
+     //            }
+     //
+     //        case "SUGGESTED_TIME_PENDING":
+     //            countdownTimer?.invalidate()
+     //            countdownTimer = nil
+     //            topStatusBarContainer.backgroundColor = UIColor(red: 255/255, green: 244/255, blue: 224/255, alpha: 1)
+     //            topStatusBarLabel.textColor = UIColor(red: 200/255, green: 134/255, blue: 13/255, alpha: 1)
+     //            showStickyStatusBar(text: "🕐 Time proposed — awaiting confirmation")
+     //         case "REMINDER":
+     //            break
+     //        case "WAITING_FOR_CALL":
+     //            break
+     ////        case "CALL_UNANSWERED":
+     ////            break
+     //        default:
+     //            stopTimerAndHide()
+     //        }
+     //    }
+     
+     func updateStickyStatusBar() {
+         if let index = chatData.lastIndex(where: { $0.historyType == "booking_status" || $0.historyType == "new_booking_request" }) {
+             let isVideoCall = chatData[index].is_videocall ?? "0"
+             self.isPaymentCompleted = (isVideoCall == "1")
+         } else {
+             self.isPaymentCompleted = false
+         }
+         let statusMessages = chatData.filter { $0.historyType == "booking_status" }
+         
+         var targetStatusMsg = statusMessages.last
+         let followUpTimeStr = targetStatusMsg?.follow_up_time
+         let isFollowUp = followUpTimeStr != nil && !(followUpTimeStr!.isEmpty)
+         
+         if isFollowUp {
+             targetStatusMsg?.msgType = "PRESCRIPTION_SENT"
+         }
+         guard let lastStatusMsg = targetStatusMsg else {
+             countdownTimer?.invalidate()
+             countdownTimer = nil
+             hideStickyStatusBar()
+             return
+         }
+         print(lastStatusMsg.createdOn ?? "")
+         
+         switch lastStatusMsg.msgType {
+         case "REQUESTED", "PAYMENT_PENDING", "PAYMENT_COMPLETED", "SUGGESTED_TIME_ACCEPTED":
+             let dateToUse = lastStatusMsg.createdOn ?? ""
+             let parsedDate = Booking.parseDate(dateStr: nil, createdOn: dateToUse)
+             let timerInterval = BookingTimerManager.shared.getTimer(for: lastStatusMsg.msgType ?? "", defaultMinutes: 10)
+             let target = parsedDate.addingTimeInterval(timerInterval)
+             
+             if Date() < target {
+                 self.targetDate = target
+                 updateTimerLabel()
+                 startCountdownTimerIfNeeded()
+             } else {
+                 stopTimerAndHide()
+             }
+             
+         case "CALL_STARTED":
+             let parsedDate = Booking.parseDate(dateStr: nil, createdOn: lastStatusMsg.createdOn ?? "")
+             // For CALL_STARTED, targetDate will act as the START date
+             self.targetDate = parsedDate
+             updateTimerLabel()
+             startCountdownTimerIfNeeded()
+             
+         case "CALL_ENDED", "CONSULTATION_COMPLETED":
+             countdownTimer?.invalidate()
+             countdownTimer = nil
+             topStatusBarContainer.backgroundColor = UIColor(red: 236/255, green: 253/255, blue: 243/255, alpha: 1)
+             topStatusBarLabel.textColor = UIColor(red: 2/255, green: 122/255, blue: 72/255, alpha: 1)
+             showStickyStatusBar(text: "✅ Call ended — awaiting prescription")
+             
+         case "CALL_UNANSWERED":
+             countdownTimer?.invalidate()
+             countdownTimer = nil
+             topStatusBarContainer.backgroundColor = UIColor(red: 255/255, green: 244/255, blue: 224/255, alpha: 1)
+             topStatusBarLabel.textColor = UIColor(red: 200/255, green: 134/255, blue: 13/255, alpha: 1)
+             showStickyStatusBar(text: "📞 Call Unanswered")
+             
+         case "CLOSED":
+             countdownTimer?.invalidate()
+             countdownTimer = nil
+             topStatusBarContainer.backgroundColor = .systemGray5
+             topStatusBarLabel.textColor = .gray
+             showStickyStatusBar(text: "🔒 Chat Closed")
+             
+         case "REJECTED":
+             countdownTimer?.invalidate()
+             countdownTimer = nil
+             topStatusBarContainer.backgroundColor = UIColor(red: 251/255, green: 228/255, blue: 226/255, alpha: 1)
+             topStatusBarLabel.textColor = UIColor(red: 226/255, green: 72/255, blue: 62/255, alpha: 1)
+             showStickyStatusBar(text: "❌ Booking rejected")
+             
+         case "PAYMENT_EXPIRED":
+             countdownTimer?.invalidate()
+             countdownTimer = nil
+             topStatusBarContainer.backgroundColor = UIColor(red: 251/255, green: 228/255, blue: 226/255, alpha: 1)
+             topStatusBarLabel.textColor = UIColor(red: 226/255, green: 72/255, blue: 62/255, alpha: 1)
+             showStickyStatusBar(text: "⏱ Payment window expired")
+             
+         case "PRESCRIPTION_SENT":
+             let target: Date
+             let lastStatusFollowUpStr = statusMessages.last?.follow_up_time
+             if let followUpStr = lastStatusFollowUpStr, !followUpStr.isEmpty {
+                 let parsedDate = Booking.parseDate(dateStr: nil, createdOn: followUpStr)
+                 let timerInterval = BookingTimerManager.shared.getTimer(for: lastStatusMsg.msgType ?? "PRESCRIPTION_SENT", defaultMinutes: 1440)
+                 target = parsedDate.addingTimeInterval(timerInterval)
+             } else {
+                 let parsedDate = Booking.parseDate(dateStr: nil, createdOn: lastStatusMsg.createdOn ?? "")
+                 let timerInterval = BookingTimerManager.shared.getTimer(for: lastStatusMsg.msgType ?? "", defaultMinutes: 1440)
+                 target = parsedDate.addingTimeInterval(timerInterval)
+             }
+             
+             if Date() < target {
+                 self.targetDate = target
+                 updateTimerLabel()
+                 startCountdownTimerIfNeeded()
+             } else {
+                 stopTimerAndHide()
+             }
+         case "SUGGESTED_TIME_PENDING":
+             countdownTimer?.invalidate()
+             countdownTimer = nil
+             topStatusBarContainer.backgroundColor = UIColor(red: 255/255, green: 244/255, blue: 224/255, alpha: 1)
+             topStatusBarLabel.textColor = UIColor(red: 200/255, green: 134/255, blue: 13/255, alpha: 1)
+             showStickyStatusBar(text: "🕐 Time proposed — awaiting confirmation")
+             
          case "REMINDER":
-            break
-        case "WAITING_FOR_CALL":
-            break
-//        case "CALL_UNANSWERED":
-//            break
-        default:
-            stopTimerAndHide()
-        }
-    }
+             break
+         case "WAITING_FOR_CALL":
+             break
+             //        case "CALL_UNANSWERED":
+             //            break
+         default:
+             stopTimerAndHide()
+         }
+     }
     
     private func startCountdownTimerIfNeeded() {
         if countdownTimer == nil {
@@ -283,55 +403,108 @@ extension ChatViewC {
         hideStickyStatusBar()
     }
 
-    @objc private func updateTimerLabel() {
-        guard let target = targetDate else { return }
-        
-        let statusMessages = chatData.filter { $0.historyType == "booking_status" }
-        let lastStatusMsg = statusMessages.last
-        
-        if lastStatusMsg?.msgType == "CALL_STARTED" {
-            let elapsed = Date().timeIntervalSince(target)
-            if elapsed >= 0 {
-                let mins = Int(elapsed) / 60
-                let secs = Int(elapsed) % 60
-                topStatusBarContainer.backgroundColor = UIColor(red: 239/255, green: 246/255, blue: 255/255, alpha: 1)
-                topStatusBarLabel.textColor = UIColor(red: 30/255, green: 64/255, blue: 175/255, alpha: 1)
-                showStickyStatusBar(text: String(format: "🎥 In Call · %02d:%02d", mins, secs))
-            }
-        } else {
-            let remaining = target.timeIntervalSince(Date())
-            if remaining > 0 {
-                let totalMins = Int(remaining) / 60
-                let secs = Int(remaining) % 60
-                let hours = totalMins / 60
-                let mins = totalMins % 60
-                
-                if lastStatusMsg?.msgType == "REQUESTED" {
-                    topStatusBarContainer.backgroundColor = UIColor(red: 255/255, green: 244/255, blue: 224/255, alpha: 1)
-                    topStatusBarLabel.textColor = UIColor(red: 200/255, green: 134/255, blue: 13/255, alpha: 1)
-                    showStickyStatusBar(text: String(format: "⏱ Waiting for Doctor · %02d:%02d", totalMins, secs))
-                } else if lastStatusMsg?.msgType == "PAYMENT_PENDING" || lastStatusMsg?.msgType == "SUGGESTED_TIME_ACCEPTED" {
-                    topStatusBarContainer.backgroundColor = UIColor(red: 251/255, green: 228/255, blue: 226/255, alpha: 1)
-                    topStatusBarLabel.textColor = UIColor(red: 226/255, green: 72/255, blue: 62/255, alpha: 1)
-                    showStickyStatusBar(text: String(format: "💳 Pay Now · %02d:%02d", totalMins, secs))
-                } else if lastStatusMsg?.msgType == "PAYMENT_COMPLETED" {
-                    topStatusBarContainer.backgroundColor = UIColor(red: 239/255, green: 233/255, blue: 254/255, alpha: 1)
-                    topStatusBarLabel.textColor = UIColor(red: 104/255, green: 81/255, blue: 185/255, alpha: 1)
-                    showStickyStatusBar(text: String(format: "📞 Waiting for Call · %02d:%02d", totalMins, secs))
-                } else if lastStatusMsg?.msgType == "PRESCRIPTION_SENT" {
-                    topStatusBarContainer.backgroundColor = UIColor(red: 239/255, green: 233/255, blue: 254/255, alpha: 1)
-                    topStatusBarLabel.textColor = UIColor(red: 104/255, green: 81/255, blue: 185/255, alpha: 1)
-                    if hours > 0 {
-                        showStickyStatusBar(text: String(format: "⏱ Follow-up · %02d:%02d:%02d", hours, mins, secs))
-                    } else {
-                        showStickyStatusBar(text: String(format: "⏱ Follow-up · %02d:%02d", mins, secs))
-                    }
-                }
-            } else {
-                stopTimerAndHide()
-            }
-        }
-    }
+//    @objc private func updateTimerLabel() {
+//        guard let target = targetDate else { return }
+//        
+//        let statusMessages = chatData.filter { $0.historyType == "booking_status" }
+//        let lastStatusMsg = statusMessages.last
+//        
+//        if lastStatusMsg?.msgType == "CALL_STARTED" {
+//            let elapsed = Date().timeIntervalSince(target)
+//            if elapsed >= 0 {
+//                let mins = Int(elapsed) / 60
+//                let secs = Int(elapsed) % 60
+//                topStatusBarContainer.backgroundColor = UIColor(red: 239/255, green: 246/255, blue: 255/255, alpha: 1)
+//                topStatusBarLabel.textColor = UIColor(red: 30/255, green: 64/255, blue: 175/255, alpha: 1)
+//                showStickyStatusBar(text: String(format: "🎥 In Call · %02d:%02d", mins, secs))
+//            }
+//        } else {
+//            let remaining = target.timeIntervalSince(Date())
+//            if remaining > 0 {
+//                let totalMins = Int(remaining) / 60
+//                let secs = Int(remaining) % 60
+//                let hours = totalMins / 60
+//                let mins = totalMins % 60
+//                
+//                if lastStatusMsg?.msgType == "REQUESTED" {
+//                    topStatusBarContainer.backgroundColor = UIColor(red: 255/255, green: 244/255, blue: 224/255, alpha: 1)
+//                    topStatusBarLabel.textColor = UIColor(red: 200/255, green: 134/255, blue: 13/255, alpha: 1)
+//                    showStickyStatusBar(text: String(format: "⏱ Waiting for Doctor · %02d:%02d", totalMins, secs))
+//                } else if lastStatusMsg?.msgType == "PAYMENT_PENDING" || lastStatusMsg?.msgType == "SUGGESTED_TIME_ACCEPTED" {
+//                    topStatusBarContainer.backgroundColor = UIColor(red: 251/255, green: 228/255, blue: 226/255, alpha: 1)
+//                    topStatusBarLabel.textColor = UIColor(red: 226/255, green: 72/255, blue: 62/255, alpha: 1)
+//                    showStickyStatusBar(text: String(format: "💳 Pay Now · %02d:%02d", totalMins, secs))
+//                } else if lastStatusMsg?.msgType == "PAYMENT_COMPLETED" {
+//                    topStatusBarContainer.backgroundColor = UIColor(red: 239/255, green: 233/255, blue: 254/255, alpha: 1)
+//                    topStatusBarLabel.textColor = UIColor(red: 104/255, green: 81/255, blue: 185/255, alpha: 1)
+//                    showStickyStatusBar(text: String(format: "📞 Waiting for Call · %02d:%02d", totalMins, secs))
+//                } else if lastStatusMsg?.msgType == "PRESCRIPTION_SENT" {
+//                    topStatusBarContainer.backgroundColor = UIColor(red: 239/255, green: 233/255, blue: 254/255, alpha: 1)
+//                    topStatusBarLabel.textColor = UIColor(red: 104/255, green: 81/255, blue: 185/255, alpha: 1)
+//                    if hours > 0 {
+//                        showStickyStatusBar(text: String(format: "⏱ Follow-up · %02d:%02d:%02d", hours, mins, secs))
+//                    } else {
+//                        showStickyStatusBar(text: String(format: "⏱ Follow-up · %02d:%02d", mins, secs))
+//                    }
+//                }
+//            } else {
+//                stopTimerAndHide()
+//            }
+//        }
+//    }
+     
+     @objc private func updateTimerLabel() {
+             guard let target = targetDate else { return }
+             
+             let statusMessages = chatData.filter { $0.historyType == "booking_status" }
+             var lastStatusMsg = statusMessages.last
+             if let followUpTimeStr = lastStatusMsg?.follow_up_time, !followUpTimeStr.isEmpty {
+                 lastStatusMsg?.msgType = "PRESCRIPTION_SENT"
+             }
+             
+             if lastStatusMsg?.msgType == "CALL_STARTED" {
+                 let elapsed = Date().timeIntervalSince(target)
+                 if elapsed >= 0 {
+                 let mins = Int(elapsed) / 60
+                 let secs = Int(elapsed) % 60
+                 topStatusBarContainer.backgroundColor = UIColor(red: 239/255, green: 246/255, blue: 255/255, alpha: 1)
+                 topStatusBarLabel.textColor = UIColor(red: 30/255, green: 64/255, blue: 175/255, alpha: 1)
+                 showStickyStatusBar(text: String(format: "🎥 In Call · %02d:%02d", mins, secs))
+                 }
+             } else {
+                 let remaining = target.timeIntervalSince(Date())
+                 if remaining > 0 {
+                     let totalMins = Int(remaining) / 60
+                     let secs = Int(remaining) % 60
+                     let hours = totalMins / 60
+                     let mins = totalMins % 60
+                     
+                     if lastStatusMsg?.msgType == "REQUESTED" {
+                         topStatusBarContainer.backgroundColor = UIColor(red: 255/255, green: 244/255, blue: 224/255, alpha: 1)
+                         topStatusBarLabel.textColor = UIColor(red: 200/255, green: 134/255, blue: 13/255, alpha: 1)
+                         showStickyStatusBar(text: String(format: "⏱ Waiting for Doctor · %02d:%02d", totalMins, secs))
+                     } else if lastStatusMsg?.msgType == "PAYMENT_PENDING" || lastStatusMsg?.msgType == "SUGGESTED_TIME_ACCEPTED" {
+                         topStatusBarContainer.backgroundColor = UIColor(red: 251/255, green: 228/255, blue: 226/255, alpha: 1)
+                         topStatusBarLabel.textColor = UIColor(red: 226/255, green: 72/255, blue: 62/255, alpha: 1)
+                         showStickyStatusBar(text: String(format: "💳 Pay Now · %02d:%02d", totalMins, secs))
+                     } else if lastStatusMsg?.msgType == "PAYMENT_COMPLETED" {
+                         topStatusBarContainer.backgroundColor = UIColor(red: 239/255, green: 233/255, blue: 254/255, alpha: 1)
+                         topStatusBarLabel.textColor = UIColor(red: 104/255, green: 81/255, blue: 185/255, alpha: 1)
+                         showStickyStatusBar(text: String(format: "📞 Waiting for Call · %02d:%02d", totalMins, secs))
+                     } else if lastStatusMsg?.msgType == "PRESCRIPTION_SENT" {
+                         topStatusBarContainer.backgroundColor = UIColor(red: 239/255, green: 233/255, blue: 254/255, alpha: 1)
+                         topStatusBarLabel.textColor = UIColor(red: 104/255, green: 81/255, blue: 185/255, alpha: 1)
+                         if hours > 0 {
+                             showStickyStatusBar(text: String(format: "⏱ Follow-up · %02d:%02d:%02d", hours, mins, secs))
+                         } else {
+                             showStickyStatusBar(text: String(format: "⏱ Follow-up · %02d:%02d", mins, secs))
+                         }
+                     }
+                 } else {
+                     stopTimerAndHide()
+                 }
+             }
+         }
     
     private func showStickyStatusBar(text: String) {
         topStatusBarContainer.isHidden = false
@@ -452,66 +625,79 @@ extension ChatViewC {
         VideoPickerManagerSwift().pickImage(self) { [weak self] image, url in
             guard let self = self else { return }
             self.dismiss(animated: true, completion: nil)
-            if image.size.height == 0.0 {
-                
-                let isAccessing = url.startAccessingSecurityScopedResource()
-                defer {
-                    if isAccessing {
-                        url.stopAccessingSecurityScopedResource()
+            
+            let previewVC = ChatMediaPreviewViewController()
+            previewVC.image = image
+            previewVC.fileURL = url
+            previewVC.modalPresentationStyle = .fullScreen
+            
+            previewVC.onSend = {
+                if image.size.height == 0.0 {
+                    
+                    let isAccessing = url.startAccessingSecurityScopedResource()
+                    defer {
+                        if isAccessing {
+                            url.stopAccessingSecurityScopedResource()
+                        }
                     }
-                }
-                if url.pathExtension.lowercased() == "pdf" {
-                    // PDF Document
-                    Indicator.shared.showProgressView(self.view)
-                    guard let fileData = try? Data(contentsOf: url) else {
-                        Indicator.shared.hideProgressView()
-                        self.showToast(message: "uploading error")
-                        self.dismiss(animated: true, completion: nil)
-                        return
-                    }
-                    let fileName = "chat_doc_\(Int(Date().timeIntervalSince1970)).pdf"
-                    self.uploadViaPresignedUrl(fileName: fileName, filetype: "application/pdf", fileData: fileData, contentType: "pdf") { result in
-                        self.handleMediaUploadResult(result: result, msgType: "pdf", successMessage: "pdf upload successfully")
+                    if url.pathExtension.lowercased() == "pdf" {
+                        // PDF Document
+                        Indicator.shared.showProgressView(self.view)
+                        guard let fileData = try? Data(contentsOf: url) else {
+                            Indicator.shared.hideProgressView()
+                            self.showToast(message: "uploading error")
+                            return
+                        }
+                        let fileName = "chat_doc_\(Int(Date().timeIntervalSince1970)).pdf"
+                        self.uploadViaPresignedUrl(fileName: fileName, filetype: "application/pdf", fileData: fileData, contentType: "pdf") { result in
+                            self.handleMediaUploadResult(result: result, msgType: "pdf", successMessage: "pdf upload successfully")
+                        }
+                    } else {
+                        // Video
+                        let videoURL = self.createTemporaryURLforVideoFile(url: url as NSURL) as URL
+                        guard let fileData = try? Data(contentsOf: videoURL), !fileData.isEmpty else {
+                            self.showToast(message: "uploading error")
+                            return
+                        }
+                        let fileName = "chat_video_\(Int(Date().timeIntervalSince1970)).mp4"
+                        self.uploadViaPresignedUrl(fileName: fileName, filetype: "video/mp4", fileData: fileData, contentType: "video/mp4") { result in
+                            self.handleMediaUploadResult(result: result, msgType: "video", successMessage: "Video upload successfully")
+                        }
                     }
                 } else {
-                    // Video
-                    let videoURL = self.createTemporaryURLforVideoFile(url: url as NSURL) as URL
-                    guard let fileData = try? Data(contentsOf: videoURL), !fileData.isEmpty else {
+                    // Image
+                    guard let fileData = image.jpegData(compressionQuality: 0.75), !fileData.isEmpty else {
                         self.showToast(message: "uploading error")
                         return
                     }
-                    let fileName = "chat_video_\(Int(Date().timeIntervalSince1970)).mp4"
-                    self.uploadViaPresignedUrl(fileName: fileName, filetype: "video/mp4", fileData: fileData, contentType: "video/mp4") { result in
-                        self.handleMediaUploadResult(result: result, msgType: "video", successMessage: "Video upload successfully")
+                    let fileName = "chat_img_\(Int(Date().timeIntervalSince1970)).jpg"
+                    self.uploadViaPresignedUrl(fileName: fileName, filetype: "image/jpeg", fileData: fileData, contentType: "image/jpeg") { result in
+                        self.handleMediaUploadResult(result: result, msgType: "image", successMessage: "Image upload successfully")
                     }
                 }
-            } else {
-                // Image
-                guard let fileData = image.jpegData(compressionQuality: 0.75), !fileData.isEmpty else {
-                    self.showToast(message: "uploading error")
-                    return
-                }
-                let fileName = "chat_img_\(Int(Date().timeIntervalSince1970)).jpg"
-                self.uploadViaPresignedUrl(fileName: fileName, filetype: "image/jpeg", fileData: fileData, contentType: "image/jpeg") { result in
-                    self.handleMediaUploadResult(result: result, msgType: "image", successMessage: "Image upload successfully")
-                }
+            }
+            
+            // Present previewVC with a slight delay to ensure the dismiss completes
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                self.present(previewVC, animated: true, completion: nil)
             }
         }
     }
 
-    @IBAction func videoCallButtonTapped(_ sender: Any) {
-        guard isPaymentCompleted else {
-            AppToast.showMessage(message: "Payment pending from patient side")
-            return
-        }
-        if let _ = self.findVideoCallController() {
-            AppToast.showMessage(message: "Video call is already in progress")
-        }else{
-            self.emitBookingStatusData(bookingStatus: "CALL_STARTED")
-            getToken()
-        }
-        
-    }
+     @IBAction func videoCallButtonTapped(_ sender: Any) {
+          guard isPaymentCompleted else {
+              AppToast.showMessage(message: "Payment pending from patient side")
+              return
+          }
+         if let _ = self.findVideoCallController() {
+             AppToast.showMessage(message: "Video call is already in progress")
+         }else{
+             // self.emitBookingStatusData(bookingStatus: "CALL_STARTED")
+             let param = ["user_id": self.userId ?? "", "doctor_id": self.doctorId ?? ""]
+             self.patientCallStatusApi(param: param)
+             getToken()
+         }
+     }
 
     func handleMediaUploadResult(result: Swift.Result<String, Error>, msgType: String, successMessage: String) {
         DispatchQueue.main.async {
@@ -615,6 +801,16 @@ extension ChatViewC {
 }
 
  extension ChatViewC {
+    func patientCallStatusApi(param: [String: String]){
+        firstly {
+            service!.patientCallStatus(parameters: param, header: "DeviceToken")
+        }.done { (model: CommonResponse) in
+            print("patientCallStatusApi success: \(model.msg ?? "")")
+        }.catch { (error) in
+            print("patientCallStatusApi error: \(error.localizedDescription)")
+        }
+    }
+    
     func getTokenApi(param: [String: String]){
         LoaderController.sharedInstance.showLoader(view: self.view)
         firstly {

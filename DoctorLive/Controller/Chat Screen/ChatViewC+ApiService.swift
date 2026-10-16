@@ -126,8 +126,16 @@ extension ChatViewC{
                 recieverType = "reciever"
             }
 
+            var msgType = messageListData.type ?? EMPTY
+            let rawMessage = messageListData.message ?? EMPTY
+            if msgType == "image" || msgType == "multiple" {
+                if rawMessage.contains(",") || (rawMessage.trimmingCharacters(in: .whitespaces).starts(with: "[") && rawMessage.contains("http")) {
+                    msgType = "multiple"
+                }
+            }
+
             let timmee = self.timeDateConversion(formateDate: messageListData.createdOn ?? EMPTY)
-            newChatData.append(ChatData(message:  messageListData.message ?? EMPTY, time: timmee, msgType: messageListData.type ?? EMPTY, recieverType: recieverType, date: String((messageListData.createdOn ?? EMPTY).dropLast(9)), id: messageListData.id ?? EMPTY,isExpired: messageListData.isExpired ?? 0, historyType: messageListData.historyType, bookingId: messageListData.bookingId, statusId: messageListData.statusId, fees:messageListData.fees, changedByType: messageListData.changedByType, changedById: messageListData.changedById, createdOn: messageListData.createdOn,rating:messageListData.rating,prescription_url:messageListData.prescription_url, is_status:messageListData.is_status ?? "1", booking_date: messageListData.booking_date, booking_time: messageListData.booking_time, is_follow_up: messageListData.is_follow_up, booking_number: messageListData.booking_number, follow_up_time: messageListData.follow_up_time, is_videocall: self.viewmodel.doctorChatData.first?.other_details?.is_videocall ?? messageListData.is_videocall))
+            newChatData.append(ChatData(message: rawMessage, time: timmee, msgType: msgType, recieverType: recieverType, date: String((messageListData.createdOn ?? EMPTY).dropLast(9)), id: messageListData.id ?? EMPTY,isExpired: messageListData.isExpired ?? 0, historyType: messageListData.historyType, bookingId: messageListData.bookingId, statusId: messageListData.statusId, fees:messageListData.fees, changedByType: messageListData.changedByType, changedById: messageListData.changedById, createdOn: messageListData.createdOn,rating:messageListData.rating,prescription_url:messageListData.prescription_url, is_status:messageListData.is_status ?? "1", booking_date: messageListData.booking_date, booking_time: messageListData.booking_time, is_follow_up: messageListData.is_follow_up, booking_number: messageListData.booking_number, follow_up_time: messageListData.follow_up_time, is_videocall: self.viewmodel.doctorChatData.first?.other_details?.is_videocall ?? messageListData.is_videocall))
         })
         
         let fetchedCount = newChatData.count

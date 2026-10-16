@@ -209,7 +209,14 @@ extension ChatViewC{
                 if String(chatModel.first?.sender_id ?? EMPTY) == (self.senderId ?? EMPTY) {
                    print("HUIHUI")
                 }else{
-                    self.chatData.append(ChatData(message: chatModel.first?.message ?? EMPTY, time: Date.getDateStringWithDatee(DateFormat.exactTimeFormat1, date: Date()), msgType: chatModel.first?.type ?? EMPTY, recieverType: "receiver", date: String((chatModel.first?.created_on ?? EMPTY).prefix(10))))
+                    var msgType = chatModel.first?.type ?? EMPTY
+                    let rawMessage = chatModel.first?.message ?? EMPTY
+                    if msgType == "image" || msgType == "multiple" {
+                        if rawMessage.contains(",") || (rawMessage.trimmingCharacters(in: .whitespaces).starts(with: "[") && rawMessage.contains("http")) {
+                            msgType = "multiple"
+                        }
+                    }
+                    self.chatData.append(ChatData(message: rawMessage, time: Date.getDateStringWithDatee(DateFormat.exactTimeFormat1, date: Date()), msgType: msgType, recieverType: "reciever", date: String((chatModel.first?.created_on ?? EMPTY).prefix(10))))
                 }
                 self.setscrollPosition()
                 self.messageTxt.text = EMPTY

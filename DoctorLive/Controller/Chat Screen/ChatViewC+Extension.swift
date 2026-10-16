@@ -10,6 +10,8 @@ import AVKit
 import UIKit
 import SafariServices
 import PromiseKit
+import PhotosUI
+import SDWebImage
 
 extension ChatViewC: UITableViewDelegate{
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -753,11 +755,15 @@ extension ChatViewC: UITableViewDataSource{
                     cell.timeLbl.text = chat?.time ?? EMPTY
                     cell.chatVw.setExpiredOverlay(isExpired: chat?.isExpired ?? 0)
                     cell.imageBtnTapped = {
-                        let viewC = DIConfigurator.sharedInst().getImagePopPrieViewC()
-                        viewC.imageUrl = chat?.message ?? EMPTY
-                        self.navigationController?.pushViewController(viewC, animated: true)
+                        self.openMultiImageViewer(urls: [mystring1], initialIndex: 0)
                     }
                     cell.imageBtn.setImage(UIImage(systemName: ""), for: .normal)
+                    return cell
+                }else if chat?.msgType == "multiple"{
+                    let cell = self.chatTblVw.dequeueReusableCell(withIdentifier: "ChatRightMultipleImageCell", for: indexPath) as! ChatRightMultipleImageCell
+                    cell.configure(chat: chat) { [weak self] index, urls in
+                        self?.openMultiImageViewer(urls: urls, initialIndex: index)
+                    }
                     return cell
                 }else if chat?.msgType == "audio"{
                     let cell = self.chatTblVw.dequeueReusableCell(withIdentifier: ChatRightAudioCell.className)as! ChatRightAudioCell
@@ -863,11 +869,15 @@ extension ChatViewC: UITableViewDataSource{
                     cell.timeLbl.text = chat?.time ?? EMPTY
                     cell.chatVw.setExpiredOverlay(isExpired: chat?.isExpired ?? 0)
                     cell.imageBtnTapped = {
-                        let viewC = DIConfigurator.sharedInst().getImagePopPrieViewC()
-                        viewC.imageUrl = chat?.message ?? EMPTY
-                        self.navigationController?.pushViewController(viewC, animated: true)
+                        self.openMultiImageViewer(urls: [mystring1], initialIndex: 0)
                     }
                     cell.imageBtn.setImage(UIImage(systemName: ""), for: .normal)
+                    return cell
+                }else if chat?.msgType == "multiple"{
+                    let cell = self.chatTblVw.dequeueReusableCell(withIdentifier: "ChatLeftMultipleImageCell", for: indexPath) as! ChatLeftMultipleImageCell
+                    cell.configure(chat: chat) { [weak self] index, urls in
+                        self?.openMultiImageViewer(urls: urls, initialIndex: index)
+                    }
                     return cell
                 }else if chat?.msgType == "audio"{
                     let cell = self.chatTblVw.dequeueReusableCell(withIdentifier: ChatRightAudioCell.className)as! ChatRightAudioCell
@@ -1103,117 +1113,612 @@ class ProgrammaticPDFViewController: UIViewController, WKNavigationDelegate {
     }
 }
 
-class ChatMediaPreviewViewController: UIViewController {
-    var image: UIImage?
-    var fileURL: URL?
-    var onSend: (() -> Void)?
-    var onCancel: (() -> Void)?
+extension ChatViewC {
+    func openMultiImageViewer(urls: [String], initialIndex: Int) {
+        guard !urls.isEmpty, initialIndex < urls.count else { return }
+        let viewerVC = MediaPreviewVC()
+        viewerVC.imageUrls = urls
+        viewerVC.currentIndex = initialIndex
+        viewerVC.isViewerMode = true
+        viewerVC.modalPresentationStyle = .fullScreen
+        self.present(viewerVC, animated: true, completion: nil)
+    }
+}
+
+// MARK: - WhatsApp Style Multi-Image Preview & Viewer
+class MediaPreviewFullCell: UICollectionViewCell {
+    let imageView = UIImageView()
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.contentMode = .scaleAspectFit
+        imageView.clipsToBounds = true
+        contentView.addSubview(imageView)
+        NSLayoutConstraint.activate([
+            imageView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            imageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
+        ])
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        self.view.backgroundColor = .black
-        
-        let navBar = UINavigationBar(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: 44))
-        navBar.autoresizingMask = [.flexibleWidth, .flexibleBottomMargin]
-        navBar.barTintColor = .black
-        navBar.isTranslucent = false
-        navBar.titleTextAttributes = [.foregroundColor: UIColor.white]
-        
-        let navItem = UINavigationItem(title: "Preview")
-        let cancelBtn = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(cancelAction))
-        cancelBtn.tintColor = .white
-        navItem.leftBarButtonItem = cancelBtn
-        navBar.setItems([navItem], animated: false)
-        self.view.addSubview(navBar)
-        
-        let containerView = UIView(frame: CGRect(x: 0, y: 44, width: self.view.frame.width, height: self.view.frame.height - 44 - 80))
-        containerView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        self.view.addSubview(containerView)
-        
-        if let img = image, img.size.height > 0 {
-            let imgView = UIImageView(image: img)
-            imgView.contentMode = .scaleAspectFit
-            imgView.frame = containerView.bounds
-            imgView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            containerView.addSubview(imgView)
-        } else if let url = fileURL {
-            let ext = url.pathExtension.lowercased()
-            if ext == "pdf" {
-                let webView = WKWebView(frame: containerView.bounds)
-                webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-                webView.load(URLRequest(url: url))
-                containerView.addSubview(webView)
-            } else if ["mp4", "mov", "m4v"].contains(ext) {
-                let player = AVPlayer(url: url)
-                let playerLayer = AVPlayerLayer(player: player)
-                playerLayer.frame = containerView.bounds
-                playerLayer.videoGravity = .resizeAspect
-                containerView.layer.addSublayer(playerLayer)
-                player.play()
-            } else if ["mp3", "wav", "m4a", "aac"].contains(ext) {
-                let label = UILabel(frame: containerView.bounds)
-                label.text = "Audio Preview: \(url.lastPathComponent)"
-                label.numberOfLines = 0
-                label.textAlignment = .center
-                label.textColor = .white
-                label.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-                containerView.addSubview(label)
-                
-                let player = AVPlayer(url: url)
-                player.play()
-                objc_setAssociatedObject(self, "audioPlayer", player, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-            } else {
-                let label = UILabel(frame: containerView.bounds)
-                label.text = "Preview: \(url.lastPathComponent)"
-                label.numberOfLines = 0
-                label.textAlignment = .center
-                label.textColor = .white
-                label.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-                containerView.addSubview(label)
-            }
-        }
-        
-        let bottomView = UIView(frame: CGRect(x: 0, y: self.view.frame.height - 80, width: self.view.frame.width, height: 80))
-        bottomView.autoresizingMask = [.flexibleWidth, .flexibleTopMargin]
-        bottomView.backgroundColor = UIColor(white: 0.1, alpha: 1.0)
-        self.view.addSubview(bottomView)
-        
-        let sendBtn = UIButton(type: .system)
-        sendBtn.setTitle("Send", for: .normal)
-        sendBtn.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
-        sendBtn.backgroundColor = UIColor(red: 34/255.0, green: 139/255.0, blue: 34/255.0, alpha: 1.0) // Green default
-        if let themeColor = UIColor(named: "ThemeColor") { sendBtn.backgroundColor = themeColor }
-        sendBtn.setTitleColor(.white, for: .normal)
-        sendBtn.frame = CGRect(x: 20, y: 15, width: self.view.frame.width - 40, height: 50)
-        sendBtn.autoresizingMask = [.flexibleWidth]
-        sendBtn.layer.cornerRadius = 8
-        sendBtn.addTarget(self, action: #selector(sendAction), for: .touchUpInside)
-        bottomView.addSubview(sendBtn)
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        imageView.sd_cancelCurrentImageLoad()
+        imageView.image = nil
     }
     
-    override func viewSafeAreaInsetsDidChange() {
-        super.viewSafeAreaInsetsDidChange()
-        if let navBar = self.view.subviews.first(where: { $0 is UINavigationBar }) {
-            navBar.frame = CGRect(x: 0, y: self.view.safeAreaInsets.top, width: self.view.frame.width, height: 44)
-            if self.view.subviews.count > 1 {
-                let container = self.view.subviews[1]
-                container.frame = CGRect(x: 0, y: self.view.safeAreaInsets.top + 44, width: self.view.frame.width, height: self.view.frame.height - 44 - 80 - self.view.safeAreaInsets.top - self.view.safeAreaInsets.bottom)
-            }
-        }
-        if let bottomView = self.view.subviews.last {
-            bottomView.frame.origin.y = self.view.frame.height - 80 - self.view.safeAreaInsets.bottom
-        }
+    func setImage(_ image: UIImage) {
+        imageView.image = image
     }
     
-    @objc func cancelAction() {
-        self.dismiss(animated: true) {
-            self.onCancel?()
-        }
-    }
-    
-    @objc func sendAction() {
-        self.dismiss(animated: true) {
-            self.onSend?()
+    func loadImage(urlString: String) {
+        let clean = urlString.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: " ", with: "%20")
+        if let url = URL(string: clean) {
+            imageView.sd_imageIndicator = SDWebImageActivityIndicator.whiteLarge
+            imageView.sd_setImage(with: url, placeholderImage: nil, options: [.progressiveLoad, .continueInBackground])
         }
     }
 }
+
+class MediaPreviewThumbCell: UICollectionViewCell {
+    let imageView = UIImageView()
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        imageView.layer.cornerRadius = 6
+        contentView.addSubview(imageView)
+        NSLayoutConstraint.activate([
+            imageView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            imageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
+        ])
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        imageView.sd_cancelCurrentImageLoad()
+        imageView.image = nil
+    }
+    
+    func setImage(_ image: UIImage) {
+        imageView.image = image
+    }
+    
+    func loadImage(urlString: String) {
+        let clean = urlString.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: " ", with: "%20")
+        if let url = URL(string: clean) {
+            imageView.sd_imageIndicator = SDWebImageActivityIndicator.gray
+            imageView.sd_setImage(with: url, placeholderImage: UIImage(named: "blurVideoIcon"), options: [.progressiveLoad, .continueInBackground])
+        }
+    }
+    
+    func setSelectedThumb(_ isSelected: Bool) {
+        if isSelected {
+            imageView.layer.borderWidth = 2.5
+            let borderCol = UIColor(named: "ThemeColor") ?? UIColor(red: 37/255.0, green: 211/255.0, blue: 102/255.0, alpha: 1.0)
+            imageView.layer.borderColor = borderCol.cgColor
+        } else {
+            imageView.layer.borderWidth = 0
+            imageView.layer.borderColor = nil
+        }
+    }
+}
+
+class MediaPreviewVC: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, PHPickerViewControllerDelegate {
+    var images: [UIImage] = []
+    var imageUrls: [String] = []
+    var isViewerMode: Bool = false
+    var image: UIImage? {
+        didSet {
+            if let img = image, images.isEmpty {
+                images = [img]
+            }
+        }
+    }
+    var fileURL: URL?
+    var onConfirmImages: (([UIImage]) -> Void)?
+    var onConfirm: (() -> Void)?
+    var onSend: (() -> Void)? {
+        get { return onConfirm }
+        set { onConfirm = newValue }
+    }
+    var onCancel: (() -> Void)?
+    
+    var currentIndex: Int = 0
+    private var mainCollectionView: UICollectionView?
+    private var thumbCollectionView: UICollectionView?
+    private let topBar = UIView()
+    private let titleCounterLabel = UILabel()
+    private let deleteBtn = UIButton(type: .system)
+    private let closeBtn = UIButton(type: .system)
+    private let addMoreBtn = UIButton(type: .system)
+    private let sendBtn = UIButton(type: .custom)
+    private let badgeLabel = UILabel()
+    private let bottomContainer = UIView()
+    private let maxPhotosLimit = 5
+    
+    // Legacy elements for single video/document preview
+    private let webView = WKWebView()
+    private var playerViewController: AVPlayerViewController?
+    
+    var totalCount: Int {
+        if !images.isEmpty {
+            return images.count
+        } else if !imageUrls.isEmpty {
+            return imageUrls.count
+        }
+        return 0
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .black
+        
+        if images.isEmpty, let img = image, img.size.height > 0 {
+            images = [img]
+        }
+        if images.count > maxPhotosLimit {
+            images = Array(images.prefix(maxPhotosLimit))
+        }
+        
+        if totalCount > 0 {
+            setupWhatsAppMultiPreviewUI()
+        } else {
+            setupLegacyPreviewUI()
+        }
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        if let flow = mainCollectionView?.collectionViewLayout as? UICollectionViewFlowLayout {
+            let size = mainCollectionView?.bounds.size ?? .zero
+            if size.width > 0 && size.height > 0 && flow.itemSize != size {
+                flow.itemSize = size
+                flow.invalidateLayout()
+            }
+        }
+    }
+    
+    private func setupWhatsAppMultiPreviewUI() {
+        // 1. Top Bar
+        topBar.translatesAutoresizingMaskIntoConstraints = false
+        topBar.backgroundColor = UIColor.black.withAlphaComponent(0.4)
+        view.addSubview(topBar)
+        
+        closeBtn.translatesAutoresizingMaskIntoConstraints = false
+        closeBtn.setImage(UIImage(systemName: "xmark")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 16, weight: .bold)), for: .normal)
+        closeBtn.tintColor = .white
+        closeBtn.backgroundColor = UIColor.white.withAlphaComponent(0.2)
+        closeBtn.layer.cornerRadius = 18
+        closeBtn.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
+        topBar.addSubview(closeBtn)
+        
+        titleCounterLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleCounterLabel.textColor = .white
+        titleCounterLabel.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        titleCounterLabel.textAlignment = .center
+        topBar.addSubview(titleCounterLabel)
+        
+        deleteBtn.translatesAutoresizingMaskIntoConstraints = false
+        deleteBtn.setImage(UIImage(systemName: "trash")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)), for: .normal)
+        deleteBtn.tintColor = .white
+        deleteBtn.backgroundColor = UIColor.white.withAlphaComponent(0.2)
+        deleteBtn.layer.cornerRadius = 18
+        deleteBtn.addTarget(self, action: #selector(deleteTapped), for: .touchUpInside)
+        topBar.addSubview(deleteBtn)
+        deleteBtn.isHidden = isViewerMode
+        
+        NSLayoutConstraint.activate([
+            topBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            topBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            topBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            topBar.heightAnchor.constraint(equalToConstant: 50),
+            
+            closeBtn.leadingAnchor.constraint(equalTo: topBar.leadingAnchor, constant: 16),
+            closeBtn.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
+            closeBtn.widthAnchor.constraint(equalToConstant: 36),
+            closeBtn.heightAnchor.constraint(equalToConstant: 36),
+            
+            titleCounterLabel.centerXAnchor.constraint(equalTo: topBar.centerXAnchor),
+            titleCounterLabel.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
+            
+            deleteBtn.trailingAnchor.constraint(equalTo: topBar.trailingAnchor, constant: -16),
+            deleteBtn.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
+            deleteBtn.widthAnchor.constraint(equalToConstant: 36),
+            deleteBtn.heightAnchor.constraint(equalToConstant: 36)
+        ])
+        
+        // 2. Bottom Container
+        bottomContainer.translatesAutoresizingMaskIntoConstraints = false
+        bottomContainer.backgroundColor = UIColor.black.withAlphaComponent(0.75)
+        view.addSubview(bottomContainer)
+        
+        addMoreBtn.translatesAutoresizingMaskIntoConstraints = false
+        addMoreBtn.setImage(UIImage(systemName: "plus")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 18, weight: .bold)), for: .normal)
+        addMoreBtn.tintColor = .white
+        addMoreBtn.backgroundColor = UIColor.white.withAlphaComponent(0.2)
+        addMoreBtn.layer.cornerRadius = 22
+        addMoreBtn.addTarget(self, action: #selector(addMoreTapped), for: .touchUpInside)
+        bottomContainer.addSubview(addMoreBtn)
+        addMoreBtn.isHidden = isViewerMode || images.count >= maxPhotosLimit
+        
+        let thumbLayout = UICollectionViewFlowLayout()
+        thumbLayout.scrollDirection = .horizontal
+        thumbLayout.itemSize = CGSize(width: 50, height: 50)
+        thumbLayout.minimumLineSpacing = 6
+        thumbLayout.minimumInteritemSpacing = 6
+        
+        let thumbCV = UICollectionView(frame: .zero, collectionViewLayout: thumbLayout)
+        thumbCV.translatesAutoresizingMaskIntoConstraints = false
+        thumbCV.backgroundColor = .clear
+        thumbCV.showsHorizontalScrollIndicator = false
+        thumbCV.dataSource = self
+        thumbCV.delegate = self
+        thumbCV.register(MediaPreviewThumbCell.self, forCellWithReuseIdentifier: "ThumbCell")
+        bottomContainer.addSubview(thumbCV)
+        self.thumbCollectionView = thumbCV
+        
+        sendBtn.translatesAutoresizingMaskIntoConstraints = false
+        sendBtn.backgroundColor = UIColor(named: "ThemeColor") ?? UIColor(red: 37/255.0, green: 211/255.0, blue: 102/255.0, alpha: 1.0)
+        sendBtn.layer.cornerRadius = 26
+        sendBtn.setImage(UIImage(systemName: "paperplane.fill")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 20, weight: .bold)), for: .normal)
+        sendBtn.tintColor = .white
+        sendBtn.addTarget(self, action: #selector(sendTapped), for: .touchUpInside)
+        bottomContainer.addSubview(sendBtn)
+        sendBtn.isHidden = isViewerMode
+        
+        badgeLabel.translatesAutoresizingMaskIntoConstraints = false
+        badgeLabel.backgroundColor = .white
+        badgeLabel.textColor = UIColor(named: "ThemeColor") ?? UIColor(red: 37/255.0, green: 211/255.0, blue: 102/255.0, alpha: 1.0)
+        badgeLabel.font = UIFont.systemFont(ofSize: 11, weight: .bold)
+        badgeLabel.textAlignment = .center
+        badgeLabel.layer.cornerRadius = 10
+        badgeLabel.clipsToBounds = true
+        bottomContainer.addSubview(badgeLabel)
+        badgeLabel.isHidden = isViewerMode
+        
+        if isViewerMode {
+            NSLayoutConstraint.activate([
+                bottomContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                bottomContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                bottomContainer.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+                bottomContainer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -80),
+                
+                thumbCV.leadingAnchor.constraint(equalTo: bottomContainer.leadingAnchor, constant: 16),
+                thumbCV.trailingAnchor.constraint(equalTo: bottomContainer.trailingAnchor, constant: -16),
+                thumbCV.topAnchor.constraint(equalTo: bottomContainer.topAnchor, constant: 12),
+                thumbCV.heightAnchor.constraint(equalToConstant: 52)
+            ])
+            if totalCount <= 1 {
+                bottomContainer.isHidden = true
+            }
+        } else {
+            NSLayoutConstraint.activate([
+                bottomContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                bottomContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                bottomContainer.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+                bottomContainer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -95),
+                
+                addMoreBtn.leadingAnchor.constraint(equalTo: bottomContainer.leadingAnchor, constant: 12),
+                addMoreBtn.topAnchor.constraint(equalTo: bottomContainer.topAnchor, constant: 14),
+                addMoreBtn.widthAnchor.constraint(equalToConstant: 44),
+                addMoreBtn.heightAnchor.constraint(equalToConstant: 44),
+                
+                sendBtn.trailingAnchor.constraint(equalTo: bottomContainer.trailingAnchor, constant: -14),
+                sendBtn.centerYAnchor.constraint(equalTo: addMoreBtn.centerYAnchor),
+                sendBtn.widthAnchor.constraint(equalToConstant: 52),
+                sendBtn.heightAnchor.constraint(equalToConstant: 52),
+                
+                badgeLabel.topAnchor.constraint(equalTo: sendBtn.topAnchor, constant: -4),
+                badgeLabel.trailingAnchor.constraint(equalTo: sendBtn.trailingAnchor, constant: 4),
+                badgeLabel.widthAnchor.constraint(equalToConstant: 20),
+                badgeLabel.heightAnchor.constraint(equalToConstant: 20),
+                
+                thumbCV.leadingAnchor.constraint(equalTo: addMoreBtn.trailingAnchor, constant: 8),
+                thumbCV.trailingAnchor.constraint(equalTo: sendBtn.leadingAnchor, constant: -10),
+                thumbCV.centerYAnchor.constraint(equalTo: addMoreBtn.centerYAnchor),
+                thumbCV.heightAnchor.constraint(equalToConstant: 52)
+            ])
+        }
+        
+        // 3. Main Center Pager
+        let mainLayout = UICollectionViewFlowLayout()
+        mainLayout.scrollDirection = .horizontal
+        mainLayout.minimumLineSpacing = 0
+        mainLayout.minimumInteritemSpacing = 0
+        
+        let mainCV = UICollectionView(frame: .zero, collectionViewLayout: mainLayout)
+        mainCV.translatesAutoresizingMaskIntoConstraints = false
+        mainCV.backgroundColor = .clear
+        mainCV.isPagingEnabled = true
+        mainCV.showsHorizontalScrollIndicator = false
+        mainCV.dataSource = self
+        mainCV.delegate = self
+        mainCV.register(MediaPreviewFullCell.self, forCellWithReuseIdentifier: "FullCell")
+        view.addSubview(mainCV)
+        self.mainCollectionView = mainCV
+        
+        let bottomAnchorToUse = (isViewerMode && totalCount <= 1) ? view.safeAreaLayoutGuide.bottomAnchor : bottomContainer.topAnchor
+        NSLayoutConstraint.activate([
+            mainCV.topAnchor.constraint(equalTo: topBar.bottomAnchor),
+            mainCV.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            mainCV.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            mainCV.bottomAnchor.constraint(equalTo: bottomAnchorToUse)
+        ])
+        
+        updateUIForCurrentIndex()
+        
+        if currentIndex > 0 && currentIndex < totalCount {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                self.mainCollectionView?.scrollToItem(at: IndexPath(item: self.currentIndex, section: 0), at: .centeredHorizontally, animated: false)
+                self.thumbCollectionView?.scrollToItem(at: IndexPath(item: self.currentIndex, section: 0), at: .centeredHorizontally, animated: false)
+            }
+        }
+    }
+    
+    private func updateUIForCurrentIndex() {
+        let count = totalCount
+        titleCounterLabel.text = "\(currentIndex + 1) of \(count)"
+        badgeLabel.text = "\(count)"
+    }
+    
+    // MARK: - Legacy Preview Setup (PDF, Audio & Video)
+    private func setupLegacyPreviewUI() {
+        let cancelBtn = UIButton(type: .system)
+        cancelBtn.setTitle("Cancel", for: .normal)
+        cancelBtn.setTitleColor(.white, for: .normal)
+        cancelBtn.backgroundColor = .systemRed
+        cancelBtn.layer.cornerRadius = 8
+        cancelBtn.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
+        
+        let sendBtn = UIButton(type: .system)
+        sendBtn.setTitle("Send", for: .normal)
+        sendBtn.setTitleColor(.white, for: .normal)
+        sendBtn.backgroundColor = UIColor(named: "ThemeColor") ?? .systemBlue
+        sendBtn.layer.cornerRadius = 8
+        sendBtn.addTarget(self, action: #selector(sendTapped), for: .touchUpInside)
+        
+        let stackView = UIStackView(arrangedSubviews: [cancelBtn, sendBtn])
+        stackView.axis = .horizontal
+        stackView.spacing = 20
+        stackView.distribution = .fillEqually
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stackView)
+        
+        let containerView = UIView()
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(containerView)
+        
+        NSLayoutConstraint.activate([
+            stackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            stackView.heightAnchor.constraint(equalToConstant: 50),
+            
+            containerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+            containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            containerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            containerView.bottomAnchor.constraint(equalTo: stackView.topAnchor, constant: -20)
+        ])
+        
+        if let url = fileURL {
+            let ext = url.pathExtension.lowercased()
+            if ext == "pdf" {
+                containerView.addSubview(webView)
+                webView.translatesAutoresizingMaskIntoConstraints = false
+                NSLayoutConstraint.activate([
+                    webView.topAnchor.constraint(equalTo: containerView.topAnchor),
+                    webView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+                    webView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+                    webView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor)
+                ])
+                webView.loadFileURL(url, allowingReadAccessTo: url)
+            } else if ["mp4", "mov", "m4v"].contains(ext) {
+                let player = AVPlayer(url: url)
+                let vc = AVPlayerViewController()
+                vc.player = player
+                addChild(vc)
+                containerView.addSubview(vc.view)
+                vc.view.translatesAutoresizingMaskIntoConstraints = false
+                NSLayoutConstraint.activate([
+                    vc.view.topAnchor.constraint(equalTo: containerView.topAnchor),
+                    vc.view.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+                    vc.view.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+                    vc.view.trailingAnchor.constraint(equalTo: containerView.trailingAnchor)
+                ])
+                vc.didMove(toParent: self)
+                self.playerViewController = vc
+            } else if ["mp3", "wav", "m4a", "aac"].contains(ext) {
+                let player = AVPlayer(url: url)
+                let vc = AVPlayerViewController()
+                vc.player = player
+                addChild(vc)
+                containerView.addSubview(vc.view)
+                vc.view.translatesAutoresizingMaskIntoConstraints = false
+                NSLayoutConstraint.activate([
+                    vc.view.topAnchor.constraint(equalTo: containerView.topAnchor),
+                    vc.view.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+                    vc.view.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+                    vc.view.trailingAnchor.constraint(equalTo: containerView.trailingAnchor)
+                ])
+                vc.didMove(toParent: self)
+                self.playerViewController = vc
+                player.play()
+            } else {
+                let label = UILabel()
+                label.text = "File: \(url.lastPathComponent)"
+                label.textColor = .white
+                label.textAlignment = .center
+                label.numberOfLines = 0
+                label.translatesAutoresizingMaskIntoConstraints = false
+                containerView.addSubview(label)
+                NSLayoutConstraint.activate([
+                    label.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
+                    label.centerYAnchor.constraint(equalTo: containerView.centerYAnchor)
+                ])
+            }
+        }
+    }
+    
+    // MARK: - Actions
+    @objc private func closeTapped() {
+        onCancel?()
+        dismiss(animated: true, completion: nil)
+    }
+    
+    @objc private func deleteTapped() {
+        guard !images.isEmpty, currentIndex < images.count else { return }
+        images.remove(at: currentIndex)
+        if images.isEmpty {
+            onCancel?()
+            dismiss(animated: true, completion: nil)
+            return
+        }
+        if currentIndex >= images.count {
+            currentIndex = images.count - 1
+        }
+        addMoreBtn.isHidden = isViewerMode || images.count >= maxPhotosLimit
+        updateUIForCurrentIndex()
+        mainCollectionView?.reloadData()
+        thumbCollectionView?.reloadData()
+        mainCollectionView?.layoutIfNeeded()
+        if currentIndex < images.count {
+            mainCollectionView?.scrollToItem(at: IndexPath(item: currentIndex, section: 0), at: .centeredHorizontally, animated: false)
+            thumbCollectionView?.scrollToItem(at: IndexPath(item: currentIndex, section: 0), at: .centeredHorizontally, animated: false)
+        }
+    }
+    
+    @objc private func addMoreTapped() {
+        let remaining = maxPhotosLimit - images.count
+        if remaining <= 0 {
+            showToast(message: "You can upload up to 5 photos at a time")
+            return
+        }
+        if #available(iOS 14.0, *) {
+            var config = PHPickerConfiguration(photoLibrary: .shared())
+            config.selectionLimit = remaining
+            config.filter = .images
+            let picker = PHPickerViewController(configuration: config)
+            picker.delegate = self
+            present(picker, animated: true, completion: nil)
+        }
+    }
+    
+    @available(iOS 14.0, *)
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        picker.dismiss(animated: true, completion: nil)
+        guard !results.isEmpty else { return }
+        
+        let remaining = max(0, maxPhotosLimit - images.count)
+        guard remaining > 0 else { return }
+        
+        let resultsToLoad = Array(results.prefix(remaining))
+        let group = DispatchGroup()
+        let serialQueue = DispatchQueue(label: "com.drlive.addmoreimages")
+        var orderedImages = [Int: UIImage]()
+        
+        for (index, result) in resultsToLoad.enumerated() {
+            if result.itemProvider.canLoadObject(ofClass: UIImage.self) {
+                group.enter()
+                result.itemProvider.loadObject(ofClass: UIImage.self) { (object, error) in
+                    if let image = object as? UIImage {
+                        serialQueue.sync {
+                            orderedImages[index] = image
+                        }
+                    }
+                    group.leave()
+                }
+            }
+        }
+        
+        group.notify(queue: .main) { [weak self] in
+            guard let self = self else { return }
+            let currentRemaining = max(0, self.maxPhotosLimit - self.images.count)
+            var addedCount = 0
+            for i in 0..<resultsToLoad.count {
+                if addedCount >= currentRemaining { break }
+                if let img = orderedImages[i] {
+                    self.images.append(img)
+                    addedCount += 1
+                }
+            }
+            self.addMoreBtn.isHidden = self.isViewerMode || self.images.count >= self.maxPhotosLimit
+            self.currentIndex = self.images.count - 1
+            self.updateUIForCurrentIndex()
+            self.mainCollectionView?.reloadData()
+            self.thumbCollectionView?.reloadData()
+            self.mainCollectionView?.layoutIfNeeded()
+            self.mainCollectionView?.scrollToItem(at: IndexPath(item: self.currentIndex, section: 0), at: .centeredHorizontally, animated: true)
+            self.thumbCollectionView?.scrollToItem(at: IndexPath(item: self.currentIndex, section: 0), at: .centeredHorizontally, animated: true)
+        }
+    }
+    
+    @objc private func sendTapped() {
+        if !images.isEmpty {
+            let finalImages = images.count > maxPhotosLimit ? Array(images.prefix(maxPhotosLimit)) : images
+            onConfirmImages?(finalImages)
+            onConfirm?()
+        } else {
+            onConfirm?()
+        }
+        dismiss(animated: true, completion: nil)
+    }
+    
+    // MARK: - UICollectionViewDataSource & Delegate
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return totalCount
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        if collectionView == mainCollectionView {
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "FullCell", for: indexPath) as! MediaPreviewFullCell
+            if !images.isEmpty && indexPath.item < images.count {
+                cell.setImage(images[indexPath.item])
+            } else if !imageUrls.isEmpty && indexPath.item < imageUrls.count {
+                cell.loadImage(urlString: imageUrls[indexPath.item])
+            }
+            return cell
+        } else {
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ThumbCell", for: indexPath) as! MediaPreviewThumbCell
+            if !images.isEmpty && indexPath.item < images.count {
+                cell.setImage(images[indexPath.item])
+            } else if !imageUrls.isEmpty && indexPath.item < imageUrls.count {
+                cell.loadImage(urlString: imageUrls[indexPath.item])
+            }
+            cell.setSelectedThumb(indexPath.item == currentIndex)
+            return cell
+        }
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        if collectionView == thumbCollectionView {
+            currentIndex = indexPath.item
+            updateUIForCurrentIndex()
+            thumbCollectionView?.reloadData()
+            mainCollectionView?.scrollToItem(at: IndexPath(item: currentIndex, section: 0), at: .centeredHorizontally, animated: true)
+        }
+    }
+    
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        if scrollView == mainCollectionView {
+            let width = max(1, scrollView.bounds.width)
+            let page = Int(round(scrollView.contentOffset.x / width))
+            if page >= 0 && page < totalCount && page != currentIndex {
+                currentIndex = page
+                updateUIForCurrentIndex()
+                thumbCollectionView?.reloadData()
+                thumbCollectionView?.scrollToItem(at: IndexPath(item: currentIndex, section: 0), at: .centeredHorizontally, animated: true)
+            }
+        }
+    }
+}
+
+typealias ChatMediaPreviewViewController = MediaPreviewVC
+

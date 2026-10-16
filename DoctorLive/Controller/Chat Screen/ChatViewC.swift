@@ -560,6 +560,8 @@ extension ChatViewC {
         self.chatTblVw.register(ChatVideoCallBadgeCell.self, forCellReuseIdentifier: "ChatVideoCallBadgeCell")
         self.chatTblVw.register(ChatNewBookingRequestCell.self, forCellReuseIdentifier: "ChatNewBookingRequestCell")
         self.chatTblVw.register(ChatDynamicStackCell.self, forCellReuseIdentifier: "ChatDynamicStackCell")
+        self.chatTblVw.register(ChatRightMultipleImageCell.self, forCellReuseIdentifier: "ChatRightMultipleImageCell")
+        self.chatTblVw.register(ChatLeftMultipleImageCell.self, forCellReuseIdentifier: "ChatLeftMultipleImageCell")
     }
     
     @IBAction func audioBtn_Action(_ sender: Any) {
@@ -622,65 +624,150 @@ extension ChatViewC {
     }
 
     @IBAction func cameraBtn_Action(_ sender: Any) {
-        VideoPickerManagerSwift().pickImage(self) { [weak self] image, url in
+        VideoPickerManagerSwift().pickImage(self, { [weak self] image, url in
             guard let self = self else { return }
-            self.dismiss(animated: true, completion: nil)
-            
-            let previewVC = ChatMediaPreviewViewController()
-            previewVC.image = image
-            previewVC.fileURL = url
+            self.dismiss(animated: true) {
+                let previewVC = MediaPreviewVC()
+                if image.size.height > 0 {
+                    previewVC.images = [image]
+                }
+                previewVC.fileURL = url
+                previewVC.modalPresentationStyle = .fullScreen
+                
+                previewVC.onConfirmImages = { [weak self] images in
+                    guard let self = self else { return }
+                    self.uploadAndSendMultipleImages(images: images)
+                }
+                
+                previewVC.onConfirm = { [weak self] in
+                    guard let self = self else { return }
+                    if image.size.height == 0.0 {
+                        self.handleNonImageAttachment(url: url)
+                    }
+                }
+                self.present(previewVC, animated: true, completion: nil)
+            }
+        }, multiImageCallback: { [weak self] images in
+            guard let self = self, !images.isEmpty else { return }
+            let previewVC = MediaPreviewVC()
+            previewVC.images = images.count > 5 ? Array(images.prefix(5)) : images
             previewVC.modalPresentationStyle = .fullScreen
             
-            previewVC.onSend = {
-                if image.size.height == 0.0 {
-                    
-                    let isAccessing = url.startAccessingSecurityScopedResource()
-                    defer {
-                        if isAccessing {
-                            url.stopAccessingSecurityScopedResource()
-                        }
-                    }
-                    if url.pathExtension.lowercased() == "pdf" {
-                        // PDF Document
-                        Indicator.shared.showProgressView(self.view)
-                        guard let fileData = try? Data(contentsOf: url) else {
-                            Indicator.shared.hideProgressView()
-                            self.showToast(message: "uploading error")
-                            return
-                        }
-                        let fileName = "chat_doc_\(Int(Date().timeIntervalSince1970)).pdf"
-                        self.uploadViaPresignedUrl(fileName: fileName, filetype: "application/pdf", fileData: fileData, contentType: "pdf") { result in
-                            self.handleMediaUploadResult(result: result, msgType: "pdf", successMessage: "pdf upload successfully")
-                        }
-                    } else {
-                        // Video
-                        let videoURL = self.createTemporaryURLforVideoFile(url: url as NSURL) as URL
-                        guard let fileData = try? Data(contentsOf: videoURL), !fileData.isEmpty else {
-                            self.showToast(message: "uploading error")
-                            return
-                        }
-                        let fileName = "chat_video_\(Int(Date().timeIntervalSince1970)).mp4"
-                        self.uploadViaPresignedUrl(fileName: fileName, filetype: "video/mp4", fileData: fileData, contentType: "video/mp4") { result in
-                            self.handleMediaUploadResult(result: result, msgType: "video", successMessage: "Video upload successfully")
-                        }
-                    }
-                } else {
-                    // Image
-                    guard let fileData = image.jpegData(compressionQuality: 0.75), !fileData.isEmpty else {
+            previewVC.onConfirmImages = { [weak self] selectedImages in
+                guard let self = self else { return }
+                self.uploadAndSendMultipleImages(images: selectedImages)
+            }
+            self.present(previewVC, animated: true, completion: nil)
+        })
+    }
+    
+    private func handleNonImageAttachment(url: URL) {
+        let isAccessing = url.startAccessingSecurityScopedResource()
+        defer {
+            if isAccessing {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+        if url.pathExtension.lowercased() == "pdf" {
+            // PDF Document
+            Indicator.shared.showProgressView(self.view)
+            guard let fileData = try? Data(contentsOf: url) else {
+                Indicator.shared.hideProgressView()
+                self.showToast(message: "uploading error")
+                return
+            }
+            let fileName = "chat_doc_\(Int(Date().timeIntervalSince1970)).pdf"
+            self.uploadViaPresignedUrl(fileName: fileName, filetype: "application/pdf", fileData: fileData, contentType: "pdf") { result in
+                self.handleMediaUploadResult(result: result, msgType: "pdf", successMessage: "pdf upload successfully")
+            }
+        } else {
+            // Video
+            let videoURL = self.createTemporaryURLforVideoFile(url: url as NSURL) as URL
+            guard let fileData = try? Data(contentsOf: videoURL), !fileData.isEmpty else {
+                self.showToast(message: "uploading error")
+                return
+            }
+            let fileName = "chat_video_\(Int(Date().timeIntervalSince1970)).mp4"
+            self.uploadViaPresignedUrl(fileName: fileName, filetype: "video/mp4", fileData: fileData, contentType: "video/mp4") { result in
+                self.handleMediaUploadResult(result: result, msgType: "video", successMessage: "Video upload successfully")
+            }
+        }
+    }
+    
+    func uploadChatFileViaPresignedUrl(fileData: Data, fileName: String, fileType: String, completion: @escaping (Swift.Result<String, Error>) -> Void) {
+        self.uploadViaPresignedUrl(fileName: fileName, filetype: fileType, fileData: fileData, contentType: fileType, completion: completion)
+    }
+    
+    private func uploadAndSendMultipleImages(images: [UIImage]) {
+        guard !images.isEmpty else { return }
+        let imagesToUpload = images.count > 5 ? Array(images.prefix(5)) : images
+        
+        Indicator.shared.showProgressView(self.view)
+        var uploadedUrls: [String] = []
+        
+        func uploadNext(at index: Int) {
+            if index >= imagesToUpload.count {
+                DispatchQueue.main.async {
+                    Indicator.shared.hideProgressView()
+                    guard !uploadedUrls.isEmpty else {
                         self.showToast(message: "uploading error")
                         return
                     }
-                    let fileName = "chat_img_\(Int(Date().timeIntervalSince1970)).jpg"
-                    self.uploadViaPresignedUrl(fileName: fileName, filetype: "image/jpeg", fileData: fileData, contentType: "image/jpeg") { result in
-                        self.handleMediaUploadResult(result: result, msgType: "image", successMessage: "Image upload successfully")
-                    }
+                    
+                    let isMultiple = uploadedUrls.count > 1
+                    let msgType = isMultiple ? "multiple" : "image"
+                    let joinedUrls = uploadedUrls.joined(separator: ",")
+                    
+                    self.emitChatMediaMessage(url: joinedUrls, type: msgType)
+                    self.chatData.append(ChatData(
+                        message: joinedUrls,
+                        time: Date.getDateStringWithDatee(DateFormat.exactTimeFormat1, date: Date()),
+                        msgType: msgType,
+                        recieverType: "sender",
+                        date: Date.getDateStringWithDatee(DateFormat.apiDate, date: Date())
+                    ))
+                    self.setUpChatData()
+                    self.chatTblVw.reloadData()
+                    self.setscrollPosition()
+                    let toastMsg = isMultiple ? "\(uploadedUrls.count) images sent successfully" : "Image upload successfully"
+                    self.showToast(message: toastMsg)
                 }
+                return
             }
             
-            // Present previewVC with a slight delay to ensure the dismiss completes
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                self.present(previewVC, animated: true, completion: nil)
+            let currentImage = imagesToUpload[index]
+            guard let fileData = currentImage.jpegData(compressionQuality: 0.8) else {
+                uploadNext(at: index + 1)
+                return
             }
+            
+            let fileName = "chat_image_\(Int(Date().timeIntervalSince1970))_\(index).jpg"
+            self.uploadChatFileViaPresignedUrl(fileData: fileData, fileName: fileName, fileType: "image/jpeg") { [weak self] result in
+                guard let self = self else { return }
+                switch result {
+                case .success(let publicUrl):
+                    uploadedUrls.append(publicUrl)
+                case .failure(let error):
+                    print("Failed to upload image \(index): \(error.localizedDescription)")
+                }
+                uploadNext(at: index + 1)
+            }
+        }
+        
+        uploadNext(at: 0)
+    }
+
+    private func emitChatMediaMessage(url: String, type: String) {
+        var param = [String: String]()
+        param["message"] = url
+        param["type"] = type
+        param["senderType"] = "doctor"
+        param["sender_id"] = self.senderId ?? EMPTY
+        param["reciver_id"] = self.recieverId ?? EMPTY
+        param["room_id"] = self.roomId ?? EMPTY
+        param["userName"] = self.patientName ?? EMPTY
+        SocketHelper.shared.emit(with: .message, param) { json in
+            print("json. from emit function.........\(json)")
         }
     }
 
@@ -741,21 +828,27 @@ extension ChatViewC {
                 guard status,
                       let signedUrlString = signedUrlString,
                       let uploadURL = URL(string: signedUrlString) else {
-                    DispatchQueue.main.async { Indicator.shared.hideProgressView() }
-                    completion(.failure(NSError(domain: "ChatViewC", code: -1, userInfo: [NSLocalizedDescriptionKey: data["message"].string ?? "Invalid signed URL"])))
+                    DispatchQueue.main.async {
+                        Indicator.shared.hideProgressView()
+                        completion(.failure(NSError(domain: "ChatViewC", code: -1, userInfo: [NSLocalizedDescriptionKey: data["message"].string ?? "Invalid signed URL"])))
+                    }
                     return
                 }
                 self?.uploadFileToPresignedUrl(fileData: fileData, uploadUrl: uploadURL, contentType: contentType) { uploadResult in
-                    switch uploadResult {
-                    case .success:
-                        completion(.success(publicUrl))
-                    case .failure(let error):
-                        completion(.failure(error))
+                    DispatchQueue.main.async {
+                        switch uploadResult {
+                        case .success:
+                            completion(.success(publicUrl))
+                        case .failure(let error):
+                            completion(.failure(error))
+                        }
                     }
                 }
             case .failure(let error):
-                DispatchQueue.main.async { Indicator.shared.hideProgressView() }
-                completion(.failure(error))
+                DispatchQueue.main.async {
+                    Indicator.shared.hideProgressView()
+                    completion(.failure(error))
+                }
             }
         }
     }

@@ -10,6 +10,7 @@ import UIKit
 import MobileCoreServices
 import AVKit
 import UniformTypeIdentifiers
+import PhotosUI
 
 class ImagePickerManagerSwift: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
@@ -159,23 +160,44 @@ extension UIViewController{
   }
 }
 
-class VideoPickerManagerSwift: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIDocumentPickerDelegate{
-    var picker = UIImagePickerController();
+class VideoPickerManagerSwift: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIDocumentPickerDelegate, PHPickerViewControllerDelegate {
+    var picker = UIImagePickerController()
     var viewController: UIViewController?
-    var pickImageCallback : ((UIImage, URL) -> ())?;
-    let alert:UIAlertController=UIAlertController(title: "Choose Option" , message: nil, preferredStyle: UIAlertController.Style.actionSheet)
+    var pickImageCallback : ((UIImage, URL) -> ())?
+    var pickMultipleImagesCallback: (([UIImage]) -> ())?
+    let alert: UIAlertController = UIAlertController(title: "Choose Option", message: nil, preferredStyle: UIAlertController.Style.actionSheet)
+    static var currentPicker: VideoPickerManagerSwift?
     
     override init(){
         
     }
     
-    func pickImage(_ viewController: UIViewController, _ callback: @escaping ((UIImage, URL) -> ())) {
-        pickImageCallback = callback;
-        self.viewController = viewController;
+    func pickImage(_ viewController: UIViewController, _ callback: @escaping ((UIImage, URL) -> ()), multiImageCallback: (([UIImage]) -> ())? = nil) {
+        VideoPickerManagerSwift.currentPicker = self
+        self.pickImageCallback = callback
+        self.pickMultipleImagesCallback = multiImageCallback
+        self.viewController = viewController
         self.openAttachmentSheet()
         alert.popoverPresentationController?.sourceView = self.viewController!.view
-//
-//        viewController.present(alert, animated: true, completion: nil)
+    }
+    
+    func pickMultipleImages(from viewController: UIViewController, maxSelection: Int = 5, completion: @escaping ([UIImage]) -> Void) {
+        VideoPickerManagerSwift.currentPicker = self
+        self.viewController = viewController
+        self.pickMultipleImagesCallback = completion
+        
+        if #available(iOS 14.0, *) {
+            var config = PHPickerConfiguration(photoLibrary: .shared())
+            config.selectionLimit = maxSelection
+            config.filter = .images
+            let phPicker = PHPickerViewController(configuration: config)
+            phPicker.delegate = self
+            viewController.present(phPicker, animated: true, completion: nil)
+        } else {
+            picker.sourceType = .photoLibrary
+            picker.delegate = self
+            viewController.present(picker, animated: true, completion: nil)
+        }
     }
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
@@ -189,11 +211,17 @@ class VideoPickerManagerSwift: NSObject, UIImagePickerControllerDelegate, UINavi
         }else if let mediaURL = info[UIImagePickerController.InfoKey.mediaURL] as? URL {
             media = mediaURL
         }
-        pickImageCallback?(image ?? UIImage(), media ?? URL(fileURLWithPath: EMPTY))
+        if let img = image, let multiCallback = self.pickMultipleImagesCallback {
+            multiCallback([img])
+        } else {
+            pickImageCallback?(image ?? UIImage(), media ?? URL(fileURLWithPath: EMPTY))
+        }
+        VideoPickerManagerSwift.currentPicker = nil
     }
     
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
         picker.dismiss(animated: true, completion: nil)
+        VideoPickerManagerSwift.currentPicker = nil
     }
     
     func openAttachmentSheet()
@@ -287,9 +315,68 @@ class VideoPickerManagerSwift: NSObject, UIImagePickerControllerDelegate, UINavi
     }
     
     func openPhotoGallery() {
-        picker.sourceType = UIImagePickerController.SourceType.photoLibrary
-        viewController?.present(picker, animated: true, completion: nil)
+        if #available(iOS 14.0, *) {
+            var config = PHPickerConfiguration(photoLibrary: .shared())
+            // Allow up to 5 photos if multi-image callback is present, otherwise 1
+            config.selectionLimit = (self.pickMultipleImagesCallback != nil) ? 5 : 1
+            config.filter = .images
+            let phPicker = PHPickerViewController(configuration: config)
+            phPicker.delegate = self
+            viewController?.present(phPicker, animated: true, completion: nil)
+        } else {
+            picker.sourceType = UIImagePickerController.SourceType.photoLibrary
+            viewController?.present(picker, animated: true, completion: nil)
+        }
+    }
+    
+    @available(iOS 14.0, *)
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        picker.dismiss(animated: true, completion: nil)
+        guard !results.isEmpty else {
+            VideoPickerManagerSwift.currentPicker = nil
+            return
+        }
         
+        let limit = self.pickMultipleImagesCallback != nil ? 5 : 1
+        let resultsToLoad = Array(results.prefix(limit))
+        let group = DispatchGroup()
+        let serialQueue = DispatchQueue(label: "com.drlive.imagepicker")
+        var orderedImages = [Int: UIImage]()
+        
+        for (index, result) in resultsToLoad.enumerated() {
+            if result.itemProvider.canLoadObject(ofClass: UIImage.self) {
+                group.enter()
+                result.itemProvider.loadObject(ofClass: UIImage.self) { (object, error) in
+                    if let image = object as? UIImage {
+                        serialQueue.sync {
+                            orderedImages[index] = image
+                        }
+                    }
+                    group.leave()
+                }
+            }
+        }
+        
+        group.notify(queue: .main) { [weak self] in
+            guard let self = self else { return }
+            var loadedImages: [UIImage] = []
+            for i in 0..<resultsToLoad.count {
+                if let img = orderedImages[i] {
+                    loadedImages.append(img)
+                    if loadedImages.count >= limit {
+                        break
+                    }
+                }
+            }
+            if !loadedImages.isEmpty {
+                if let multiCallback = self.pickMultipleImagesCallback {
+                    multiCallback(loadedImages)
+                } else if let firstImg = loadedImages.first {
+                    self.pickImageCallback?(firstImg, URL(fileURLWithPath: EMPTY))
+                }
+            }
+            VideoPickerManagerSwift.currentPicker = nil
+        }
     }
     
     func openVideoGalllery(){

@@ -114,6 +114,7 @@ extension LoginVC {
                 self.userDefault.synchronize()
                 let view = UIStoryboard.init(name: "Auth", bundle: nil)
                 let vc = view.instantiateViewController(withIdentifier: "OTPPopUp") as! OTPPopUp
+                vc.verificationId = verifyId
                 vc.isLogin = true
                 vc.phoneNum = self.txtPhone.text
                 vc.countryCode = self.countryCodeNum

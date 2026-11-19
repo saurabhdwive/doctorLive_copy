@@ -26,6 +26,7 @@ class OTPPopUp: ParentViewController, UITextFieldDelegate, AnimationProviding {
     @IBOutlet weak var textField6: UITextField!
     @IBOutlet weak var textField5: UITextField!
     @IBOutlet weak var popView: UIView!
+    var verificationId: String?
     var attachmentType = String()
     var forgetPass: Bool?
     var phoneNum: String?
@@ -79,18 +80,17 @@ class OTPPopUp: ParentViewController, UITextFieldDelegate, AnimationProviding {
         popView.addGestureRecognizer(tapGesture)
         mainView.layer.cornerRadius = 25
         setupUI()
-        textField1.delegate = self
-        textField2.delegate = self
-        textField3.delegate = self
-        textField4.delegate = self
-        textField5.delegate = self
-        textField6.delegate = self
-        textField1.addTarget(self, action: #selector(self.textFieldDidChange(textField:)), for: UIControl.Event.editingChanged)
-        textField2.addTarget(self, action: #selector(self.textFieldDidChange(textField:)), for: UIControl.Event.editingChanged)
-        textField3.addTarget(self, action: #selector(self.textFieldDidChange(textField:)), for: UIControl.Event.editingChanged)
-        textField4.addTarget(self, action: #selector(self.textFieldDidChange(textField:)), for: UIControl.Event.editingChanged)
-        textField5.addTarget(self, action: #selector(self.textFieldDidChange(textField:)), for: UIControl.Event.editingChanged)
-        textField6.addTarget(self, action: #selector(self.textFieldDidChange(textField:)), for: UIControl.Event.editingChanged)
+        
+        let textFields = [textField1, textField2, textField3, textField4, textField5, textField6]
+        for (index, tf) in textFields.enumerated() {
+            tf?.delegate = self
+            tf?.keyboardType = .numberPad
+            if #available(iOS 12.0, *) {
+                tf?.textContentType = .oneTimeCode
+            }
+            tf?.tag = index + 1
+            tf?.addTarget(self, action: #selector(self.textFieldDidChange(textField:)), for: UIControl.Event.editingChanged)
+        }
     }
     
     @objc func superViewTapped(sender: UITapGestureRecognizer) {
@@ -100,48 +100,70 @@ class OTPPopUp: ParentViewController, UITextFieldDelegate, AnimationProviding {
             self.dismiss(animated: true, completion: nil)
         }
     }
-    @objc func textFieldDidChange(textField: UITextField){
-            let text = textField.text
-            if  text?.count == 1 {
-                switch textField{
-                case textField1:
-                    textField2.becomeFirstResponder()
-                case textField2:
-                    textField3.becomeFirstResponder()
-                case textField3:
-                    textField4.becomeFirstResponder()
-                case textField4:
-                    textField5.becomeFirstResponder()
-                case textField5:
-                    textField6.becomeFirstResponder()
-                case textField6:
+
+    @objc func textFieldDidChange(textField: UITextField) {
+        guard let text = textField.text else { return }
+        let fields = [textField1, textField2, textField3, textField4, textField5, textField6]
+        
+        // Handle paste or auto-fill where full code (or multiple digits) is inserted
+        if text.count > 1 {
+            let digits = text.filter { $0.isNumber }
+            let chars = Array(digits)
+            
+            if let currentIndex = fields.firstIndex(of: textField) {
+                for i in 0..<chars.count {
+                    let targetIndex = currentIndex + i
+                    if targetIndex < fields.count {
+                        fields[targetIndex]?.text = String(chars[i])
+                    }
+                }
+                let nextFocusIndex = min(currentIndex + chars.count, fields.count - 1)
+                fields[nextFocusIndex]?.becomeFirstResponder()
+                if currentIndex + chars.count >= fields.count {
                     textField6.resignFirstResponder()
-                default:
-                    break
                 }
             }
-            if  text?.count == 0 {
-                switch textField{
-                case textField1:
-                    textField1.becomeFirstResponder()
-                case textField2:
-                    textField1.becomeFirstResponder()
-                case textField3:
-                    textField2.becomeFirstResponder()
-                case textField4:
-                    textField3.becomeFirstResponder()
-                case textField5:
-                    textField4.becomeFirstResponder()
-                case textField6:
-                    textField5.becomeFirstResponder()
-                default:
-                    break
-                }
+            return
+        }
+        
+        if text.count == 1 {
+            switch textField {
+            case textField1: textField2.becomeFirstResponder()
+            case textField2: textField3.becomeFirstResponder()
+            case textField3: textField4.becomeFirstResponder()
+            case textField4: textField5.becomeFirstResponder()
+            case textField5: textField6.becomeFirstResponder()
+            case textField6: textField6.resignFirstResponder()
+            default: break
             }
-            else{
-       print("err")
+        } else if text.count == 0 {
+            switch textField {
+            case textField2: textField1.becomeFirstResponder()
+            case textField3: textField2.becomeFirstResponder()
+            case textField4: textField3.becomeFirstResponder()
+            case textField5: textField4.becomeFirstResponder()
+            case textField6: textField5.becomeFirstResponder()
+            default: break
             }
         }
+    }
+
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        if string.isEmpty { return true }
+        let allowedCharacters = CharacterSet.decimalDigits
+        let characterSet = CharacterSet(charactersIn: string)
+        guard allowedCharacters.isSuperset(of: characterSet) else { return false }
+        
+        // If pasting multiple digits, let textFieldDidChange handle distributing them
+        if string.count > 1 {
+            return true
+        }
+        
+        let currentText = textField.text ?? ""
+        guard let stringRange = Range(range, in: currentText) else { return false }
+        let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
+        return updatedText.count <= 1
+    }
 
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         self.view.endEditing(true)
@@ -185,19 +207,61 @@ class OTPPopUp: ParentViewController, UITextFieldDelegate, AnimationProviding {
     }
     
     @IBAction func btnResendPressed(_ sender: UIButton) {
-        loaderWithText(massege: "Sending OTP...".localized())
-        guard let countryCode =  UserDefaults.standard.string(forKey: Constants.countryCode) else {return}
-        guard let number =  UserDefaults.standard.string(forKey: Constants.mobileNo) else {return}
-        let num = "\(countryCode)\(number)"
-        PhoneAuthProvider.provider().verifyPhoneNumber(num, uiDelegate: nil) { (verificationID, error) in
-            if error == nil {
-                self.dismiss(animated: true, completion: nil)
-            } else {
-                LoaderController.sharedInstance.removeLoader()
-                self.dismiss(animated: true, completion: nil)
+        guard let countryCode = (self.countryCode ?? UserDefaults.standard.string(forKey: Constants.countryCode)) else { return }
+        guard let number = (self.phoneNum ?? UserDefaults.standard.string(forKey: Constants.mobileNo)) else { return }
+        
+        var cleanCountry = countryCode.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !cleanCountry.hasPrefix("+") {
+            cleanCountry = "+" + cleanCountry
+        }
+        var cleanNumber = number.trimmingCharacters(in: .whitespacesAndNewlines)
+        if cleanNumber.hasPrefix("0") {
+            cleanNumber = String(cleanNumber.dropFirst())
+        }
+        let fullNumber = cleanNumber.hasPrefix("+") ? cleanNumber : "\(cleanCountry)\(cleanNumber)"
+        
+        Indicator.shared.showProgressView(self.view)
+        btnResend.isUserInteractionEnabled = false
+        
+        PhoneAuthProvider.provider().verifyPhoneNumber(fullNumber, uiDelegate: nil) { [weak self] (verificationID, error) in
+            guard let self = self else { return }
+            Indicator.shared.hideProgressView()
+            self.btnResend.isUserInteractionEnabled = true
+            
+            if let error = error {
+                Utils().displayAlert(title: "", message: error.localizedDescription, viewController: self)
+                return
             }
-         }
-     }
+            
+            guard let newVerificationId = verificationID else {
+                Utils().displayAlert(title: "", message: "Failed to resend OTP. Please try again.".localized(), viewController: self)
+                return
+            }
+            
+            self.verificationId = newVerificationId
+            UserDefaults.standard.set(newVerificationId, forKey: "verificationId")
+            UserDefaults.standard.set(newVerificationId, forKey: Constants.verificationId)
+            UserDefaults.standard.synchronize()
+            
+            self.textField1.text = ""
+            self.textField2.text = ""
+            self.textField3.text = ""
+            self.textField4.text = ""
+            self.textField5.text = ""
+            self.textField6.text = ""
+            self.textField1.becomeFirstResponder()
+            
+            self.timer.invalidate()
+            self.totalSecond = 60
+            self.timerLable.text = self.timeString(time: TimeInterval(self.totalSecond))
+            self.timerLable.isHidden = false
+            self.btnResend.isHidden = true
+            self.startTimer()
+            
+//            AppToast.showMessage("OTP resent successfully".localized())
+            AppToast.showMessage(message: "OTP resent successfully".localized())
+        }
+    }
     
     func startTimer() {
         self.timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(updateTime), userInfo: nil, repeats: true)
@@ -241,21 +305,18 @@ extension OTPPopUp {
     }
     
     func validations() {
-        if self.textField1.text?.isEmpty ?? false {
+        let text1 = textField1.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let text2 = textField2.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let text3 = textField3.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let text4 = textField4.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let text5 = textField5.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let text6 = textField6.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        
+        if text1.isEmpty || text2.isEmpty || text3.isEmpty || text4.isEmpty || text5.isEmpty || text6.isEmpty {
             AppToast.showMessage1(message: "Please Enter OTP First".localized(), self)
-        } else if self.textField2.text?.isEmpty ?? false {
-            AppToast.showMessage1(message: "Please Enter OTP First".localized(), self)
-        } else if self.textField3.text?.isEmpty ?? false {
-            AppToast.showMessage1(message: "Please Enter OTP First".localized(), self)
-        } else if self.textField4.text?.isEmpty ?? false {
-            AppToast.showMessage1(message: "Please Enter OTP First".localized(), self)
-        } else if self.textField5.text?.isEmpty ?? false {
-            AppToast.showMessage1(message: "Please Enter OTP First".localized(), self)
-        } else if self.textField6.text?.isEmpty ?? false {
-            AppToast.showMessage1(message: "Please Enter OTP First".localized(), self)
-        } else {
-            performOtpVerification()
+            return
         }
+        performOtpVerification()
     }
     
     func handleResponse(model: SignUpModel){
@@ -267,82 +328,56 @@ extension OTPPopUp {
             UserDefaults.standard.set(token, forKey: Constants.accessToken)
             UserDefaults.standard.set(userId, forKey: Constants.userId)
            
-            //dismiss(animated: true, completion: nil)
             self.Otp1CallBack?()
-            //            let appDel = UIApplication.shared.delegate as! AppDelegate
-            //            _ = appDel.initHome()
-            //            let view = UIStoryboard.init(name: "Auth", bundle: nil)
-            //            let vc = view.instantiateViewController(withIdentifier: "CompleteProfileVC") as! CompleteProfileVC
-            //            let completeProfile = true
-            //            UserDefaults.standard.set(completeProfile, forKey: Constants.isSignup)
-            //            self.navigationController?.pushViewController(vc, animated: true)
-            // vc.modalPresentationStyle = .overFullScreen
-            //self.present(vc, animated: true, completion: nil)
         } else {
             AppToast.showMessage(message: model.message ?? "")
         }
     }
     
     func performOtpVerification() {
-        guard let text1 = textField1.text else { return }
-        guard let text2 = textField2.text else { return }
-        guard let text3 = textField3.text else { return }
-        guard let text4 = textField4.text else { return }
-        guard let text5 = textField5.text else { return }
-        guard let text6 = textField6.text else { return }
+        let text1 = textField1.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let text2 = textField2.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let text3 = textField3.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let text4 = textField4.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let text5 = textField5.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let text6 = textField6.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let fullOTP = "\(text1)\(text2)\(text3)\(text4)\(text5)\(text6)"
-        print(fullOTP)
-        guard let verificationId = UserDefaults.standard.string(forKey: "verificationId") else { return }
+        print("Verifying OTP: \(fullOTP)")
+        
+        let verifyId = self.verificationId ?? UserDefaults.standard.string(forKey: "verificationId") ?? UserDefaults.standard.string(forKey: Constants.verificationId) ?? ""
+        guard !verifyId.isEmpty else {
+            Utils().displayAlert(title: "", message: "Verification session missing. Please tap Resend to get a new OTP.".localized(), viewController: self)
+            return
+        }
+        
+        Indicator.shared.showProgressView(self.view)
+        btnVerify.isUserInteractionEnabled = false
+        
         let credential = PhoneAuthProvider.provider().credential(
-            withVerificationID: verificationId, verificationCode: fullOTP)
-        Auth.auth().signIn(with: credential) { [self] (success, error) in
-            if error == nil {
-                if forgetPass == true {
-                    self.OtpCallBack?()
+            withVerificationID: verifyId, verificationCode: fullOTP)
+        Auth.auth().signIn(with: credential) { [weak self] (success, error) in
+            guard let self = self else { return }
+            Indicator.shared.hideProgressView()
+            self.btnVerify.isUserInteractionEnabled = true
+            
+            if let error = error {
+                let nsError = error as NSError
+                let errorMessage: String
+                if nsError.code == 17044 { // FIRAuthErrorCodeInvalidVerificationCode
+                    errorMessage = "Please enter a valid Otp".localized()
+                } else if nsError.code == 17025 || nsError.code == 17052 { // session / code expired
+                    errorMessage = "The OTP has expired. Please tap Resend to get a new code.".localized()
                 } else {
-                    updatePractitionerServices()
-//                    var parameter = [String: String]()
-//                    guard let mobileNumber = phoneNum else { return }
-//                    guard let countryCode = countryCode?.chopPrefix() else { return }
-//                    guard let name = name else { return }
-//                    guard let email = email else { return }
-//                    guard let password = password else { return }
-//                    guard let confirmPassword = confirmPass else { return }
-//                    guard let dob = dob else { return }
-//                    guard let gender = gender else { return }
-//                    guard let address = adress else { return }
-//                    guard let addressLatitude = adressLat else { return }
-//                    guard let addressLongitude = adressLong else { return }
-//                    let deviceToken = UserDefaults.standard.string(forKey: Constants.deviceId)
-//                    guard let passportNum = passportNum else { return }
-//                    guard let passportImage = passportImage else { return }
-//                    guard let registrationNum = documentNum else { return }
-//                    guard let registrationImage = documnetImage else {return}
-//                    guard let code = UserDefaults.standard.string(forKey: Constants.languageCode) else { return }
-//                    parameter = ["language_type": code,
-//                                 "signup_type": "normal",
-//                                 "name": name,
-//                                 "email": email,
-//                                 "country_code": countryCode,
-//                                 "mobile": mobileNumber,
-//                                 "password": password,
-//                                 "confirm_password": confirmPassword,
-//                                 "dob":dob,
-//                                 "gender": gender,
-//                                 "address": address,
-//                                 "latitude": addressLatitude,
-//                                 "longitude": addressLongitude,
-//                                 "device_type": "ios",
-//                                 "device_token": "\(deviceToken ?? "")",
-//                                 "passport_num": passportNum,
-//                                 "passport_image": "\(passportImage)",
-//                                 "registration_num": registrationNum,
-//                                 "registration_image":"\(registrationImage)"]
-//                    performSignUp(param: parameter)
-                  //  print("User sign in.....\(parameter)")
+                    errorMessage = error.localizedDescription
                 }
+                Utils().displayAlert(title: "", message: errorMessage, viewController: self)
+                return
+            }
+            
+            if self.forgetPass == true {
+                self.OtpCallBack?()
             } else {
-                Utils().displayAlert(title: "", message: "Please enter a valid Otp".localized(), viewController: self)
+                self.updatePractitionerServices()
             }
         }
     }
@@ -358,14 +393,14 @@ extension OTPPopUp {
         guard let dob = dob else { return }
         guard let gender = gender else { return }
         guard let address = adress else { return }
-        guard let addressLatitude = adressLat else { return }
-        guard let addressLongitude = adressLong else { return }
-        let deviceToken = UserDefaults.standard.string(forKey: Constants.deviceId)
+        let addressLatitude = adressLat  ?? "0.0"
+        let addressLongitude = adressLong ?? "0.0"
+        let deviceToken = UserDefaults.standard.string(forKey: Constants.deviceId) ?? "ios_device_token"
         guard let passportNum = passportNum else { return }
         guard let passportImage = passportImage else { return }
         guard let registrationNum = documentNum else { return }
         guard let registrationImage = documnetImage else {return}
-        guard let code = UserDefaults.standard.string(forKey: Constants.languageCode) else { return }
+        let code = UserDefaults.standard.string(forKey: Constants.languageCode) ?? "en"
        
         parameter = ["language_type": code,
                      "signup_type": "normal",
@@ -381,13 +416,10 @@ extension OTPPopUp {
                      "latitude": addressLatitude,
                      "longitude": addressLongitude,
                      "device_type": "ios",
-                     "device_token": "\(deviceToken ?? "")",
+                     "device_token": "\(deviceToken)",
                      "passport_num": passportNum,
                      "registration_num": registrationNum]
        
-       
-        //let header = AppNetworking.getFinalHeaders(header : [:])
-        
         var imageNames : [String] = []
         var imageDataArr : [NSData] = []
         var fileName : [String] = []
@@ -421,16 +453,23 @@ extension OTPPopUp {
                 }
                 if let jsonData = try? JSONDecoder().decode(SignUpModel.self, from: data) {
                     print(".......\(jsonData)")
-                    let token = jsonData.signup?.token
-                    let userId = jsonData.signup?.id
-                    UserDefaults.standard.set(token, forKey: Constants.accessToken)
-                    UserDefaults.standard.set(userId, forKey: Constants.userId)
-                   self.Otp1CallBack?()
+                    if jsonData.status == "SUCCESS" {
+                        let token = jsonData.signup?.token
+                        let userId = jsonData.signup?.id
+                        UserDefaults.standard.set(token, forKey: Constants.accessToken)
+                        UserDefaults.standard.set(userId, forKey: Constants.userId)
+                        self.Otp1CallBack?()
+                    } else {
+                        AppToast.showMessage(message: jsonData.message ?? "Registration failed".localized())
+                    }
+                } else {
+                    AppToast.showMessage(message: "Failed to process registration response.".localized())
                 }
                 break
 
             case .failure(let error):
                 print(error.localizedDescription)
+                AppToast.showMessage(message: error.localizedDescription)
                 break
             }
         }
@@ -507,37 +546,46 @@ extension OTPPopUp {
     }
     
     func performLoginWithOtpVerification() {
-        guard let text1 = textField1.text else { return }
-        guard let text2 = textField2.text else { return }
-        guard let text3 = textField3.text else { return }
-        guard let text4 = textField4.text else { return }
-        guard let text5 = textField5.text else { return }
-        guard let text6 = textField6.text else { return }
+        let text1 = textField1.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let text2 = textField2.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let text3 = textField3.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let text4 = textField4.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let text5 = textField5.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let text6 = textField6.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let fullOTP = "\(text1)\(text2)\(text3)\(text4)\(text5)\(text6)"
-        print(fullOTP)
-        guard let verificationId = UserDefaults.standard.string(forKey: "verificationId") else { return }
+        print("Login with OTP: \(fullOTP)")
+        let verifyId = self.verificationId ?? UserDefaults.standard.string(forKey: "verificationId") ?? UserDefaults.standard.string(forKey: Constants.verificationId) ?? ""
+        guard !verifyId.isEmpty else {
+            Utils().displayAlert(title: "", message: "Verification session missing. Please tap Resend to get a new OTP.".localized(), viewController: self)
+            return
+        }
+        Indicator.shared.showProgressView(self.view)
+        btnVerify.isUserInteractionEnabled = false
         let credential = PhoneAuthProvider.provider().credential(
-            withVerificationID: verificationId, verificationCode: fullOTP)
-        Auth.auth().signIn(with: credential) { [self] (success, error) in
+            withVerificationID: verifyId, verificationCode: fullOTP)
+        Auth.auth().signIn(with: credential) { [weak self] (success, error) in
+            guard let self = self else { return }
+            Indicator.shared.hideProgressView()
+            self.btnVerify.isUserInteractionEnabled = true
             if error == nil {
-                if forgetPass == true {
+                if self.forgetPass == true {
                     self.OtpCallBack?()
                 } else {
                     var parameter = [String: String]()
-                    guard let mobileNumber = phoneNum else { return }
-                    guard let countryCode = countryCode?.chopPrefix() else { return }
+                    guard let mobileNumber = self.phoneNum else { return }
+                    guard let countryCode = self.countryCode?.chopPrefix() else { return }
                     
                     let deviceToken = UserDefaults.standard.string(forKey: Constants.deviceId)
                    
-                    guard let code = UserDefaults.standard.string(forKey: Constants.languageCode) else { return }
+                    let code = UserDefaults.standard.string(forKey: Constants.languageCode) ?? "en"
                     parameter = ["language_type": code,
                                  "country_code": countryCode,
                                  "mobile": mobileNumber,
                                  "device_token": deviceToken ?? "",
                                  "device_type": "ios",
-                                 "latitude": "\(lattitude)",
-                                 "longitude": "\(longitude)"]
-                    performLoginWithOtp(param: parameter)
+                                 "latitude": "\(self.lattitude)",
+                                 "longitude": "\(self.longitude)"]
+                    self.performLoginWithOtp(param: parameter)
                     print("User sign in.....\(parameter)")
                 }
             } else {

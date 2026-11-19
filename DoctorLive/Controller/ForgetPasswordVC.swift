@@ -90,12 +90,20 @@ class ForgetPasswordVC: UIViewController, ADCountryPickerDelegate, UITextFieldDe
         defaults.synchronize()
         Auth.auth().settings?.isAppVerificationDisabledForTesting = false
         PhoneAuthProvider.provider().verifyPhoneNumber(number , uiDelegate: nil, completion: {verificationId, error in
-            guard let verification = verificationId else { return }
+            if let error = error {
+                Utils().displayAlert(title: "", message: error.localizedDescription, viewController: self)
+                return
+            }
+            guard let verification = verificationId else {
+                Utils().displayAlert(title: "", message: "Failed to obtain verification ID", viewController: self)
+                return
+            }
             UserDefaults.standard.setValue(verification, forKey: "verificationId")
-                if (error == nil){
-                     let view = UIStoryboard.init(name: "Auth", bundle: nil)
-                     let vc = view.instantiateViewController(withIdentifier: "OTPPopUp") as! OTPPopUp
-                     vc.forgetPass = true
+            UserDefaults.standard.setValue(verification, forKey: Constants.verificationId)
+            let view = UIStoryboard.init(name: "Auth", bundle: nil)
+            let vc = view.instantiateViewController(withIdentifier: "OTPPopUp") as! OTPPopUp
+            vc.verificationId = verification
+            vc.forgetPass = true
                      vc.phoneNum = self.txtPhoneNo.text
                      vc.countryCode = self.countryCodeNum
                      vc.isCameFrom = "ForgetPasswordVC"
@@ -109,9 +117,9 @@ class ForgetPasswordVC: UIViewController, ADCountryPickerDelegate, UITextFieldDe
                          self.navigationController?.pushViewController(vc, animated: true)
                      }
                      self.present(vc, animated: true, completion: nil)
-                }else {
-                    Utils().displayAlert(title: "", message: error?.localizedDescription ?? "", viewController: self)
-                }
+//                }else {
+//                    Utils().displayAlert(title: "", message: error?.localizedDescription ?? "", viewController: self)
+//                }
             })
         }
     }

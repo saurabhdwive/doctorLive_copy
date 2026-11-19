@@ -7,6 +7,7 @@
 
 import UIKit
 import KYDrawerController
+import FirebaseAuth // <--- 1. Add this
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate{
@@ -24,10 +25,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate{
         self.setUpViews()
         application.registerForRemoteNotifications()
         pushNotification = PushNotification(application: application)
+//        #if targetEnvironment(simulator)
+//        Auth.auth().settings?.isAppVerificationDisabledForTesting = true
+//        #endif
         USER_DEFAULTS.set(false, forKey: PUSHUD.chatNotification)
         Thread.sleep(forTimeInterval: 3)
         return true
     }
+
+//        func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+//        if Auth.auth().canHandle(url) {
+//            return true
+//        }
+//        return false
+//    }
+
     
     func applicationWillEnterForeground(_ application: UIApplication) {
         print("applicationWillEnterForeground")

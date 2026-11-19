@@ -72,6 +72,7 @@ class SignUpVc: ParentViewController, UIImagePickerControllerDelegate, UINavigat
     var bmdcImageData: UIImage?
     var picker = ADCountryPicker()
     private let userDefault = UserDefaults.standard
+    private var isSigningUp = false
     override func viewDidLoad() {
         super.viewDidLoad()
         txtDob.delegate = self
@@ -324,55 +325,85 @@ class SignUpVc: ParentViewController, UIImagePickerControllerDelegate, UINavigat
 
 extension SignUpVc {
     func performPhoneAuthentication() {
-        guard let numbers = self.txtPhoneNo.text else { return }
-        guard let country = self.countryCodeNum else { return }
-        let number = "\(country)\(numbers )"
+        guard let numbers = self.txtPhoneNo.text?.trimmingCharacters(in: .whitespacesAndNewlines), !numbers.isEmpty else {
+            Indicator.shared.hideProgressView()
+            self.btnSignUp.isUserInteractionEnabled = true
+            self.isSigningUp = false
+            return
+        }
+        var country = self.countryCodeNum?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if country.isEmpty {
+            country = self.txtCountryCode.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "+880"
+        }
+        if !country.hasPrefix("+") {
+            country = "+" + country
+        }
+        
+        // Remove leading 0 if prepending country code (e.g. +880 + 017... -> +88017...)
+        var cleanNumber = numbers
+        if cleanNumber.hasPrefix("0") {
+            cleanNumber = String(cleanNumber.dropFirst())
+        }
+        let fullPhoneNumber = cleanNumber.hasPrefix("+") ? cleanNumber : "\(country)\(cleanNumber)"
+        
         let defaults = UserDefaults.standard
         defaults.set(country, forKey: Constants.countryCode)
         defaults.set(numbers, forKey: Constants.mobileNo)
         defaults.synchronize()
-        PhoneAuthProvider.provider().verifyPhoneNumber(number, uiDelegate: nil) { (verificationId, error) in
-            // HUD.hide()
-            if error == nil {
-                guard let verifyId = verificationId else {return}
-                self.userDefault.setValue(verifyId, forKey: Constants.verificationId)
-                self.userDefault.synchronize()
-                let view = UIStoryboard.init(name: "Auth", bundle: nil)
-                let vc = view.instantiateViewController(withIdentifier: "OTPPopUp") as! OTPPopUp
-                vc.isSignup = true
-                vc.name = self.txtName.text
-                vc.email = self.txtEmail.text
-                vc.dob = self.txtDob.text
-                vc.gender = self.gender
-                vc.passportNum = self.txtPassportNo.text
-                vc.documentNum = self.txtBDMC.text
-                vc.passportImage = self.passportImageData
-                vc.documnetImage = self.bmdcImageData
-                vc.adress = self.txtAddressPin.text ?? ""
-                vc.adressLat = self.latitude
-                vc.adressLong = self.longitude
-                vc.phoneNum = self.txtPhoneNo.text
-                vc.countryCode = self.countryCodeNum
-                vc.password = self.txtPassword.text
-                vc.confirmPass = self.txtConfirmPassword.text
-                vc.isCameFrom = "SignUpVc"
-                vc.modalPresentationStyle = .overFullScreen
-                vc.Otp1CallBack = {
+        
+        PhoneAuthProvider.provider().verifyPhoneNumber(fullPhoneNumber, uiDelegate: nil) { [weak self] (verificationId, error) in
+            guard let self = self else { return }
+            Indicator.shared.hideProgressView()
+            self.btnSignUp.isUserInteractionEnabled = true
+            self.isSigningUp = false
+            
+            if let error = error {
+                Utils().displayAlert(title: "", message: error.localizedDescription, viewController: self)
+                return
+            }
+            
+            guard let verifyId = verificationId else {
+                Utils().displayAlert(title: "", message: "Failed to obtain verification ID. Please try again.".localized(), viewController: self)
+                return
+            }
+            
+            self.userDefault.setValue(verifyId, forKey: Constants.verificationId)
+            self.userDefault.setValue(verifyId, forKey: "verificationId")
+            self.userDefault.synchronize()
+            
+            let view = UIStoryboard.init(name: "Auth", bundle: nil)
+            let vc = view.instantiateViewController(withIdentifier: "OTPPopUp") as! OTPPopUp
+            vc.verificationId = verifyId
+            vc.isSignup = true
+            vc.name = self.txtName.text
+            vc.email = self.txtEmail.text
+            vc.dob = self.txtDob.text
+            vc.gender = self.gender
+            vc.passportNum = self.txtPassportNo.text
+            vc.documentNum = self.txtBDMC.text
+            vc.passportImage = self.passportImageData
+            vc.documnetImage = self.bmdcImageData
+            vc.adress = self.txtAddressPin.text ?? ""
+            vc.adressLat = self.latitude ?? "0.0"
+            vc.adressLong = self.longitude ?? "0.0"
+            vc.phoneNum = numbers
+            vc.countryCode = country
+            vc.password = self.txtPassword.text
+            vc.confirmPass = self.txtConfirmPassword.text
+            vc.isCameFrom = "SignUpVc"
+            vc.modalPresentationStyle = .overFullScreen
+            vc.Otp1CallBack = {
                 self.dismiss(animated: true, completion: nil)
                 let view = UIStoryboard.init(name: "Auth", bundle: nil)
                 let vc = view.instantiateViewController(withIdentifier: "CompleteProfileVC") as! CompleteProfileVC
                 let completeProfile = true
                 UserDefaults.standard.set(completeProfile, forKey: Constants.isSignup)
                 self.navigationController?.pushViewController(vc, animated: true)
-                }
-                self.present(vc, animated: true, completion: nil)
-            } else {
-                Utils().displayAlert(title: "", message: error?.localizedDescription ?? "", viewController: self)
-               
             }
+            self.present(vc, animated: true, completion: nil)
         }
     }
- }
+}
 
 extension SignUpVc {
     func performSignUpValidate(param: [String: String]) {
@@ -382,8 +413,11 @@ extension SignUpVc {
             self.handleResponse(model: model)
         }.catch { (error) in
             DispatchQueue.main.async {
-        }
-            
+                Indicator.shared.hideProgressView()
+                self.btnSignUp.isUserInteractionEnabled = true
+                self.isSigningUp = false
+                Utils().displayAlert(title: "", message: error.localizedDescription, viewController: self)
+            }
         }.finally {
             DispatchQueue.main.async {
                
@@ -432,7 +466,12 @@ extension SignUpVc {
         } else if flag == false {
             AppToast.showMessage(message: "Please accept term & condition".localized())
         } else {
-            guard let code = UserDefaults.standard.string(forKey: Constants.languageCode) else { return }
+            if isSigningUp { return }
+            isSigningUp = true
+            btnSignUp.isUserInteractionEnabled = false
+            Indicator.shared.showProgressView(self.view)
+            
+            let code = UserDefaults.standard.string(forKey: Constants.languageCode) ?? "en"
             parameter = ["language_type": code,
                          "email": txtEmail.text ?? "",
                          "mobile": number]
@@ -445,7 +484,10 @@ extension SignUpVc {
             print(model)
             self.performPhoneAuthentication()
         } else {
-            AppToast.showMessage1(message: model.message ?? "", self)
+            Indicator.shared.hideProgressView()
+            self.btnSignUp.isUserInteractionEnabled = true
+            self.isSigningUp = false
+            AppToast.showMessage1(message: model.message ?? "Validation failed", self)
         }
      }
  }

@@ -66,6 +66,11 @@ protocol ApiInterface {
     func getToken<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
     func allBooking<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
     func patientCallStatus<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
+    func prescriptionTemplateList<T: Decodable>(parameters: [String: Any]?, header: String?) -> Promise<T>
+    func createPrescriptionTemplate<T: Decodable>(parameters: [String: Any]?, header: String?) -> Promise<T>
+    func updatePrescriptionTemplate<T: Decodable>(parameters: [String: Any]?, header: String?) -> Promise<T>
+    func deletePrescriptionTemplate<T: Decodable>(parameters: [String: Any]?, header: String?) -> Promise<T>
+    func duplicatePrescriptionTemplate<T: Decodable>(parameters: [String: Any]?, header: String?) -> Promise<T>
 //    func newEarning<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
     
     
@@ -75,6 +80,26 @@ protocol ApiInterface {
 final class Network: ApiInterface {
     func patientCallStatus<T>(parameters: [String : Any]?, header: String?) -> Promise<T> where T : Decodable {
         appVersionPopUp.requestWithParams(.patientCallStatus, parameters: parameters, header: header)
+    }
+    
+    func prescriptionTemplateList<T>(parameters: [String : Any]?, header: String?) -> Promise<T> where T : Decodable {
+        client.requestWithParams(.prescriptionTemplateList, parameters: parameters, header: header)
+    }
+    
+    func createPrescriptionTemplate<T>(parameters: [String : Any]?, header: String?) -> Promise<T> where T : Decodable {
+        client.requestWithParams(.createPrescriptionTemplate, parameters: parameters, header: header)
+    }
+    
+    func updatePrescriptionTemplate<T>(parameters: [String : Any]?, header: String?) -> Promise<T> where T : Decodable {
+        client.requestWithParams(.updatePrescriptionTemplate, parameters: parameters, header: header)
+    }
+    
+    func deletePrescriptionTemplate<T>(parameters: [String : Any]?, header: String?) -> Promise<T> where T : Decodable {
+        client.requestWithParams(.deletePrescriptionTemplate, parameters: parameters, header: header)
+    }
+    
+    func duplicatePrescriptionTemplate<T>(parameters: [String : Any]?, header: String?) -> Promise<T> where T : Decodable {
+        client.requestWithParams(.duplicatePrescriptionTemplate, parameters: parameters, header: header)
     }
     
     func appVersionPopup<T>(parameters: [String : Any]?, header: String?) -> Promise<T> where T : Decodable {

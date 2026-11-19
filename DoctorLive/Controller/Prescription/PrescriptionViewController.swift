@@ -140,6 +140,12 @@ class MultilineInputTextField: UITextField, UITextViewDelegate {
             placeholderLabel.leadingAnchor.constraint(equalTo: internalTextView.leadingAnchor, constant: 12),
             placeholderLabel.trailingAnchor.constraint(equalTo: internalTextView.trailingAnchor, constant: -12)
         ])
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(onInternalTextChanged), name: UITextView.textDidChangeNotification, object: internalTextView)
+    }
+    
+    @objc private func onInternalTextChanged() {
+        placeholderLabel.isHidden = !internalTextView.text.isEmpty
     }
     
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
@@ -275,6 +281,7 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
     var followUpState: Bool = true
     var bookingIdComeFromChat: String? = ""
     var isComingFromChat:Bool = false
+    var initialTemplate: PrescriptionTemplate?
     
     // MARK: - Lifecycle
     override func loadView() {
@@ -298,6 +305,10 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
         updatePatientSubtitle()
         updateInvestigationChips()
         startAutoSaveTimer()
+        
+        if let template = initialTemplate {
+            applyTemplate(template)
+        }
         
         SideMenuManager.default.leftMenuNavigationController = menu
         SideMenuManager.default.addPanGestureToPresent(toView: self.view)
@@ -638,35 +649,81 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
         updateInvestigationChips()
     }
     
-    @objc func selectTemplateTapped() {
-        let alert = UIAlertController(title: "Select Template".localized(), message: "Load a saved prescription, then edit it".localized(), preferredStyle: .actionSheet)
-        alert.addAction(UIAlertAction(title: "Acute tonsillitis Template".localized(), style: .default, handler: { [weak self] _ in
-            guard let self = self else { return }
-            self.ChiefTxtComplain.text = "Fever with sore throat for 4 days"
-            self.provisionTxt.text = "Acute tonsillitis"
-            self.tempLable.text = "101.2 °F"
-            self.pulseTxt.text = "92"
-            self.systolicBp.text = "120"
-            self.diaystolicLable.text = "80"
-            self.investigationTxt.text = "CBC, CRP, Throat swab C/S"
+    func applyTemplate(_ template: PrescriptionTemplate) {
+        if let chief = template.chiefComplain, !chief.isEmpty {
+            self.ChiefTxtComplain.text = chief
+        }
+        if let diag = template.provisionalDiagnosis, !diag.isEmpty {
+            self.provisionTxt.text = diag
+        }
+        if let temp = template.temperature, !temp.isEmpty {
+            self.tempLable.text = temp
+        }
+        if let pulse = template.pulse, !pulse.isEmpty {
+            self.pulseTxt.text = pulse
+        }
+        if let sys = template.bloodPressureSystolic, !sys.isEmpty {
+            self.systolicBp.text = sys
+        }
+        if let dia = template.bloodPressureDiastolic, !dia.isEmpty {
+            self.diaystolicLable.text = dia
+        }
+        if let sugar = template.bloodSugar, !sugar.isEmpty {
+            self.bloodSugar1.text = sugar
+        }
+        if let tests = template.investigations, !tests.isEmpty {
+            self.investigationTxt.text = tests.joined(separator: ", ")
+            self.investigationToggle.isOn = true
+            self.investigationToggleTapped(self.investigationToggle)
             self.updateInvestigationChips()
-            self.genralTxt.text = "ঘরোয়া যত্ন:\n১. পর্যাপ্ত বিশ্রাম নিন।\n২. কুসুম গরম পানি দিয়ে গার্গল করুন।"
-            self.followUpDays.text = "7"
-            self.arrayData = [
-                Medicine(id: "1", name: "Aceta 500 mg\nParacetamol · Tablet", dosage: "1 Tablet", frequencyFirst: "1+1+1", duration: "7 days", meals: "After Meal", toggleBtnState: true, genralExamState: true, followUpState: true, investigationState: true, comeFromMedicne: true)
-            ]
+        }
+        if let advice = template.generalAdvice, !advice.isEmpty {
+            self.genralTxt.text = advice
+            self.genralSwitchButton.isOn = true
+            self.genralExamSwitch(self.genralSwitchButton)
+        }
+        if let followUp = template.followUpDays, !followUp.isEmpty {
+            self.followUpDays.text = followUp
+            self.switchButton.isOn = true
+            self.followUpSwitch(self.switchButton)
+        }
+        if let meds = template.medicines, !meds.isEmpty {
+            self.arrayData = meds.map { med in
+                Medicine(
+                    id: med.id ?? UUID().uuidString,
+                    name: med.name,
+                    dosage: med.dosage,
+                    frequencyFirst: med.frequencyFirst,
+                    duration: med.duration,
+                    meals: med.meals,
+                    toggleBtnState: true,
+                    genralExamState: true,
+                    followUpState: true,
+                    investigationState: true,
+                    comeFromMedicne: true
+                )
+            }
             self.medicinceTogle.isOn = true
             self.medicineToggle(self.medicinceTogle)
             self.tableView.reloadData()
-            self.genralSwitchButton.isOn = true
-            self.investigationToggle.isOn = true
-            self.switchButton.isOn = true
-            self.genralExamSwitch(self.genralSwitchButton)
-            self.investigationToggleTapped(self.investigationToggle)
-            self.followUpSwitch(self.switchButton)
-        }))
-        alert.addAction(UIAlertAction(title: "Cancel".localized(), style: .cancel, handler: nil))
-        self.present(alert, animated: true)
+        }
+        self.savePrescriptionData1()
+        AppToast.showMessage(message: "Applied template: \(template.title)")
+    }
+    
+    @objc func selectTemplateTapped() {
+        let vc = PrescriptionTemplatesViewController()
+        vc.isSelectMode = true
+        vc.onSelectTemplate = { [weak self] template in
+            self?.applyTemplate(template)
+        }
+        if let nav = self.navigationController {
+            nav.pushViewController(vc, animated: true)
+        } else {
+            let nav = UINavigationController(rootViewController: vc)
+            nav.modalPresentationStyle = .fullScreen
+            self.present(nav, animated: true, completion: nil)
+        }
     }
     
     @objc func formatGeneralAdviceTapped() {

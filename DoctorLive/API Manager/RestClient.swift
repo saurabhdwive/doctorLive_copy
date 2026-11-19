@@ -78,6 +78,11 @@ enum MediaType1: String {
     case allBooking
     case suggestedTime
     case patientCallStatus
+    case prescriptionTemplateList
+    case createPrescriptionTemplate
+    case updatePrescriptionTemplate
+    case deletePrescriptionTemplate
+    case duplicatePrescriptionTemplate
 
     var resource: (method: HTTPMethod, endPoint: String) {
         switch self {
@@ -191,6 +196,16 @@ enum MediaType1: String {
             return (.post, "suggestedtime")
         case .patientCallStatus:
             return (.post, "user/patient_call_status")
+        case .prescriptionTemplateList:
+            return (.post, "listprescriptiontemplate")
+        case .createPrescriptionTemplate:
+            return (.post, "addprescriptiontemplate")
+        case .updatePrescriptionTemplate:
+            return (.post, "updateprescriptiontemplate")
+        case .deletePrescriptionTemplate:
+            return (.post, "deleteprescriptiontemplate")
+        case .duplicatePrescriptionTemplate:
+            return (.post, "duplicateprescriptiontemplate")
         }
     }
 }
@@ -222,17 +237,28 @@ class RestClient {
 //            }
 
             
-            let headers = HTTPHeaders(getHeadeWithDeviceToken())
+            var headers = HTTPHeaders(getHeadeWithDeviceToken())
+            
+            // Raw JSON encoding for add and update prescription template
+            let parameterEncoding: ParameterEncoding
+            if resource == .createPrescriptionTemplate || resource == .updatePrescriptionTemplate {
+                parameterEncoding = JSONEncoding.default
+                headers.add(name: "Content-Type", value: "application/json")
+            } else {
+                parameterEncoding = URLEncoding.default
+            }
+            
             print("================= API REQUEST ======================")
             print("🚀 URL: \(url)")
             print("🚀 Method: \(method.rawValue)")
+            print("🚀 Encoding: \(parameterEncoding is JSONEncoding ? "raw JSON" : "URLEncoding")")
             print("🚀 Headers: \(headers.dictionary)")
             if let params = parameters {
                 print("🚀 Params: \(params)")
             }
             print("====================================================")
             
-            session.request(url, method: method, parameters: parameters, headers: headers).responseDecodable(of: T.self) { (response) in
+            session.request(url, method: method, parameters: parameters, encoding: parameterEncoding, headers: headers).responseDecodable(of: T.self) { (response) in
                 if let data = response.data,
                     let jsonString = String(data: data, encoding: .utf8) {
                      print("Response String:")
@@ -283,31 +309,10 @@ class RestClient {
                         )
 
                         alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-
+                            UserDefaults.standard.removeObject(forKey: Constants.accessToken)
                             UserDefaults.standard.set(false, forKey: Constants.accountStatus)
-
-                            let storyboard = UIStoryboard(name: "Auth", bundle: nil)
-
-                            let loginVC = storyboard.instantiateViewController(
-                                withIdentifier: "LoginVC"
-                            ) as! LoginVC
-
-                            let navigationController = UINavigationController(
-                                rootViewController: loginVC
-                            )
-
-                            navigationController.isNavigationBarHidden = true
-
-                            if let windowScene = UIApplication.shared.connectedScenes
-                                .first(where: {
-                                    $0.activationState == .foregroundActive
-                                }) as? UIWindowScene,
-                               let window = windowScene.windows
-                                .first(where: { $0.isKeyWindow }) {
-
-                                window.rootViewController = navigationController
-                                window.makeKeyAndVisible()
-                            }
+                            UserDefaults.standard.set(false, forKey: "login")
+                            DIConfigurator.sharedInst().getRootViewC(.Auth, identifer: LoginVC.className)
                         })
 
                         if let windowScene = UIApplication.shared.connectedScenes
@@ -319,7 +324,11 @@ class RestClient {
                            }),
                            let rootVC = window.rootViewController {
 
-                            rootVC.present(alert, animated: true)
+                            var topVC = rootVC
+                            while let presented = topVC.presentedViewController {
+                                topVC = presented
+                            }
+                            topVC.present(alert, animated: true)
                         }
                     }
                 }
@@ -518,31 +527,10 @@ class RestClient {
                             )
 
                             alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-
+                                UserDefaults.standard.removeObject(forKey: Constants.accessToken)
                                 UserDefaults.standard.set(false, forKey: Constants.accountStatus)
-
-                                let storyboard = UIStoryboard(name: "Auth", bundle: nil)
-
-                                let loginVC = storyboard.instantiateViewController(
-                                    withIdentifier: "LoginVC"
-                                ) as! LoginVC
-
-                                let navigationController = UINavigationController(
-                                    rootViewController: loginVC
-                                )
-
-                                navigationController.isNavigationBarHidden = true
-
-                                if let windowScene = UIApplication.shared.connectedScenes
-                                    .first(where: {
-                                        $0.activationState == .foregroundActive
-                                    }) as? UIWindowScene,
-                                   let window = windowScene.windows
-                                    .first(where: { $0.isKeyWindow }) {
-
-                                    window.rootViewController = navigationController
-                                    window.makeKeyAndVisible()
-                                }
+                                UserDefaults.standard.set(false, forKey: "login")
+                                DIConfigurator.sharedInst().getRootViewC(.Auth, identifer: LoginVC.className)
                             })
 
                             if let windowScene = UIApplication.shared.connectedScenes
@@ -554,7 +542,11 @@ class RestClient {
                                }),
                                let rootVC = window.rootViewController {
 
-                                rootVC.present(alert, animated: true)
+                                var topVC = rootVC
+                                while let presented = topVC.presentedViewController {
+                                    topVC = presented
+                                }
+                                topVC.present(alert, animated: true)
                             }
                         }
                     }

@@ -21,9 +21,9 @@ class SideMenuVC: UIViewController {
     var myEarningArray:[Earning] = []
    
     var earningData: EarningListModel?
-    var menuItem = ["\("Home".localized())","My Rating" ,"\("My Availabilities".localized())", "\("My Earnings".localized())", "\("My Profile".localized())", "My Fee".localized(), "\("Notifications".localized())","\("Settings".localized())","Change Language".localized(), "\("Help & Support".localized())", "\("Share with friends".localized())", "Logout".localized()]
+    var menuItem = ["\("Home".localized())","My Rating" ,"\("My Availabilities".localized())", "\("My Earnings".localized())", "\("My Profile".localized())", "My Fee".localized(), "Prescription Templates".localized(), "\("Notifications".localized())","\("Settings".localized())","Change Language".localized(), "\("Help & Support".localized())", "\("Share with friends".localized())", "Logout".localized()]
     
-     var logoImage: [UIImage] = [#imageLiteral(resourceName: "Path 6649"),#imageLiteral(resourceName: "Path 6717"),#imageLiteral(resourceName: "Path 6717"),#imageLiteral(resourceName: "Path 6643"),#imageLiteral(resourceName: "Path 6653"),#imageLiteral(resourceName: "my fee"),#imageLiteral(resourceName: "Path 6654"),#imageLiteral(resourceName: "setting"),#imageLiteral(resourceName: "Path 6747"),#imageLiteral(resourceName: "Help&setting"),#imageLiteral(resourceName: "share"),#imageLiteral(resourceName: "Path 6658"),#imageLiteral(resourceName: "Path 6658")]
+     var logoImage: [UIImage] = [#imageLiteral(resourceName: "Path 6649"),#imageLiteral(resourceName: "Path 6717"),#imageLiteral(resourceName: "Path 6717"),#imageLiteral(resourceName: "Path 6643"),#imageLiteral(resourceName: "Path 6653"),#imageLiteral(resourceName: "my fee"),#imageLiteral(resourceName: "prescription"),#imageLiteral(resourceName: "Path 6654"),#imageLiteral(resourceName: "setting"),#imageLiteral(resourceName: "Path 6747"),#imageLiteral(resourceName: "Help&setting"),#imageLiteral(resourceName: "share"),#imageLiteral(resourceName: "Path 6658")]
     override func viewDidLoad() {
         super.viewDidLoad()
         setUpTable()
@@ -116,23 +116,26 @@ extension SideMenuVC: UITableViewDelegate,UITableViewDataSource {
                 navigationController?.pushViewController(viewController, animated: true)
             }
         case 6:
+            let vc = PrescriptionTemplatesViewController()
+            navigationController?.pushViewController(vc, animated: true)
+        case 7:
             if let viewController = storyboard?.instantiateViewController(identifier: NotificationViewController.className) as? NotificationViewController {
                 navigationController?.pushViewController(viewController, animated: true)
             }
-        case 7:
+        case 8:
             if let viewController = storyboard?.instantiateViewController(identifier: SettingViewController.className) as? SettingViewController {
                 navigationController?.pushViewController(viewController, animated: true)
             }
-        case 8:
+        case 9:
             if let viewController = storyboard?.instantiateViewController(identifier: SelectLanguageVC.className) as? SelectLanguageVC {
                 viewController.languageChange = true
                 navigationController?.pushViewController(viewController, animated: true)
             }
-        case 9:
+        case 10:
             if let viewController = storyboard?.instantiateViewController(identifier: HelpAndSupportVC.className) as? HelpAndSupportVC {
                 navigationController?.pushViewController(viewController, animated: true)
             }
-        case 10:
+        case 11:
             let url = URL(string: "https://www.google.com/")
             if let imageUrl = url, !imageUrl.absoluteString.isEmpty {
                 let objectsToShare: [Any] = ["https://apps.apple.com/us/app/dr-live-for-doctors/id1592690667"]
@@ -141,7 +144,7 @@ extension SideMenuVC: UITableViewDelegate,UITableViewDataSource {
             } else {
                 print("errror")
             }
-        case 11:
+        case 12:
             logoutButtonTapped()
         default:
             print("Case")

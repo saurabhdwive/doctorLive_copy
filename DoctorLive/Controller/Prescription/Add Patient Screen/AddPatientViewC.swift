@@ -17,10 +17,17 @@ class AddPatientViewC: UIViewController {
     var dropDown = DropDown()
     var viewmodel = ViewModel()
     var addPatientCallBack: ((String)->())?
+    var onPatientAdded: ((_ name: String, _ age: String, _ gender: String) -> Void)?
+    var initialName: String?
+    var initialAge: String?
+    var initialGender: String?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         self.setUpViews()
+        if let name = initialName, !name.isEmpty { nameTxt.text = name }
+        if let age = initialAge, !age.isEmpty { ageTxt.text = age }
+        if let gender = initialGender, !gender.isEmpty { genderTxt.text = gender }
     }
     
     private func setUpViews(){
@@ -49,24 +56,25 @@ class AddPatientViewC: UIViewController {
     }
     
     @IBAction func addPatientBtn_Action(_ sender: Any) {
-        guard self.nameTxt.text ?? EMPTY == EMPTY else {
-            guard self.ageTxt.text ?? EMPTY == EMPTY else {
-                guard self.genderTxt.text ?? EMPTY == EMPTY else {
-                    guard self.relationShipTxt.text ?? EMPTY == EMPTY else {
-//                        self.addMember()
-                        return
-                    }
-                    self.showToast(message: "Please enter relationship")
-                    return
-                }
-                self.showToast(message: "Please select gender")
-                return
-            }
+        guard let name = self.nameTxt.text?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else {
+            self.showToast(message: "Please enter name")
+            return
+        }
+        guard let age = self.ageTxt.text?.trimmingCharacters(in: .whitespacesAndNewlines), !age.isEmpty else {
             self.showToast(message: "Please enter age")
             return
         }
-        self.showToast(message: "Please enter name")
-        return
+        guard let gender = self.genderTxt.text?.trimmingCharacters(in: .whitespacesAndNewlines), !gender.isEmpty else {
+            self.showToast(message: "Please select gender")
+            return
+        }
+        guard let relationship = self.relationShipTxt.text?.trimmingCharacters(in: .whitespacesAndNewlines), !relationship.isEmpty else {
+            self.showToast(message: "Please enter relationship")
+            return
+        }
+        self.addPatientCallBack?(name)
+        self.onPatientAdded?(name, age, gender)
+        self.dismiss(animated: true)
     }
     
 }

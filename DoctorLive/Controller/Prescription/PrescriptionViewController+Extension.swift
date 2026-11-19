@@ -10,25 +10,7 @@ import UIKit
 
 extension PrescriptionViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if arrayData.count == 0 {
-            tableHightConstraint.constant = 0
-            return arrayData.count
-        } else if arrayData.count == 1 {
-            tableHightConstraint.constant = 160
-            return arrayData.count
-        } else if arrayData.count == 2 {
-            tableHightConstraint.constant = 320
-            return arrayData.count
-        } else if arrayData.count == 3 {
-            tableHightConstraint.constant = 480
-            return arrayData.count
-        } else if arrayData.count == 4 {
-            tableHightConstraint.constant = 640
-            return arrayData.count
-        } else if arrayData.count == 5 {
-            tableHightConstraint.constant = 800
-            return arrayData.count
-        }
+        tableHightConstraint.constant = CGFloat(arrayData.count * 160)
         return arrayData.count
     }
     
@@ -38,7 +20,7 @@ extension PrescriptionViewController: UITableViewDelegate, UITableViewDataSource
         cell.pediatric.text = "Dosage: \(arrayData[indexPath.row].dosage)"
         cell.frequency.text = "Frequency: \(arrayData[indexPath.row].frequencyFirst)"
         cell.editButton.tag = indexPath.row
-        cell.editButton.addTarget(self, action: #selector(buttonEditTapped), for: .touchUpInside)
+        cell.editButton.addTarget(self, action: #selector(buttonEditTapped(sender:)), for: .touchUpInside)
         cell.duration.text = "Duration: \(arrayData[indexPath.row].duration)"
         cell.meal.text = "Instruction: \(arrayData[indexPath.row].meals)"
         cell.delegate = self

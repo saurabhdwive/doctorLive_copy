@@ -15,17 +15,240 @@ protocol VideoCallFlowDelagate {
     func prescriptionBackFunc(_ returnToVideo: Bool, _ medicineState: Bool, _ investigationState: Bool, _ genralExamState: Bool, _ followUpState: Bool)
 }
 
+// MARK: - Modern UI Helper Views
+class DashedBorderView: UIView {
+    private let borderLayer = CAShapeLayer()
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupLayer()
+    }
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupLayer()
+    }
+    
+    private func setupLayer() {
+        borderLayer.strokeColor = UIColor(red: 96/255, green: 165/255, blue: 250/255, alpha: 1.0).cgColor
+        borderLayer.fillColor = nil
+        borderLayer.lineWidth = 1.5
+        borderLayer.lineDashPattern = [5, 4]
+        layer.addSublayer(borderLayer)
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        borderLayer.frame = bounds
+        borderLayer.path = UIBezierPath(roundedRect: bounds, cornerRadius: 12).cgPath
+    }
+}
+
+class InsetPaddedTextField: UITextField {
+    var insets: UIEdgeInsets = UIEdgeInsets(top: 8, left: 12, bottom: 8, right: 12)
+    
+    override func textRect(forBounds bounds: CGRect) -> CGRect {
+        return bounds.inset(by: insets)
+    }
+    
+    override func editingRect(forBounds bounds: CGRect) -> CGRect {
+        return bounds.inset(by: insets)
+    }
+    
+    override func placeholderRect(forBounds bounds: CGRect) -> CGRect {
+        return bounds.inset(by: insets)
+    }
+}
+
+class MultilineInputTextField: UITextField, UITextViewDelegate {
+    let internalTextView = UITextView()
+    private let placeholderLabel = UILabel()
+    
+    override var text: String? {
+        get { return internalTextView.text }
+        set {
+            internalTextView.text = newValue ?? ""
+            placeholderLabel.isHidden = !(newValue?.isEmpty ?? true)
+        }
+    }
+    
+    override var placeholder: String? {
+        get { return placeholderLabel.text }
+        set {
+            // Do NOT call super.placeholder = newValue!
+            // That would cause UITextField to draw its native placeholder
+            // simultaneously with placeholderLabel, producing duplicate overlapping text!
+            placeholderLabel.text = newValue
+            placeholderLabel.isHidden = !(internalTextView.text.isEmpty)
+        }
+    }
+    
+    override var font: UIFont? {
+        get { return internalTextView.font }
+        set {
+            super.font = newValue
+            internalTextView.font = newValue
+            placeholderLabel.font = newValue
+        }
+    }
+    
+    override var textColor: UIColor? {
+        get { return internalTextView.textColor }
+        set {
+            internalTextView.textColor = newValue
+        }
+    }
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupInternalView()
+    }
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupInternalView()
+    }
+    
+    private func setupInternalView() {
+        super.textColor = .clear
+        super.tintColor = .clear
+        
+        internalTextView.backgroundColor = .clear
+        internalTextView.font = UIFont(name: "Poppins-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14)
+        internalTextView.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        internalTextView.tintColor = UIColor(red: 25/255, green: 118/255, blue: 210/255, alpha: 1.0)
+        internalTextView.delegate = self
+        internalTextView.isScrollEnabled = true
+        internalTextView.textContainerInset = UIEdgeInsets(top: 10, left: 8, bottom: 10, right: 8)
+        internalTextView.textContainer.lineFragmentPadding = 4
+        internalTextView.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(internalTextView)
+        
+        placeholderLabel.font = internalTextView.font
+        placeholderLabel.textColor = UIColor(red: 148/255, green: 163/255, blue: 184/255, alpha: 1.0)
+        placeholderLabel.translatesAutoresizingMaskIntoConstraints = false
+        placeholderLabel.isUserInteractionEnabled = false
+        addSubview(placeholderLabel)
+        
+        NSLayoutConstraint.activate([
+            internalTextView.topAnchor.constraint(equalTo: topAnchor),
+            internalTextView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            internalTextView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            internalTextView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            
+            placeholderLabel.topAnchor.constraint(equalTo: internalTextView.topAnchor, constant: 10),
+            placeholderLabel.leadingAnchor.constraint(equalTo: internalTextView.leadingAnchor, constant: 12),
+            placeholderLabel.trailingAnchor.constraint(equalTo: internalTextView.trailingAnchor, constant: -12)
+        ])
+    }
+    
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        if self.point(inside: point, with: event) {
+            return internalTextView
+        }
+        return super.hitTest(point, with: event)
+    }
+    
+    func textViewDidChange(_ textView: UITextView) {
+        placeholderLabel.isHidden = !textView.text.isEmpty
+    }
+    
+    override func becomeFirstResponder() -> Bool {
+        return internalTextView.becomeFirstResponder()
+    }
+    
+    override func resignFirstResponder() -> Bool {
+        return internalTextView.resignFirstResponder()
+    }
+    
+    override var isFirstResponder: Bool {
+        return internalTextView.isFirstResponder
+    }
+    
+    override var canBecomeFirstResponder: Bool {
+        return true
+    }
+}
+
+// MARK: - PrescriptionViewController
 class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecriptionDelegate {
     
-    @IBOutlet weak var userName, yearOldLable, gender, dateTxt, investigationLbl, medicineLbl, titleTxt, gernralExamTitle, tempLbl, bloodPressureLbl, pluseLbl, bloodSugarLbl, followUpTitle: UILabel!
-    @IBOutlet weak var ChiefTxtComplain, pastHistoryTxt, tempLable, systolicBp, diaystolicLable, pulseTxt, bloodSugar1, provisionTxt, bloodSugar2, investigationTxt, genralTxt, followUpDays: UITextField!
-    @IBOutlet weak var pastHistory, genralExaminationView, userDetailView, provisonDiagnos, investigationView, genralView, followUpView, medicineView, ChiefComplainView: UIView!
-    @IBOutlet weak var genralSwitchButton, medicinceTogle, investigationToggle, switchButton: UISwitch!
-    @IBOutlet weak var tempButton, systolicButton, pulseButton, sugar1Button, sugar2Button, diastyolicButton, xrayButton, submItButton, addMedicineView, changePatientBtn: UIButton!
-    @IBOutlet weak var medicineViewHeight, investigationViewHeight, genralViewHeight, prescriptionHeight, tableHightConstraint: NSLayoutConstraint!
-    @IBOutlet weak var investigationDropDown: UIImageView!
-    @IBOutlet weak var genralExamStack: UIStackView!
-    @IBOutlet weak var tableView: UITableView!
+    // Outlets preserved for logic & API compatibility
+    @IBOutlet var userName: UILabel!
+    @IBOutlet var yearOldLable: UILabel!
+    @IBOutlet var gender: UILabel!
+    @IBOutlet var dateTxt: UILabel!
+    @IBOutlet var investigationLbl: UILabel!
+    @IBOutlet var medicineLbl: UILabel!
+    @IBOutlet var titleTxt: UILabel!
+    @IBOutlet var gernralExamTitle: UILabel!
+    @IBOutlet var tempLbl: UILabel!
+    @IBOutlet var bloodPressureLbl: UILabel!
+    @IBOutlet var pluseLbl: UILabel!
+    @IBOutlet var bloodSugarLbl: UILabel!
+    @IBOutlet var followUpTitle: UILabel!
+    
+    @IBOutlet var ChiefTxtComplain: UITextField!
+    @IBOutlet var pastHistoryTxt: UITextField!
+    @IBOutlet var tempLable: UITextField!
+    @IBOutlet var systolicBp: UITextField!
+    @IBOutlet var diaystolicLable: UITextField!
+    @IBOutlet var pulseTxt: UITextField!
+    @IBOutlet var bloodSugar1: UITextField!
+    @IBOutlet var provisionTxt: UITextField!
+    @IBOutlet var bloodSugar2: UITextField!
+    @IBOutlet var investigationTxt: UITextField!
+    @IBOutlet var genralTxt: UITextField!
+    @IBOutlet var followUpDays: UITextField!
+    
+    @IBOutlet var pastHistory: UIView!
+    @IBOutlet var genralExaminationView: UIView!
+    @IBOutlet var userDetailView: UIView!
+    @IBOutlet var provisonDiagnos: UIView!
+    @IBOutlet var investigationView: UIView!
+    @IBOutlet var genralView: UIView!
+    @IBOutlet var followUpView: UIView!
+    @IBOutlet var medicineView: UIView!
+    @IBOutlet var ChiefComplainView: UIView!
+    
+    @IBOutlet var genralSwitchButton: UISwitch!
+    @IBOutlet var medicinceTogle: UISwitch!
+    @IBOutlet var investigationToggle: UISwitch!
+    @IBOutlet var switchButton: UISwitch!
+    
+    @IBOutlet var tempButton: UIButton!
+    @IBOutlet var systolicButton: UIButton!
+    @IBOutlet var pulseButton: UIButton!
+    @IBOutlet var sugar1Button: UIButton!
+    @IBOutlet var sugar2Button: UIButton!
+    @IBOutlet var diastyolicButton: UIButton!
+    @IBOutlet var xrayButton: UIButton!
+    @IBOutlet var submItButton: UIButton!
+    @IBOutlet var addMedicineView: UIButton!
+    @IBOutlet var changePatientBtn: UIButton!
+    
+    @IBOutlet var medicineViewHeight: NSLayoutConstraint!
+    @IBOutlet var investigationViewHeight: NSLayoutConstraint!
+    @IBOutlet var genralViewHeight: NSLayoutConstraint!
+    @IBOutlet var prescriptionHeight: NSLayoutConstraint!
+    @IBOutlet var tableHightConstraint: NSLayoutConstraint!
+    
+    @IBOutlet var investigationDropDown: UIImageView!
+    @IBOutlet var genralExamStack: UIStackView!
+    @IBOutlet var tableView: UITableView!
+    
+    // Additional UI Elements for modern redesigned layout
+    var patientSubtitleLabel = UILabel()
+    var autoSaveStatusLabel = UILabel()
+    var templateCardView = DashedBorderView()
+    var chipsScrollView = UIScrollView()
+    var chipsStackView = UIStackView()
+    var formatAdviceBtn = UIButton(type: .system)
+    var autoSaveTimer: Timer?
+    var lastSavedDate = Date().addingTimeInterval(-12)
+    var medicineContentStack = UIStackView()
+    var followUpContentRow = UIView()
+    var investigationContentStack = UIStackView()
     
     var selectedNames: [String] = []
     var comeFromMedicne = Bool()
@@ -46,19 +269,24 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
     var prescriptionDataDict = [String: Any]()
     var comeFrom = String()
     var menu: SideMenuNavigationController?
-    var medicineSwitch: Bool = false
-    var investigationToggleState: Bool = false
-    var genralSwitchButtonState: Bool = false
-    var followUpState: Bool = false
+    var medicineSwitch: Bool = true
+    var investigationToggleState: Bool = true
+    var genralSwitchButtonState: Bool = true
+    var followUpState: Bool = true
     var bookingIdComeFromChat: String? = ""
     var isComingFromChat:Bool = false
+    
+    // MARK: - Lifecycle
+    override func loadView() {
+        buildModernUI()
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         validations()
         setupUi()
-        userName.text = data["name"]
-        yearOldLable.text = data["date"]
+        userName.text = data["name"] ?? "Md Modasser"
+        yearOldLable.text = data["date"] ?? "32 Yrs,"
         if data["gender"] == "f" {
             gender.text = "Female".localized()
         } else if data["gender"] == "m" {
@@ -67,12 +295,24 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
             gender.text = "Others".localized()
         }
         dateTxt.text = Date.getCurrentDate()
+        updatePatientSubtitle()
+        updateInvestigationChips()
+        startAutoSaveTimer()
+        
         SideMenuManager.default.leftMenuNavigationController = menu
         SideMenuManager.default.addPanGestureToPresent(toView: self.view)
+        
+        let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tap.cancelsTouchesInView = false
+        view.addGestureRecognizer(tap)
+    }
+    
+     override func dismissKeyboard() {
+        view.endEditing(true)
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(true)
+        super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
         investigationToggle.isOn = investigationToggleState
         medicinceTogle.isOn = medicineSwitch
@@ -93,6 +333,7 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
         submItButton.setTitle("Submit".localized(), for: .normal)
         addMedicineView.setTitle("+ Add Medicine".localized(), for: .normal)
         followUpTitle.text = "Follow Up".localized()
+        
         if comeFromMedicne == true {
             print("hi")
         } else {
@@ -120,76 +361,119 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
                 }
             }
         }
-       
         
-        if tempLable.text == "" {
-            self.genralSwitchButton.isOn = false
-        } else {
-            self.genralSwitchButton.isOn = true
-        }
-        if investigationTxt.text == "" {
-            investigationToggle?.isOn = false
-        } else {
-            investigationToggle?.isOn = true
-        }
-        if arrayData.count == 0 {
-            medicinceTogle?.isOn = false
-        } else {
-            medicinceTogle?.isOn = true
-        }
+        genralSwitchButton.isOn = genralSwitchButtonState
+        investigationToggle.isOn = investigationToggleState
+        medicinceTogle.isOn = medicineSwitch
+        switchButton.isOn = followUpState
         
-        if followUpDays.text == "" {
-            switchButton?.isOn = false
-        } else {
-            switchButton?.isOn = true
-        }
+        genralExamStack.isHidden = !genralSwitchButtonState
+        investigationContentStack.isHidden = !investigationToggleState
+        medicineContentStack.isHidden = !medicineSwitch
+        followUpContentRow.isHidden = !followUpState
         
-        if (genralSwitchButton?.isOn ?? true) {
-            self.genral = "1"
-            genralViewHeight.constant = 370
-            genralExamStack.isHidden = false
-            
-        } else {
-            self.genral = "0"
-            genralViewHeight.constant = 60
-            genralExamStack.isHidden = true
-        }
-        if(medicinceTogle?.isOn ?? true) {
-            medicineViewHeight.constant = 110
-            addMedicineView.isHidden = false
-            
-        } else {
-            medicineViewHeight.constant = 60
-            addMedicineView.isHidden = true
-        }
+        self.genral = genralSwitchButtonState ? "1" : "0"
+        self.avilability = followUpState ? "1" : "0"
         
-        if (switchButton?.isOn ?? true) {
-            self.avilability = "1"
-            prescriptionHeight.constant = 110
-            followUpDays.isHidden = false
-            
-        } else {
-            self.avilability = "0"
-            prescriptionHeight.constant = 60
-            followUpDays.isHidden = true
-        }
-        
-        if (investigationToggle?.isOn ?? true) {
-            investigationViewHeight.constant = 130
-            investigationTxt.isHidden = false
-            investigationDropDown.isHidden = false
-        } else {
-            investigationViewHeight.constant = 60
-            investigationTxt.isHidden = true
-            investigationDropDown.isHidden = true
-        }
+        updatePatientSubtitle()
+        updateInvestigationChips()
     }
     
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
+        autoSaveTimer?.invalidate()
         savePrescriptionData1()
     }
     
+    // MARK: - Patient Info & Auto-save helpers
+    func updatePatientSubtitle() {
+        let genderStr = gender.text ?? "Male"
+        var ageStr = yearOldLable.text ?? "32 Yrs,"
+        ageStr = ageStr.replacingOccurrences(of: " Yrs,", with: "y")
+                       .replacingOccurrences(of: "Yrs,", with: "y")
+                       .replacingOccurrences(of: " Yrs", with: "y")
+                       .replacingOccurrences(of: "Yrs", with: "y")
+                       .trimmingCharacters(in: .whitespacesAndNewlines)
+        if !ageStr.hasSuffix("y") && !ageStr.isEmpty {
+            ageStr = "\(ageStr)y"
+        }
+        
+        let df = DateFormatter()
+        df.dateFormat = "dd/MM/yyyy"
+        let dateStr = df.string(from: Date())
+        
+        var parts: [String] = []
+        if !genderStr.isEmpty { parts.append(genderStr) }
+        if !ageStr.isEmpty { parts.append(ageStr) }
+        if !dateStr.isEmpty { parts.append(dateStr) }
+        patientSubtitleLabel.text = parts.joined(separator: " · ")
+    }
+    
+    func startAutoSaveTimer() {
+        autoSaveTimer?.invalidate()
+        autoSaveTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
+            self?.updateAutoSaveBanner()
+        }
+    }
+    
+    func updateAutoSaveBanner() {
+        let elapsed = Int(Date().timeIntervalSince(lastSavedDate))
+        if elapsed < 5 {
+            autoSaveStatusLabel.text = "✓ Draft saved just now"
+        } else if elapsed < 60 {
+            autoSaveStatusLabel.text = "✓ Draft saved \(elapsed) seconds ago"
+        } else {
+            let mins = elapsed / 60
+            autoSaveStatusLabel.text = "✓ Draft saved \(mins)m ago"
+        }
+    }
+    
+    func updateInvestigationChips() {
+        chipsStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        let raw = investigationTxt.text ?? ""
+        var items = raw.split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        
+        // If empty, supply preview suggestions if needed
+        if items.isEmpty && (investigationToggle?.isOn ?? false) {
+            chipsScrollView.isHidden = true
+            return
+        }
+        
+        if items.isEmpty {
+            chipsScrollView.isHidden = true
+        } else {
+            chipsScrollView.isHidden = false
+            for item in items {
+                let pill = createChipPill(title: item)
+                chipsStackView.addArrangedSubview(pill)
+            }
+        }
+    }
+    
+    private func createChipPill(title: String) -> UIView {
+        let chip = UIView()
+        chip.backgroundColor = UIColor(red: 235/255, green: 245/255, blue: 255/255, alpha: 1.0) // #EBF5FF
+        chip.layer.cornerRadius = 14
+        chip.layer.masksToBounds = true
+        
+        let label = UILabel()
+        label.text = title
+        label.font = UIFont(name: "Poppins-Medium", size: 12) ?? UIFont.systemFont(ofSize: 12, weight: .medium)
+        label.textColor = UIColor(red: 29/255, green: 78/255, blue: 216/255, alpha: 1.0) // #1D4ED8
+        label.translatesAutoresizingMaskIntoConstraints = false
+        chip.addSubview(label)
+        
+        NSLayoutConstraint.activate([
+            label.topAnchor.constraint(equalTo: chip.topAnchor, constant: 6),
+            label.bottomAnchor.constraint(equalTo: chip.bottomAnchor, constant: -6),
+            label.leadingAnchor.constraint(equalTo: chip.leadingAnchor, constant: 12),
+            label.trailingAnchor.constraint(equalTo: chip.trailingAnchor, constant: -12),
+            chip.heightAnchor.constraint(equalToConstant: 28)
+        ])
+        return chip
+    }
+    
+    // MARK: - Save / Refill Prescriptions
     func savePrescriptionData() {
         let pastHistory = PrescriptionDetail.pasthistory ?? ""
         let provisionProfile = PrescriptionDetail.provisonalDiagnosis ?? ""
@@ -203,9 +487,8 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
         let genralAdvice = PrescriptionDetail.genralAdvice ?? ""
         let followUpday = PrescriptionDetail.followUP ?? ""
         let investigation = PrescriptionDetail.investigationGuide ?? ""
-        let genralExamTogleState = PrescriptionDetail.genralExamToggle
         let medicineRefillData = PrescriptionDetail.medicineData
-        if pastHistory.isEmpty || provisionProfile.isEmpty ||  temprature.isEmpty || bloodPressure1.isEmpty || bloodPressure2.isEmpty || puluse.isEmpty || bloodsugar1.isEmpty || bloodsugar2.isEmpty || genralAdvice.isEmpty || followUpday.isEmpty || investigation.isEmpty || chiefComplain.isEmpty ==  false {
+        if pastHistory.isEmpty || provisionProfile.isEmpty || temprature.isEmpty || bloodPressure1.isEmpty || bloodPressure2.isEmpty || puluse.isEmpty || bloodsugar1.isEmpty || bloodsugar2.isEmpty || genralAdvice.isEmpty || followUpday.isEmpty || investigation.isEmpty || chiefComplain.isEmpty == false {
             pastHistoryTxt.text = pastHistory
             provisionTxt.text = provisionProfile
             tempLable.text = temprature
@@ -236,31 +519,34 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
             followUpDays.text = ""
             self.investigationTxt.text = ""
             self.arrayData.removeAll()
-            //self.genral = ""
-            // arrayData.removeAll()
+        }
+        updateInvestigationChips()
+    }
+    
+    fileprivate func savePrescriptionData1() {
+        lastSavedDate = Date()
+        updateAutoSaveBanner()
+        if comeFrom == "videoCallViaChat" {
+            PrescriptionDetail.pasthistory = pastHistoryTxt.text ?? ""
+            PrescriptionDetail.provisonalDiagnosis = provisionTxt.text ?? ""
+            PrescriptionDetail.bloodPresure1 = systolicBp.text ?? ""
+            PrescriptionDetail.bloodPresure2 = diaystolicLable.text ?? ""
+            PrescriptionDetail.temprature = tempLable.text ?? ""
+            PrescriptionDetail.pluse = pulseTxt.text ?? ""
+            PrescriptionDetail.bloodsugar1 = bloodSugar1.text ?? ""
+            PrescriptionDetail.bloodsugar2 = bloodSugar2.text ?? ""
+            PrescriptionDetail.genralAdvice = genralTxt.text ?? ""
+            PrescriptionDetail.followUP = followUpDays.text ?? ""
+            PrescriptionDetail.cheifComaplain = ChiefTxtComplain.text ?? ""
+            PrescriptionDetail.genralExamToggle = genralSwitchButton
+            PrescriptionDetail.medicineData = arrayData
+            PrescriptionDetail.investigationGuide = investigationTxt.text ?? ""
         }
     }
     
     func setupUi() {
-        ChiefComplainView.dropShadow(scale: true)
-        pastHistory.dropShadow(scale: true)
-        genralExaminationView.dropShadow(scale: true)
-        provisonDiagnos.dropShadow(scale: true)
-        investigationView.dropShadow(scale: true)
-        medicineView.dropShadow(scale: true)
-        genralView.dropShadow(scale: true)
-        ChiefComplainView.dropShadow(scale: true)
-        ChiefComplainView.dropShadow(scale: true)
-        userDetailView.dropShadow(scale: true)
-        followUpView.dropShadow(scale: true)
-        tempButton.isHidden = true
-        systolicButton.isHidden = true
-        diastyolicButton.isHidden = true
-        pulseButton.isHidden = true
-        sugar1Button.isHidden = true
-        sugar2Button.isHidden = true
-        submItButton.layer.cornerRadius = 10
-        addMedicineView.layer.cornerRadius = 10
+        submItButton.layer.cornerRadius = 12
+        addMedicineView.layer.cornerRadius = 8
         prescriptionHeight.constant = 100
         tableView.delegate = self
         tableView.dataSource = self
@@ -280,68 +566,141 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
     }
     
     func userEditData(passData: [Medicine]) {
-        self.arrayData.remove(at: index)
+        if index < arrayData.count && !passData.isEmpty {
+            self.arrayData[index] = passData[0]
+        } else {
+            self.arrayData.remove(at: index)
+        }
+        PrescriptionDetail.medicineData = arrayData
         self.tableView.reloadData()
     }
     
-//    @IBAction func reasonTapped(_ sender: Any) {
-//        let action = ReasonForVisitPopUp()
-//        action.message = data["reason"]
-//        action.modalTransitionStyle = .crossDissolve
-//        action.modalPresentationStyle = .overCurrentContext
-//        self.present(action, animated: true)
-//    }
-    
+    // MARK: - Actions
     @IBAction func changePatientBtn_Action(_ sender: Any) {
-        
+        let storyboard = UIStoryboard(name: "Auth", bundle: nil)
+        if let vc = storyboard.instantiateViewController(withIdentifier: "AddPatientViewC") as? AddPatientViewC {
+            vc.initialName = userName.text
+            var currentAge = yearOldLable.text ?? ""
+            currentAge = currentAge.replacingOccurrences(of: " Yrs,", with: "")
+                                   .replacingOccurrences(of: "Yrs,", with: "")
+                                   .replacingOccurrences(of: "y", with: "")
+                                   .trimmingCharacters(in: .whitespacesAndNewlines)
+            vc.initialAge = currentAge
+            vc.initialGender = gender.text
+            vc.modalPresentationStyle = .overFullScreen
+            vc.modalTransitionStyle = .crossDissolve
+            vc.addPatientCallBack = { [weak self] name in
+                guard let self = self else { return }
+                self.userName.text = name
+                self.data["name"] = name
+                self.updatePatientSubtitle()
+            }
+            vc.onPatientAdded = { [weak self] name, age, gender in
+                guard let self = self else { return }
+                self.userName.text = name
+                self.data["name"] = name
+                let cleanAge = age.trimmingCharacters(in: .whitespacesAndNewlines)
+                self.yearOldLable.text = "\(cleanAge)y"
+                self.data["date"] = "\(cleanAge)y"
+                self.gender.text = gender
+                self.data["gender"] = gender.lowercased().starts(with: "m") ? "m" : (gender.lowercased().starts(with: "f") ? "f" : "o")
+                self.updatePatientSubtitle()
+            }
+            self.present(vc, animated: true, completion: nil)
+        } else {
+            let alert = UIAlertController(title: "Change Patient".localized(), message: "Enter patient details".localized(), preferredStyle: .alert)
+            alert.addTextField { tf in
+                tf.placeholder = "Patient Name"
+                tf.text = self.userName.text
+            }
+            alert.addTextField { tf in
+                tf.placeholder = "Age (e.g. 32y)"
+                tf.text = self.yearOldLable.text
+            }
+            alert.addAction(UIAlertAction(title: "Save".localized(), style: .default, handler: { [weak self] _ in
+                guard let self = self else { return }
+                if let newName = alert.textFields?[0].text, !newName.isEmpty {
+                    self.userName.text = newName
+                    self.data["name"] = newName
+                }
+                if let newAge = alert.textFields?[1].text, !newAge.isEmpty {
+                    self.yearOldLable.text = newAge
+                    self.data["date"] = newAge
+                }
+                self.updatePatientSubtitle()
+            }))
+            alert.addAction(UIAlertAction(title: "Cancel".localized(), style: .cancel))
+            self.present(alert, animated: true)
+        }
+    }
+    
+    @objc func investigationTextChanged() {
+        updateInvestigationChips()
+    }
+    
+    @objc func selectTemplateTapped() {
+        let alert = UIAlertController(title: "Select Template".localized(), message: "Load a saved prescription, then edit it".localized(), preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: "Acute tonsillitis Template".localized(), style: .default, handler: { [weak self] _ in
+            guard let self = self else { return }
+            self.ChiefTxtComplain.text = "Fever with sore throat for 4 days"
+            self.provisionTxt.text = "Acute tonsillitis"
+            self.tempLable.text = "101.2 °F"
+            self.pulseTxt.text = "92"
+            self.systolicBp.text = "120"
+            self.diaystolicLable.text = "80"
+            self.investigationTxt.text = "CBC, CRP, Throat swab C/S"
+            self.updateInvestigationChips()
+            self.genralTxt.text = "ঘরোয়া যত্ন:\n১. পর্যাপ্ত বিশ্রাম নিন।\n২. কুসুম গরম পানি দিয়ে গার্গল করুন।"
+            self.followUpDays.text = "7"
+            self.arrayData = [
+                Medicine(id: "1", name: "Aceta 500 mg\nParacetamol · Tablet", dosage: "1 Tablet", frequencyFirst: "1+1+1", duration: "7 days", meals: "After Meal", toggleBtnState: true, genralExamState: true, followUpState: true, investigationState: true, comeFromMedicne: true)
+            ]
+            self.medicinceTogle.isOn = true
+            self.medicineToggle(self.medicinceTogle)
+            self.tableView.reloadData()
+            self.genralSwitchButton.isOn = true
+            self.investigationToggle.isOn = true
+            self.switchButton.isOn = true
+            self.genralExamSwitch(self.genralSwitchButton)
+            self.investigationToggleTapped(self.investigationToggle)
+            self.followUpSwitch(self.switchButton)
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel".localized(), style: .cancel, handler: nil))
+        self.present(alert, animated: true)
+    }
+    
+    @objc func formatGeneralAdviceTapped() {
+        let vc = GeneralAdviceFormatViewController()
+        vc.initialText = genralTxt.text ?? ""
+        vc.onSave = { [weak self] formattedText in
+            guard let self = self else { return }
+            self.genralTxt.text = formattedText
+            self.savePrescriptionData1()
+        }
+        if let nav = self.navigationController {
+            nav.pushViewController(vc, animated: true)
+        } else {
+            vc.modalPresentationStyle = .fullScreen
+            self.present(vc, animated: true, completion: nil)
+        }
     }
     
     @IBAction func investigationToggleTapped(_ sender: UISwitch) {
-        if (sender.isOn) {
-            investigationViewHeight.constant = 130
-            self.investigationToggleState = true
-            investigationTxt.isHidden = false
-            investigationDropDown.isHidden = false
-            
-        } else {
-            investigationViewHeight.constant = 60
-            self.investigationToggleState = false
-            investigationTxt.isHidden = true
-            investigationDropDown.isHidden = true
+        self.investigationToggleState = sender.isOn
+        investigationTxt.isHidden = !sender.isOn
+        investigationDropDown.isHidden = !sender.isOn
+        UIView.animate(withDuration: 0.25) {
+            self.investigationContentStack.isHidden = !sender.isOn
+            self.view.layoutIfNeeded()
         }
+        updateInvestigationChips()
     }
     
     @IBAction func medicineToggle(_ sender: UISwitch) {
-        if (sender.isOn) {
-            medicineViewHeight.constant = 110
-            addMedicineView.isHidden = false
-        } else {
-            medicineViewHeight.constant = 60
-            addMedicineView.isHidden = true
-        }
-    }
-
-    fileprivate func savePrescriptionData1() {
-        if comeFrom == "videoCallViaChat" {
-            PrescriptionDetail.pasthistory = pastHistoryTxt.text ?? ""
-            PrescriptionDetail.provisonalDiagnosis = provisionTxt.text ?? ""
-            PrescriptionDetail.bloodPresure1 = systolicBp.text ?? ""
-            PrescriptionDetail.bloodPresure2 = diaystolicLable.text ?? ""
-            PrescriptionDetail.temprature = tempLable.text ?? ""
-            PrescriptionDetail.pluse = pulseTxt.text ?? ""
-            PrescriptionDetail.bloodsugar1 = bloodSugar1.text ?? ""
-            PrescriptionDetail.bloodsugar2 = bloodSugar2.text ?? ""
-            PrescriptionDetail.genralAdvice = genralTxt.text ?? ""
-            PrescriptionDetail.followUP = followUpDays.text ?? ""
-            PrescriptionDetail.cheifComaplain = ChiefTxtComplain.text ?? ""
-            PrescriptionDetail.genralExamToggle = genralSwitchButton
-            PrescriptionDetail.medicineData = arrayData
-            PrescriptionDetail.investigationGuide = investigationTxt.text ?? ""
-            //self.returnToVideo = true
-            // self.videoCallflowdelegate?.prescriptionBackFunc(returnToVideo, self.medicineSwitch, self.investigationToggleState, self.genralSwitchButtonState, self.followUpState)
-            //self.navigationController?.popViewController(animated: true)
-        } else {
-            // self.navigationController?.popViewController(animated: true)
+        self.medicineSwitch = sender.isOn
+        UIView.animate(withDuration: 0.25) {
+            self.medicineContentStack.isHidden = !sender.isOn
+            self.view.layoutIfNeeded()
         }
     }
     
@@ -366,7 +725,6 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
             self?.arrayData.remove(at: indexPath.row)
             self?.tableView.deleteRows(at: [indexPath], with: .bottom)
             self?.tableView.endUpdates()
-            
             print("Button tapped on row \(indexPath.row)")
         }))
         actionSheet.addAction(UIAlertAction(title: "No".localized(), style: .cancel, handler: { [self]_ in
@@ -385,116 +743,101 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
         vc.delegate = self
         vc.medicineEdit = true
         vc.modalPresentationStyle = .overFullScreen
-        self.navigationController?.pushViewController(vc, animated: true)
+        vc.modalTransitionStyle = .crossDissolve
+        self.present(vc, animated: true, completion: nil)
     }
     
     @IBAction func genralExamSwitch(_ sender: UISwitch) {
-        if (sender.isOn) {
-            self.genral = "1"
-            genralViewHeight.constant = 370
-            genralExamStack.isHidden = false
-            genralSwitchButtonState = true
-            
-        } else {
-            self.genral = "0"
-            genralViewHeight.constant = 60
-            genralExamStack.isHidden = true
-            genralSwitchButtonState = false
+        self.genralSwitchButtonState = sender.isOn
+        self.genral = sender.isOn ? "1" : "0"
+        UIView.animate(withDuration: 0.25) {
+            self.genralExamStack.isHidden = !sender.isOn
+            self.view.layoutIfNeeded()
         }
     }
     
     @IBAction func tepmButtonTapped(_ sender: Any) {
-        let data: [String] = ["97.5 °F", "98.5 °F"]
+        let data: [String] = ["97.5 °F", "98.5 °F", "99.5 °F", "100.5 °F", "101.2 °F", "102.0 °F"]
         var selectedNames: [String] = []
         let menu = RSSelectionMenu(selectionStyle: .single, dataSource: data) { (cell, name, indexPath) in
             cell.textLabel?.text = name
         }
         menu.cellSelectionStyle = .checkbox
         menu.setSelectedItems(items: selectedNames) { (name, index, selected, selectedItems) in
-            selectedNames = selectedItems
-            //let items = selectedNames.joined(separator:", ")
             self.tempLable.text = name
             self.dismiss(animated: true, completion: nil)
         }
-        menu.show(style: .popover(sourceView: sender as! UIView, size: CGSize(width: tempButton.frame.width, height: 110), arrowDirection: .any, hideNavBar: true), from: self)
+        menu.show(style: .popover(sourceView: sender as! UIView, size: CGSize(width: tempButton.frame.width > 0 ? tempButton.frame.width : 200, height: 180), arrowDirection: .any, hideNavBar: true), from: self)
     }
     
     @IBAction func bloodPressure(_ sender: Any) {
-        let data: [String] = ["70", "80", "90", "100", "110"]
+        let data: [String] = ["70", "80", "90", "100", "110", "120", "130", "140"]
         var selectedNames: [String] = []
         let menu = RSSelectionMenu(selectionStyle: .single, dataSource: data) { (cell, name, indexPath) in
             cell.textLabel?.text = name
         }
         menu.cellSelectionStyle = .checkbox
         menu.setSelectedItems(items: selectedNames) { (name, index, selected, selectedItems) in
-            selectedNames = selectedItems
-            //let items = selectedNames.joined(separator:", ")
             self.systolicBp.text = name
             self.dismiss(animated: true, completion: nil)
         }
-        menu.show(style: .popover(sourceView: sender as! UIView, size: CGSize(width: tempButton.frame.width, height: 200), arrowDirection: .any, hideNavBar: true), from: self)
+        menu.show(style: .popover(sourceView: sender as! UIView, size: CGSize(width: systolicButton.frame.width > 0 ? systolicButton.frame.width : 160, height: 200), arrowDirection: .any, hideNavBar: true), from: self)
     }
     
     @IBAction func bloodPresure2(_ sender: Any) {
-        let data: [String] = ["100", "110", "120","130","140", "150", "160"]
+        let data: [String] = ["70", "80", "90", "100", "110", "120", "130", "140", "150", "160"]
         var selectedNames: [String] = []
         let menu = RSSelectionMenu(selectionStyle: .single, dataSource: data) { (cell, name, indexPath) in
             cell.textLabel?.text = name
         }
         menu.cellSelectionStyle = .checkbox
         menu.setSelectedItems(items: selectedNames) { (name, index, selected, selectedItems) in
-            selectedNames = selectedItems
-            //let items = selectedNames.joined(separator:", ")
             self.diaystolicLable.text = name
             self.dismiss(animated: true, completion: nil)
         }
-        menu.show(style: .popover(sourceView: sender as! UIView, size: CGSize(width: tempButton.frame.width, height: 250), arrowDirection: .any, hideNavBar: true), from: self)
+        menu.show(style: .popover(sourceView: sender as! UIView, size: CGSize(width: diastyolicButton.frame.width > 0 ? diastyolicButton.frame.width : 160, height: 250), arrowDirection: .any, hideNavBar: true), from: self)
     }
+    
     @IBAction func pulse(_ sender: Any) {
-        let data: [String] = ["70", "80", "90", "100", "110"]
+        let data: [String] = ["60", "70", "72", "80", "85", "90", "92", "100", "110"]
         var selectedNames: [String] = []
         let menu = RSSelectionMenu(selectionStyle: .single, dataSource: data) { (cell, name, indexPath) in
             cell.textLabel?.text = name
         }
         menu.cellSelectionStyle = .checkbox
         menu.setSelectedItems(items: selectedNames) { (name, index, selected, selectedItems) in
-            selectedNames = selectedItems
             self.pulseTxt.text = name
             self.dismiss(animated: true, completion: nil)
         }
-        menu.show(style: .popover(sourceView: sender as! UIView, size: CGSize(width: pulseButton.frame.width, height: 230), arrowDirection: .any, hideNavBar: true), from: self)
+        menu.show(style: .popover(sourceView: sender as! UIView, size: CGSize(width: pulseButton.frame.width > 0 ? pulseButton.frame.width : 200, height: 230), arrowDirection: .any, hideNavBar: true), from: self)
     }
     
-    
     @IBAction func bloodSugar1(_ sender: Any) {
-        let data: [String] = ["70", "80", "90", "100", "110"]
+        let data: [String] = ["70", "80", "90", "100", "110", "120", "140"]
         var selectedNames: [String] = []
         let menu = RSSelectionMenu(selectionStyle: .single, dataSource: data) { (cell, name, indexPath) in
             cell.textLabel?.text = name
         }
         menu.cellSelectionStyle = .checkbox
         menu.setSelectedItems(items: selectedNames) { (name, index, selected, selectedItems) in
-            selectedNames = selectedItems
             self.bloodSugar1.text = name
             self.dismiss(animated: true, completion: nil)
         }
-        menu.show(style: .popover(sourceView: sender as! UIView, size: CGSize(width: tempButton.frame.width, height: 230), arrowDirection: .any, hideNavBar: true), from: self)
-        
+        menu.show(style: .popover(sourceView: sender as! UIView, size: CGSize(width: sugar1Button.frame.width > 0 ? sugar1Button.frame.width : 160, height: 230), arrowDirection: .any, hideNavBar: true), from: self)
     }
     
     @IBAction func bloodSugar2(_ sender: Any) {
-        let data: [String] = ["100", "110", "120", "130"]
+        let data: [String] = ["100", "110", "120", "130", "140", "160", "180"]
         var selectedNames: [String] = []
         let menu = RSSelectionMenu(selectionStyle: .single, dataSource: data) { (cell, name, indexPath) in
             cell.textLabel?.text = name
         }
         menu.cellSelectionStyle = .checkbox
         menu.setSelectedItems(items: selectedNames) { (name, index, selected, selectedItems) in
-            selectedNames = selectedItems
             self.bloodSugar2.text = name
             self.dismiss(animated: true, completion: nil)
         }
-        menu.show(style: .popover(sourceView: sender as! UIView, size: CGSize(width: tempButton.frame.width, height: 200), arrowDirection: .any, hideNavBar: true), from: self)
+        menu.show(style: .popover(sourceView: sender as! UIView, size: CGSize(width: sugar2Button.frame.width > 0 ? sugar2Button.frame.width : 160, height: 200), arrowDirection: .any, hideNavBar: true), from: self)
     }
     
     @IBAction func xrayButtonTapped(_ sender: UIButton) {
@@ -502,18 +845,16 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
             cell.textLabel?.text = name
         }
         menu.showSearchBar { [weak self] (searchText) -> ([String]) in
-            
-            return self?.specialtyListArray.filter({ $0.lowercased().starts(with:      searchText.lowercased()) }) ?? []
+            return self?.specialtyListArray.filter({ $0.lowercased().starts(with: searchText.lowercased()) }) ?? []
         }
         menu.cellSelectionStyle = .checkbox
         menu.setSelectedItems(items: selectedNames) { (name, index, selected, selectedItems) in
             self.selectedNames = selectedItems
             let items = self.selectedNames.joined(separator:", ")
-            //self.dismiss(animated: true, completion: nil)
             self.investigationTxt.text = items
+            self.updateInvestigationChips()
         }
-        menu.show(style: .actionSheet(title: nil, action: "Done", height: nil), from: self)
-        // menu.show(style: .popover(sourceView: sender as UIView, size: CGSize(width: view.frame.width, height: view.frame.height - 200), arrowDirection: .any, hideNavBar: true), from: self)
+        menu.show(style: .actionSheet(title: nil, action: "Done".localized(), height: nil), from: self)
     }
     
     @IBAction func addMedicineTapped(_ sender: Any) {
@@ -526,20 +867,15 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
         vc.genralExamState = genralSwitchButtonState
         vc.modalPresentationStyle = .overFullScreen
         vc.modalTransitionStyle = .crossDissolve
-        self.navigationController?.pushViewController(vc, animated: true)
+        self.present(vc, animated: true, completion: nil)
     }
     
     @IBAction func followUpSwitch(_ sender: UISwitch) {
-        if (sender.isOn) {
-            self.avilability = "1"
-            prescriptionHeight.constant = 110
-            followUpDays.isHidden = false
-            followUpState = true
-        } else {
-            self.avilability = "0"
-            prescriptionHeight.constant = 60
-            followUpDays.isHidden = true
-            followUpState = false
+        self.followUpState = sender.isOn
+        self.avilability = sender.isOn ? "1" : "0"
+        UIView.animate(withDuration: 0.25) {
+            self.followUpContentRow.isHidden = !sender.isOn
+            self.view.layoutIfNeeded()
         }
     }
     
@@ -551,24 +887,1062 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
         } else if self.genralTxt.text?.isEmpty ?? false {
             AppToast.showMessage(message: "Please Add General Advice".localized())
         } else {
-            let alertController = UIAlertController(title: "Alert!", message: "Are you sure you want to save this prescription?".localized(), preferredStyle: .alert)
+            let alertController = UIAlertController(title: "Alert!".localized(), message: "Are you sure you want to save this prescription?".localized(), preferredStyle: .alert)
             
-            // Create OK button
             let OKAction = UIAlertAction(title: "Yes".localized(), style: .default) { (action:UIAlertAction!) in
                 self.performSavePrescription()
                 print("Ok button tapped");
             }
             alertController.addAction(OKAction)
-            // Create Cancel button
+            
             let cancelAction = UIAlertAction(title: "No".localized(), style: .cancel) { (action:UIAlertAction!) in
                 print("Cancel button tapped");
             }
             alertController.addAction(cancelAction)
             
-            // Present Dialog message
             self.present(alertController, animated: true, completion:nil)
             return
         }
+    }
+    
+    // MARK: - Modern UI Construction
+    private func buildModernUI() {
+        let rootView = UIView()
+        rootView.backgroundColor = UIColor(red: 244/255, green: 247/255, blue: 251/255, alpha: 1.0) // #F4F7FB
+        self.view = rootView
+        
+        // 1. Navigation Header View
+        let navBarView = UIView()
+        navBarView.backgroundColor = rootView.backgroundColor
+        navBarView.translatesAutoresizingMaskIntoConstraints = false
+        rootView.addSubview(navBarView)
+        
+        let backBtn = UIButton(type: .custom)
+        if let backImg = UIImage(systemName: "chevron.left") {
+            backBtn.setImage(backImg, for: .normal)
+            backBtn.tintColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        } else if let backImg = UIImage(named: "back1") {
+            backBtn.setImage(backImg, for: .normal)
+        }
+        backBtn.translatesAutoresizingMaskIntoConstraints = false
+        backBtn.addTarget(self, action: #selector(menuButton(_:)), for: .touchUpInside)
+        navBarView.addSubview(backBtn)
+        
+        titleTxt = UILabel()
+        titleTxt.text = "Prescription"
+        titleTxt.font = UIFont(name: "Poppins-SemiBold", size: 18) ?? UIFont.systemFont(ofSize: 18, weight: .bold)
+        titleTxt.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        titleTxt.textAlignment = .center
+        titleTxt.translatesAutoresizingMaskIntoConstraints = false
+        navBarView.addSubview(titleTxt)
+        
+        let notifBtn = UIButton(type: .custom)
+        if let notifImg = UIImage(systemName: "bell") {
+            notifBtn.setImage(notifImg, for: .normal)
+            notifBtn.tintColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        } else if let notifImg = UIImage(named: "NotificationIcon") {
+            notifBtn.setImage(notifImg, for: .normal)
+        }
+        notifBtn.translatesAutoresizingMaskIntoConstraints = false
+        notifBtn.addTarget(self, action: #selector(noticficationButton(_:)), for: .touchUpInside)
+        navBarView.addSubview(notifBtn)
+        
+        NSLayoutConstraint.activate([
+            navBarView.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor),
+            navBarView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
+            navBarView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
+            navBarView.heightAnchor.constraint(equalToConstant: 44),
+            
+            backBtn.leadingAnchor.constraint(equalTo: navBarView.leadingAnchor, constant: 16),
+            backBtn.centerYAnchor.constraint(equalTo: navBarView.centerYAnchor),
+            backBtn.widthAnchor.constraint(equalToConstant: 32),
+            backBtn.heightAnchor.constraint(equalToConstant: 32),
+            
+            titleTxt.centerXAnchor.constraint(equalTo: navBarView.centerXAnchor),
+            titleTxt.centerYAnchor.constraint(equalTo: navBarView.centerYAnchor),
+            
+            notifBtn.trailingAnchor.constraint(equalTo: navBarView.trailingAnchor, constant: -16),
+            notifBtn.centerYAnchor.constraint(equalTo: navBarView.centerYAnchor),
+            notifBtn.widthAnchor.constraint(equalToConstant: 32),
+            notifBtn.heightAnchor.constraint(equalToConstant: 32)
+        ])
+        
+        // 2. Auto-save Banner
+        let autoSaveBanner = UIView()
+        autoSaveBanner.backgroundColor = UIColor(red: 234/255, green: 247/255, blue: 238/255, alpha: 1.0) // #EAF7EE
+        autoSaveBanner.translatesAutoresizingMaskIntoConstraints = false
+        rootView.addSubview(autoSaveBanner)
+        
+        autoSaveStatusLabel.text = "✓ Draft saved 12 seconds ago"
+        autoSaveStatusLabel.font = UIFont(name: "Poppins-Medium", size: 12) ?? UIFont.systemFont(ofSize: 12, weight: .medium)
+        autoSaveStatusLabel.textColor = UIColor(red: 30/255, green: 122/255, blue: 55/255, alpha: 1.0) // #1E7A37
+        autoSaveStatusLabel.translatesAutoresizingMaskIntoConstraints = false
+        autoSaveBanner.addSubview(autoSaveStatusLabel)
+        
+        let autoSaveHintLabel = UILabel()
+        autoSaveHintLabel.text = "Auto-saves as you write"
+        autoSaveHintLabel.font = UIFont(name: "Poppins-Regular", size: 12) ?? UIFont.systemFont(ofSize: 12, weight: .regular)
+        autoSaveHintLabel.textColor = UIColor(red: 92/255, green: 138/255, blue: 105/255, alpha: 1.0) // #5C8A69
+        autoSaveHintLabel.textAlignment = .right
+        autoSaveHintLabel.translatesAutoresizingMaskIntoConstraints = false
+        autoSaveBanner.addSubview(autoSaveHintLabel)
+        
+        NSLayoutConstraint.activate([
+            autoSaveBanner.topAnchor.constraint(equalTo: navBarView.bottomAnchor),
+            autoSaveBanner.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
+            autoSaveBanner.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
+            autoSaveBanner.heightAnchor.constraint(equalToConstant: 36),
+            
+            autoSaveStatusLabel.leadingAnchor.constraint(equalTo: autoSaveBanner.leadingAnchor, constant: 16),
+            autoSaveStatusLabel.centerYAnchor.constraint(equalTo: autoSaveBanner.centerYAnchor),
+            
+            autoSaveHintLabel.trailingAnchor.constraint(equalTo: autoSaveBanner.trailingAnchor, constant: -16),
+            autoSaveHintLabel.centerYAnchor.constraint(equalTo: autoSaveBanner.centerYAnchor)
+        ])
+        
+        // 3. Fixed Bottom Bar with Submit Button
+        let bottomBarView = UIView()
+        bottomBarView.backgroundColor = rootView.backgroundColor
+        bottomBarView.translatesAutoresizingMaskIntoConstraints = false
+        rootView.addSubview(bottomBarView)
+        
+        submItButton = UIButton(type: .system)
+        submItButton.setTitle("Submit", for: .normal)
+        submItButton.titleLabel?.font = UIFont(name: "Poppins-SemiBold", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .semibold)
+        submItButton.setTitleColor(.white, for: .normal)
+        submItButton.backgroundColor = UIColor(red: 25/255, green: 118/255, blue: 210/255, alpha: 1.0) // #1976D2
+        submItButton.layer.cornerRadius = 10
+        submItButton.clipsToBounds = true
+        submItButton.translatesAutoresizingMaskIntoConstraints = false
+        submItButton.addTarget(self, action: #selector(submitButtonTapped(_:)), for: .touchUpInside)
+        bottomBarView.addSubview(submItButton)
+        
+        NSLayoutConstraint.activate([
+            bottomBarView.bottomAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.bottomAnchor),
+            bottomBarView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
+            bottomBarView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
+            bottomBarView.heightAnchor.constraint(equalToConstant: 68),
+            
+            submItButton.topAnchor.constraint(equalTo: bottomBarView.topAnchor, constant: 8),
+            submItButton.leadingAnchor.constraint(equalTo: bottomBarView.leadingAnchor, constant: 16),
+            submItButton.trailingAnchor.constraint(equalTo: bottomBarView.trailingAnchor, constant: -16),
+            submItButton.heightAnchor.constraint(equalToConstant: 50)
+        ])
+        
+        // 4. ScrollView with Card Content
+        let scrollView = UIScrollView()
+        scrollView.backgroundColor = .clear
+        scrollView.showsVerticalScrollIndicator = false
+        scrollView.keyboardDismissMode = .onDrag
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        rootView.addSubview(scrollView)
+        
+        NSLayoutConstraint.activate([
+            scrollView.topAnchor.constraint(equalTo: autoSaveBanner.bottomAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: bottomBarView.topAnchor)
+        ])
+        
+        let contentStackView = UIStackView()
+        contentStackView.axis = .vertical
+        contentStackView.spacing = 14
+        contentStackView.alignment = .fill
+        contentStackView.distribution = .fill
+        contentStackView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.addSubview(contentStackView)
+        
+        NSLayoutConstraint.activate([
+            contentStackView.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 14),
+            contentStackView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 16),
+            contentStackView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -16),
+            contentStackView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -16),
+            contentStackView.widthAnchor.constraint(equalTo: scrollView.widthAnchor, constant: -32)
+        ])
+        
+        // --- Card 1: Patient Card (userDetailView) ---
+        userDetailView = createCardView()
+        contentStackView.addArrangedSubview(userDetailView)
+        
+        let avatarCircle = UIView()
+        avatarCircle.backgroundColor = UIColor(red: 235/255, green: 243/255, blue: 252/255, alpha: 1.0) // #EBF3FC
+        avatarCircle.layer.cornerRadius = 22
+        avatarCircle.layer.masksToBounds = true
+        avatarCircle.translatesAutoresizingMaskIntoConstraints = false
+        userDetailView.addSubview(avatarCircle)
+        
+        let avatarIcon = UIImageView()
+        avatarIcon.contentMode = .scaleAspectFit
+        if let personImg = UIImage(systemName: "person") {
+            avatarIcon.image = personImg
+            avatarIcon.tintColor = UIColor(red: 37/255, green: 99/255, blue: 235/255, alpha: 1.0)
+        } else if let userImg = UIImage(named: "User-1") {
+            avatarIcon.image = userImg
+        }
+        avatarIcon.translatesAutoresizingMaskIntoConstraints = false
+        avatarCircle.addSubview(avatarIcon)
+        
+        userName = UILabel()
+        userName.text = "Md Modasser"
+        userName.font = UIFont(name: "Poppins-SemiBold", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .bold)
+        userName.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        userName.translatesAutoresizingMaskIntoConstraints = false
+        userDetailView.addSubview(userName)
+        
+        patientSubtitleLabel.text = "Male · 32y · 17/11/2026"
+        patientSubtitleLabel.font = UIFont(name: "Poppins-Regular", size: 13) ?? UIFont.systemFont(ofSize: 13, weight: .regular)
+        patientSubtitleLabel.textColor = UIColor(red: 100/255, green: 116/255, blue: 139/255, alpha: 1.0)
+        patientSubtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        userDetailView.addSubview(patientSubtitleLabel)
+        
+        // Hidden outlets kept for logic
+        yearOldLable = UILabel()
+        gender = UILabel()
+        dateTxt = UILabel()
+        
+        changePatientBtn = UIButton(type: .system)
+        changePatientBtn.setTitle("Change patient", for: .normal)
+        changePatientBtn.titleLabel?.font = UIFont(name: "Poppins-Medium", size: 13) ?? UIFont.systemFont(ofSize: 13, weight: .medium)
+        changePatientBtn.setTitleColor(UIColor(red: 29/255, green: 112/255, blue: 184/255, alpha: 1.0), for: .normal)
+        changePatientBtn.backgroundColor = .white
+        changePatientBtn.layer.cornerRadius = 8
+        changePatientBtn.layer.borderWidth = 1.5
+        changePatientBtn.layer.borderColor = UIColor(red: 29/255, green: 112/255, blue: 184/255, alpha: 1.0).cgColor
+        changePatientBtn.translatesAutoresizingMaskIntoConstraints = false
+        changePatientBtn.addTarget(self, action: #selector(changePatientBtn_Action(_:)), for: .touchUpInside)
+        userDetailView.addSubview(changePatientBtn)
+        
+        NSLayoutConstraint.activate([
+            avatarCircle.leadingAnchor.constraint(equalTo: userDetailView.leadingAnchor, constant: 14),
+            avatarCircle.centerYAnchor.constraint(equalTo: userDetailView.centerYAnchor),
+            avatarCircle.widthAnchor.constraint(equalToConstant: 44),
+            avatarCircle.heightAnchor.constraint(equalToConstant: 44),
+            
+            avatarIcon.centerXAnchor.constraint(equalTo: avatarCircle.centerXAnchor),
+            avatarIcon.centerYAnchor.constraint(equalTo: avatarCircle.centerYAnchor),
+            avatarIcon.widthAnchor.constraint(equalToConstant: 22),
+            avatarIcon.heightAnchor.constraint(equalToConstant: 22),
+            
+            userName.leadingAnchor.constraint(equalTo: avatarCircle.trailingAnchor, constant: 12),
+            userName.topAnchor.constraint(equalTo: userDetailView.topAnchor, constant: 16),
+            userName.trailingAnchor.constraint(lessThanOrEqualTo: changePatientBtn.leadingAnchor, constant: -8),
+            
+            patientSubtitleLabel.leadingAnchor.constraint(equalTo: userName.leadingAnchor),
+            patientSubtitleLabel.topAnchor.constraint(equalTo: userName.bottomAnchor, constant: 3),
+            patientSubtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: changePatientBtn.leadingAnchor, constant: -8),
+            patientSubtitleLabel.bottomAnchor.constraint(equalTo: userDetailView.bottomAnchor, constant: -16),
+            
+            changePatientBtn.trailingAnchor.constraint(equalTo: userDetailView.trailingAnchor, constant: -14),
+            changePatientBtn.centerYAnchor.constraint(equalTo: userDetailView.centerYAnchor),
+            changePatientBtn.widthAnchor.constraint(equalToConstant: 120),
+            changePatientBtn.heightAnchor.constraint(equalToConstant: 34)
+        ])
+        
+        // --- Card 2: Select Template Card ---
+        templateCardView.backgroundColor = UIColor(red: 240/255, green: 247/255, blue: 255/255, alpha: 1.0) // #F0F7FF
+        templateCardView.layer.cornerRadius = 12
+        templateCardView.clipsToBounds = true
+        templateCardView.translatesAutoresizingMaskIntoConstraints = false
+        contentStackView.addArrangedSubview(templateCardView)
+        
+        let templateIcon = UIImageView()
+        templateIcon.contentMode = .scaleAspectFit
+        if let docImg = UIImage(systemName: "rectangle.split.2x1") {
+            templateIcon.image = docImg
+            templateIcon.tintColor = UIColor(red: 37/255, green: 99/255, blue: 235/255, alpha: 1.0)
+        } else if let defImg = UIImage(named: "prescription") {
+            templateIcon.image = defImg
+        }
+        templateIcon.translatesAutoresizingMaskIntoConstraints = false
+        templateCardView.addSubview(templateIcon)
+        
+        let templateTitle = UILabel()
+        templateTitle.text = "Select template"
+        templateTitle.font = UIFont(name: "Poppins-SemiBold", size: 14) ?? UIFont.systemFont(ofSize: 14, weight: .semibold)
+        templateTitle.textColor = UIColor(red: 29/255, green: 78/255, blue: 216/255, alpha: 1.0) // #1D4ED8
+        templateTitle.translatesAutoresizingMaskIntoConstraints = false
+        templateCardView.addSubview(templateTitle)
+        
+        let templateSub = UILabel()
+        templateSub.text = "Load a saved prescription, then edit it"
+        templateSub.font = UIFont(name: "Poppins-Regular", size: 11.5) ?? UIFont.systemFont(ofSize: 11.5, weight: .regular)
+        templateSub.textColor = UIColor(red: 100/255, green: 116/255, blue: 139/255, alpha: 1.0)
+        templateSub.translatesAutoresizingMaskIntoConstraints = false
+        templateCardView.addSubview(templateSub)
+        
+        let templateChevron = UIImageView()
+        templateChevron.contentMode = .scaleAspectFit
+        if let chevImg = UIImage(systemName: "chevron.down") {
+            templateChevron.image = chevImg
+            templateChevron.tintColor = UIColor(red: 37/255, green: 99/255, blue: 235/255, alpha: 1.0)
+        } else if let chevImg = UIImage(named: "down_arrow") {
+            templateChevron.image = chevImg
+        }
+        templateChevron.translatesAutoresizingMaskIntoConstraints = false
+        templateCardView.addSubview(templateChevron)
+        
+        let templateTapBtn = UIButton(type: .custom)
+        templateTapBtn.translatesAutoresizingMaskIntoConstraints = false
+        templateTapBtn.addTarget(self, action: #selector(selectTemplateTapped), for: .touchUpInside)
+        templateCardView.addSubview(templateTapBtn)
+        
+        NSLayoutConstraint.activate([
+            templateIcon.leadingAnchor.constraint(equalTo: templateCardView.leadingAnchor, constant: 14),
+            templateIcon.centerYAnchor.constraint(equalTo: templateCardView.centerYAnchor),
+            templateIcon.widthAnchor.constraint(equalToConstant: 22),
+            templateIcon.heightAnchor.constraint(equalToConstant: 22),
+            
+            templateTitle.leadingAnchor.constraint(equalTo: templateIcon.trailingAnchor, constant: 12),
+            templateTitle.topAnchor.constraint(equalTo: templateCardView.topAnchor, constant: 12),
+            templateTitle.trailingAnchor.constraint(lessThanOrEqualTo: templateChevron.leadingAnchor, constant: -8),
+            
+            templateSub.leadingAnchor.constraint(equalTo: templateTitle.leadingAnchor),
+            templateSub.topAnchor.constraint(equalTo: templateTitle.bottomAnchor, constant: 2),
+            templateSub.trailingAnchor.constraint(lessThanOrEqualTo: templateChevron.leadingAnchor, constant: -8),
+            templateSub.bottomAnchor.constraint(equalTo: templateCardView.bottomAnchor, constant: -12),
+            
+            templateChevron.trailingAnchor.constraint(equalTo: templateCardView.trailingAnchor, constant: -14),
+            templateChevron.centerYAnchor.constraint(equalTo: templateCardView.centerYAnchor),
+            templateChevron.widthAnchor.constraint(equalToConstant: 16),
+            templateChevron.heightAnchor.constraint(equalToConstant: 16),
+            
+            templateTapBtn.topAnchor.constraint(equalTo: templateCardView.topAnchor),
+            templateTapBtn.bottomAnchor.constraint(equalTo: templateCardView.bottomAnchor),
+            templateTapBtn.leadingAnchor.constraint(equalTo: templateCardView.leadingAnchor),
+            templateTapBtn.trailingAnchor.constraint(equalTo: templateCardView.trailingAnchor)
+        ])
+        
+        // --- Card 3: Chief Complain ---
+        ChiefComplainView = createCardView()
+        contentStackView.addArrangedSubview(ChiefComplainView)
+        
+        let chiefTitle = UILabel()
+        chiefTitle.text = "Chief Complain"
+        chiefTitle.font = UIFont(name: "Poppins-SemiBold", size: 14) ?? UIFont.systemFont(ofSize: 14, weight: .semibold)
+        chiefTitle.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        chiefTitle.translatesAutoresizingMaskIntoConstraints = false
+        ChiefComplainView.addSubview(chiefTitle)
+        
+        let chiefBox = createInputFieldContainer(height: 70)
+        ChiefComplainView.addSubview(chiefBox)
+        
+        ChiefTxtComplain = MultilineInputTextField()
+        ChiefTxtComplain.placeholder = "Chief Complain"
+        ChiefTxtComplain.translatesAutoresizingMaskIntoConstraints = false
+        chiefBox.addSubview(ChiefTxtComplain)
+        
+        NSLayoutConstraint.activate([
+            chiefTitle.topAnchor.constraint(equalTo: ChiefComplainView.topAnchor, constant: 14),
+            chiefTitle.leadingAnchor.constraint(equalTo: ChiefComplainView.leadingAnchor, constant: 14),
+            chiefTitle.trailingAnchor.constraint(equalTo: ChiefComplainView.trailingAnchor, constant: -14),
+            
+            chiefBox.topAnchor.constraint(equalTo: chiefTitle.bottomAnchor, constant: 10),
+            chiefBox.leadingAnchor.constraint(equalTo: ChiefComplainView.leadingAnchor, constant: 14),
+            chiefBox.trailingAnchor.constraint(equalTo: ChiefComplainView.trailingAnchor, constant: -14),
+            chiefBox.bottomAnchor.constraint(equalTo: ChiefComplainView.bottomAnchor, constant: -14),
+            
+            ChiefTxtComplain.topAnchor.constraint(equalTo: chiefBox.topAnchor),
+            ChiefTxtComplain.bottomAnchor.constraint(equalTo: chiefBox.bottomAnchor),
+            ChiefTxtComplain.leadingAnchor.constraint(equalTo: chiefBox.leadingAnchor),
+            ChiefTxtComplain.trailingAnchor.constraint(equalTo: chiefBox.trailingAnchor)
+        ])
+        
+        // --- Card 4: Past History ---
+        pastHistory = createCardView()
+        contentStackView.addArrangedSubview(pastHistory)
+        
+        let pastTitle = UILabel()
+        pastTitle.text = "Past History"
+        pastTitle.font = UIFont(name: "Poppins-SemiBold", size: 14) ?? UIFont.systemFont(ofSize: 14, weight: .semibold)
+        pastTitle.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        pastTitle.translatesAutoresizingMaskIntoConstraints = false
+        pastHistory.addSubview(pastTitle)
+        
+        let pastBox = createInputFieldContainer(height: 70)
+        pastHistory.addSubview(pastBox)
+        
+        pastHistoryTxt = MultilineInputTextField()
+        pastHistoryTxt.placeholder = "Past History"
+        pastHistoryTxt.translatesAutoresizingMaskIntoConstraints = false
+        pastBox.addSubview(pastHistoryTxt)
+        
+        NSLayoutConstraint.activate([
+            pastTitle.topAnchor.constraint(equalTo: pastHistory.topAnchor, constant: 14),
+            pastTitle.leadingAnchor.constraint(equalTo: pastHistory.leadingAnchor, constant: 14),
+            pastTitle.trailingAnchor.constraint(equalTo: pastHistory.trailingAnchor, constant: -14),
+            
+            pastBox.topAnchor.constraint(equalTo: pastTitle.bottomAnchor, constant: 10),
+            pastBox.leadingAnchor.constraint(equalTo: pastHistory.leadingAnchor, constant: 14),
+            pastBox.trailingAnchor.constraint(equalTo: pastHistory.trailingAnchor, constant: -14),
+            pastBox.bottomAnchor.constraint(equalTo: pastHistory.bottomAnchor, constant: -14),
+            
+            pastHistoryTxt.topAnchor.constraint(equalTo: pastBox.topAnchor),
+            pastHistoryTxt.bottomAnchor.constraint(equalTo: pastBox.bottomAnchor),
+            pastHistoryTxt.leadingAnchor.constraint(equalTo: pastBox.leadingAnchor),
+            pastHistoryTxt.trailingAnchor.constraint(equalTo: pastBox.trailingAnchor)
+        ])
+        
+        // --- Card 5: General Examination (genralExaminationView) ---
+        genralExaminationView = createCardView()
+        contentStackView.addArrangedSubview(genralExaminationView)
+        
+        let genralCardStack = UIStackView()
+        genralCardStack.axis = .vertical
+        genralCardStack.spacing = 14
+        genralCardStack.translatesAutoresizingMaskIntoConstraints = false
+        genralExaminationView.addSubview(genralCardStack)
+        
+        let genralHeaderRow = UIStackView()
+        genralHeaderRow.axis = .horizontal
+        genralHeaderRow.alignment = .center
+        genralHeaderRow.distribution = .equalSpacing
+        genralHeaderRow.translatesAutoresizingMaskIntoConstraints = false
+        genralCardStack.addArrangedSubview(genralHeaderRow)
+        
+        gernralExamTitle = UILabel()
+        gernralExamTitle.text = "General Examination"
+        gernralExamTitle.font = UIFont(name: "Poppins-SemiBold", size: 14) ?? UIFont.systemFont(ofSize: 14, weight: .semibold)
+        gernralExamTitle.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        genralHeaderRow.addArrangedSubview(gernralExamTitle)
+        
+        genralSwitchButton = UISwitch()
+        genralSwitchButton.onTintColor = UIColor(red: 25/255, green: 118/255, blue: 210/255, alpha: 1.0)
+        genralSwitchButton.isOn = true
+        genralSwitchButton.addTarget(self, action: #selector(genralExamSwitch(_:)), for: .valueChanged)
+        genralHeaderRow.addArrangedSubview(genralSwitchButton)
+        
+        genralExamStack = UIStackView()
+        genralExamStack.axis = .horizontal
+        genralExamStack.distribution = .fillEqually
+        genralExamStack.spacing = 12
+        genralExamStack.translatesAutoresizingMaskIntoConstraints = false
+        genralCardStack.addArrangedSubview(genralExamStack)
+        
+        // Left Column (Temperature, Blood pressure)
+        let leftCol = UIStackView()
+        leftCol.axis = .vertical
+        leftCol.spacing = 10
+        leftCol.distribution = .fillEqually
+        genralExamStack.addArrangedSubview(leftCol)
+        
+        // Temperature
+        let tempContainer = UIView()
+        tempLbl = UILabel()
+        tempLbl.text = "Temperature"
+        tempLbl.font = UIFont(name: "Poppins-Medium", size: 12) ?? UIFont.systemFont(ofSize: 12, weight: .medium)
+        tempLbl.textColor = UIColor(red: 100/255, green: 116/255, blue: 139/255, alpha: 1.0)
+        tempLbl.translatesAutoresizingMaskIntoConstraints = false
+        tempContainer.addSubview(tempLbl)
+        
+        let tempBox = createInputFieldContainer(height: 44)
+        tempContainer.addSubview(tempBox)
+        
+        tempLable = InsetPaddedTextField()
+        tempLable.placeholder = "101.2 °F"
+        tempLable.font = UIFont(name: "Poppins-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14)
+        tempLable.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        tempLable.tintColor = UIColor(red: 25/255, green: 118/255, blue: 210/255, alpha: 1.0)
+        tempLable.keyboardType = .numbersAndPunctuation
+        tempLable.isUserInteractionEnabled = true
+        tempLable.translatesAutoresizingMaskIntoConstraints = false
+        tempBox.addSubview(tempLable)
+        
+        tempButton = UIButton(type: .custom)
+        tempButton.isHidden = true
+        tempBox.addSubview(tempButton)
+        
+        NSLayoutConstraint.activate([
+            tempLbl.topAnchor.constraint(equalTo: tempContainer.topAnchor),
+            tempLbl.leadingAnchor.constraint(equalTo: tempContainer.leadingAnchor),
+            
+            tempBox.topAnchor.constraint(equalTo: tempLbl.bottomAnchor, constant: 4),
+            tempBox.leadingAnchor.constraint(equalTo: tempContainer.leadingAnchor),
+            tempBox.trailingAnchor.constraint(equalTo: tempContainer.trailingAnchor),
+            tempBox.bottomAnchor.constraint(equalTo: tempContainer.bottomAnchor),
+            
+            tempLable.topAnchor.constraint(equalTo: tempBox.topAnchor),
+            tempLable.bottomAnchor.constraint(equalTo: tempBox.bottomAnchor),
+            tempLable.leadingAnchor.constraint(equalTo: tempBox.leadingAnchor),
+            tempLable.trailingAnchor.constraint(equalTo: tempBox.trailingAnchor)
+        ])
+        leftCol.addArrangedSubview(tempContainer)
+        
+        // Blood pressure
+        let bpContainer = UIView()
+        bloodPressureLbl = UILabel()
+        bloodPressureLbl.text = "Blood pressure"
+        bloodPressureLbl.font = UIFont(name: "Poppins-Medium", size: 12) ?? UIFont.systemFont(ofSize: 12, weight: .medium)
+        bloodPressureLbl.textColor = UIColor(red: 100/255, green: 116/255, blue: 139/255, alpha: 1.0)
+        bloodPressureLbl.translatesAutoresizingMaskIntoConstraints = false
+        bpContainer.addSubview(bloodPressureLbl)
+        
+        let bpBox = createInputFieldContainer(height: 44)
+        bpContainer.addSubview(bpBox)
+        
+        let bpRow = UIStackView()
+        bpRow.axis = .horizontal
+        bpRow.distribution = .fillProportionally
+        bpRow.spacing = 2
+        bpRow.translatesAutoresizingMaskIntoConstraints = false
+        bpBox.addSubview(bpRow)
+        
+        systolicBp = InsetPaddedTextField()
+        systolicBp.placeholder = "120"
+        systolicBp.textAlignment = .center
+        systolicBp.font = UIFont(name: "Poppins-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14)
+        systolicBp.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        systolicBp.tintColor = UIColor(red: 25/255, green: 118/255, blue: 210/255, alpha: 1.0)
+        systolicBp.keyboardType = .numberPad
+        systolicBp.isUserInteractionEnabled = true
+        systolicBp.translatesAutoresizingMaskIntoConstraints = false
+        bpRow.addArrangedSubview(systolicBp)
+        
+        let slashLbl = UILabel()
+        slashLbl.text = "/"
+        slashLbl.font = UIFont(name: "Poppins-Medium", size: 14) ?? UIFont.systemFont(ofSize: 14, weight: .medium)
+        slashLbl.textColor = UIColor(red: 148/255, green: 163/255, blue: 184/255, alpha: 1.0)
+        slashLbl.textAlignment = .center
+        slashLbl.translatesAutoresizingMaskIntoConstraints = false
+        slashLbl.widthAnchor.constraint(equalToConstant: 12).isActive = true
+        bpRow.addArrangedSubview(slashLbl)
+        
+        diaystolicLable = InsetPaddedTextField()
+        diaystolicLable.placeholder = "80"
+        diaystolicLable.textAlignment = .center
+        diaystolicLable.font = UIFont(name: "Poppins-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14)
+        diaystolicLable.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        diaystolicLable.tintColor = UIColor(red: 25/255, green: 118/255, blue: 210/255, alpha: 1.0)
+        diaystolicLable.keyboardType = .numberPad
+        diaystolicLable.isUserInteractionEnabled = true
+        diaystolicLable.translatesAutoresizingMaskIntoConstraints = false
+        bpRow.addArrangedSubview(diaystolicLable)
+        
+        systolicButton = UIButton(type: .custom)
+        systolicButton.isHidden = true
+        bpBox.addSubview(systolicButton)
+        
+        diastyolicButton = UIButton(type: .custom)
+        diastyolicButton.isHidden = true
+        bpBox.addSubview(diastyolicButton)
+        
+        NSLayoutConstraint.activate([
+            bloodPressureLbl.topAnchor.constraint(equalTo: bpContainer.topAnchor),
+            bloodPressureLbl.leadingAnchor.constraint(equalTo: bpContainer.leadingAnchor),
+            
+            bpBox.topAnchor.constraint(equalTo: bloodPressureLbl.bottomAnchor, constant: 4),
+            bpBox.leadingAnchor.constraint(equalTo: bpContainer.leadingAnchor),
+            bpBox.trailingAnchor.constraint(equalTo: bpContainer.trailingAnchor),
+            bpBox.bottomAnchor.constraint(equalTo: bpContainer.bottomAnchor),
+            
+            bpRow.topAnchor.constraint(equalTo: bpBox.topAnchor),
+            bpRow.bottomAnchor.constraint(equalTo: bpBox.bottomAnchor),
+            bpRow.leadingAnchor.constraint(equalTo: bpBox.leadingAnchor, constant: 6),
+            bpRow.trailingAnchor.constraint(equalTo: bpBox.trailingAnchor, constant: -6)
+        ])
+        leftCol.addArrangedSubview(bpContainer)
+        
+        // Right Column (Pulse, Blood sugar)
+        let rightCol = UIStackView()
+        rightCol.axis = .vertical
+        rightCol.spacing = 10
+        rightCol.distribution = .fillEqually
+        genralExamStack.addArrangedSubview(rightCol)
+        
+        // Pulse
+        let pulseContainer = UIView()
+        pluseLbl = UILabel()
+        pluseLbl.text = "Pulse"
+        pluseLbl.font = UIFont(name: "Poppins-Medium", size: 12) ?? UIFont.systemFont(ofSize: 12, weight: .medium)
+        pluseLbl.textColor = UIColor(red: 100/255, green: 116/255, blue: 139/255, alpha: 1.0)
+        pluseLbl.translatesAutoresizingMaskIntoConstraints = false
+        pulseContainer.addSubview(pluseLbl)
+        
+        let pulseBox = createInputFieldContainer(height: 44)
+        pulseContainer.addSubview(pulseBox)
+        
+        pulseTxt = InsetPaddedTextField()
+        pulseTxt.placeholder = "92"
+        pulseTxt.font = UIFont(name: "Poppins-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14)
+        pulseTxt.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        pulseTxt.tintColor = UIColor(red: 25/255, green: 118/255, blue: 210/255, alpha: 1.0)
+        pulseTxt.keyboardType = .numberPad
+        pulseTxt.isUserInteractionEnabled = true
+        pulseTxt.translatesAutoresizingMaskIntoConstraints = false
+        pulseBox.addSubview(pulseTxt)
+        
+        pulseButton = UIButton(type: .custom)
+        pulseButton.isHidden = true
+        pulseBox.addSubview(pulseButton)
+        
+        NSLayoutConstraint.activate([
+            pluseLbl.topAnchor.constraint(equalTo: pulseContainer.topAnchor),
+            pluseLbl.leadingAnchor.constraint(equalTo: pulseContainer.leadingAnchor),
+            
+            pulseBox.topAnchor.constraint(equalTo: pluseLbl.bottomAnchor, constant: 4),
+            pulseBox.leadingAnchor.constraint(equalTo: pulseContainer.leadingAnchor),
+            pulseBox.trailingAnchor.constraint(equalTo: pulseContainer.trailingAnchor),
+            pulseBox.bottomAnchor.constraint(equalTo: pulseContainer.bottomAnchor),
+            
+            pulseTxt.topAnchor.constraint(equalTo: pulseBox.topAnchor),
+            pulseTxt.bottomAnchor.constraint(equalTo: pulseBox.bottomAnchor),
+            pulseTxt.leadingAnchor.constraint(equalTo: pulseBox.leadingAnchor),
+            pulseTxt.trailingAnchor.constraint(equalTo: pulseBox.trailingAnchor)
+        ])
+        rightCol.addArrangedSubview(pulseContainer)
+        
+        // Blood sugar
+        let sugarContainer = UIView()
+        bloodSugarLbl = UILabel()
+        bloodSugarLbl.text = "Blood sugar"
+        bloodSugarLbl.font = UIFont(name: "Poppins-Medium", size: 12) ?? UIFont.systemFont(ofSize: 12, weight: .medium)
+        bloodSugarLbl.textColor = UIColor(red: 100/255, green: 116/255, blue: 139/255, alpha: 1.0)
+        bloodSugarLbl.translatesAutoresizingMaskIntoConstraints = false
+        sugarContainer.addSubview(bloodSugarLbl)
+        
+        let sugarBox = createInputFieldContainer(height: 44)
+        sugarContainer.addSubview(sugarBox)
+        
+        let sugarRow = UIStackView()
+        sugarRow.axis = .horizontal
+        sugarRow.distribution = .fillEqually
+        sugarRow.spacing = 4
+        sugarRow.translatesAutoresizingMaskIntoConstraints = false
+        sugarBox.addSubview(sugarRow)
+        
+        bloodSugar1 = InsetPaddedTextField()
+        bloodSugar1.placeholder = "—"
+        bloodSugar1.font = UIFont(name: "Poppins-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14)
+        bloodSugar1.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        bloodSugar1.tintColor = UIColor(red: 25/255, green: 118/255, blue: 210/255, alpha: 1.0)
+        bloodSugar1.keyboardType = .decimalPad
+        bloodSugar1.isUserInteractionEnabled = true
+        bloodSugar1.translatesAutoresizingMaskIntoConstraints = false
+        sugarRow.addArrangedSubview(bloodSugar1)
+        
+        bloodSugar2 = InsetPaddedTextField()
+        bloodSugar2.font = UIFont(name: "Poppins-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14)
+        bloodSugar2.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        bloodSugar2.isHidden = true
+        bloodSugar2.translatesAutoresizingMaskIntoConstraints = false
+        sugarRow.addArrangedSubview(bloodSugar2)
+        
+        sugar1Button = UIButton(type: .custom)
+        sugar1Button.isHidden = true
+        sugarBox.addSubview(sugar1Button)
+        
+        sugar2Button = UIButton(type: .custom)
+        sugar2Button.isHidden = true
+        sugarBox.addSubview(sugar2Button)
+        
+        NSLayoutConstraint.activate([
+            bloodSugarLbl.topAnchor.constraint(equalTo: sugarContainer.topAnchor),
+            bloodSugarLbl.leadingAnchor.constraint(equalTo: sugarContainer.leadingAnchor),
+            
+            sugarBox.topAnchor.constraint(equalTo: bloodSugarLbl.bottomAnchor, constant: 4),
+            sugarBox.leadingAnchor.constraint(equalTo: sugarContainer.leadingAnchor),
+            sugarBox.trailingAnchor.constraint(equalTo: sugarContainer.trailingAnchor),
+            sugarBox.bottomAnchor.constraint(equalTo: sugarContainer.bottomAnchor),
+            
+            sugarRow.topAnchor.constraint(equalTo: sugarBox.topAnchor),
+            sugarRow.bottomAnchor.constraint(equalTo: sugarBox.bottomAnchor),
+            sugarRow.leadingAnchor.constraint(equalTo: sugarBox.leadingAnchor, constant: 6),
+            sugarRow.trailingAnchor.constraint(equalTo: sugarBox.trailingAnchor, constant: -6),
+            
+            bloodSugar1.topAnchor.constraint(equalTo: sugarBox.topAnchor),
+            bloodSugar1.bottomAnchor.constraint(equalTo: sugarBox.bottomAnchor),
+            bloodSugar1.leadingAnchor.constraint(equalTo: sugarBox.leadingAnchor),
+            bloodSugar1.trailingAnchor.constraint(equalTo: sugarBox.trailingAnchor)
+        ])
+        rightCol.addArrangedSubview(sugarContainer)
+        
+        NSLayoutConstraint.activate([
+            genralCardStack.topAnchor.constraint(equalTo: genralExaminationView.topAnchor, constant: 16),
+            genralCardStack.bottomAnchor.constraint(equalTo: genralExaminationView.bottomAnchor, constant: -16),
+            genralCardStack.leadingAnchor.constraint(equalTo: genralExaminationView.leadingAnchor, constant: 14),
+            genralCardStack.trailingAnchor.constraint(equalTo: genralExaminationView.trailingAnchor, constant: -14)
+        ])
+        
+        // --- Card 6: Provisional Diagnosis ---
+        provisonDiagnos = createCardView()
+        contentStackView.addArrangedSubview(provisonDiagnos)
+        
+        let provTitle = UILabel()
+        provTitle.text = "Provisional Diagnosis"
+        provTitle.font = UIFont(name: "Poppins-SemiBold", size: 14) ?? UIFont.systemFont(ofSize: 14, weight: .semibold)
+        provTitle.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        provTitle.translatesAutoresizingMaskIntoConstraints = false
+        provisonDiagnos.addSubview(provTitle)
+        
+        let provBox = createInputFieldContainer(height: 70)
+        provisonDiagnos.addSubview(provBox)
+        
+        provisionTxt = MultilineInputTextField()
+        provisionTxt.placeholder = "Provisional Diagnosis"
+        provisionTxt.translatesAutoresizingMaskIntoConstraints = false
+        provBox.addSubview(provisionTxt)
+        
+        NSLayoutConstraint.activate([
+            provTitle.topAnchor.constraint(equalTo: provisonDiagnos.topAnchor, constant: 14),
+            provTitle.leadingAnchor.constraint(equalTo: provisonDiagnos.leadingAnchor, constant: 14),
+            provTitle.trailingAnchor.constraint(equalTo: provisonDiagnos.trailingAnchor, constant: -14),
+            
+            provBox.topAnchor.constraint(equalTo: provTitle.bottomAnchor, constant: 10),
+            provBox.leadingAnchor.constraint(equalTo: provisonDiagnos.leadingAnchor, constant: 14),
+            provBox.trailingAnchor.constraint(equalTo: provisonDiagnos.trailingAnchor, constant: -14),
+            provBox.bottomAnchor.constraint(equalTo: provisonDiagnos.bottomAnchor, constant: -14),
+            
+            provisionTxt.topAnchor.constraint(equalTo: provBox.topAnchor),
+            provisionTxt.bottomAnchor.constraint(equalTo: provBox.bottomAnchor),
+            provisionTxt.leadingAnchor.constraint(equalTo: provBox.leadingAnchor),
+            provisionTxt.trailingAnchor.constraint(equalTo: provBox.trailingAnchor)
+        ])
+        
+        // --- Card 7: Investigation (investigationView) ---
+        investigationView = createCardView()
+        contentStackView.addArrangedSubview(investigationView)
+        
+        let investCardStack = UIStackView()
+        investCardStack.axis = .vertical
+        investCardStack.spacing = 12
+        investCardStack.translatesAutoresizingMaskIntoConstraints = false
+        investigationView.addSubview(investCardStack)
+        
+        let investHeaderRow = UIStackView()
+        investHeaderRow.axis = .horizontal
+        investHeaderRow.alignment = .center
+        investHeaderRow.distribution = .equalSpacing
+        investHeaderRow.translatesAutoresizingMaskIntoConstraints = false
+        investCardStack.addArrangedSubview(investHeaderRow)
+        
+        investigationLbl = UILabel()
+        investigationLbl.text = "Investigation"
+        investigationLbl.font = UIFont(name: "Poppins-SemiBold", size: 14) ?? UIFont.systemFont(ofSize: 14, weight: .semibold)
+        investigationLbl.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        investHeaderRow.addArrangedSubview(investigationLbl)
+        
+        investigationToggle = UISwitch()
+        investigationToggle.onTintColor = UIColor(red: 25/255, green: 118/255, blue: 210/255, alpha: 1.0)
+        investigationToggle.isOn = true
+        investigationToggle.addTarget(self, action: #selector(investigationToggleTapped(_:)), for: .valueChanged)
+        investHeaderRow.addArrangedSubview(investigationToggle)
+        
+        investigationContentStack.axis = .vertical
+        investigationContentStack.spacing = 10
+        investigationContentStack.translatesAutoresizingMaskIntoConstraints = false
+        investCardStack.addArrangedSubview(investigationContentStack)
+        
+        // Chips ScrollView
+        chipsScrollView.showsHorizontalScrollIndicator = false
+        chipsScrollView.translatesAutoresizingMaskIntoConstraints = false
+        investigationContentStack.addArrangedSubview(chipsScrollView)
+        
+        chipsStackView.axis = .horizontal
+        chipsStackView.spacing = 8
+        chipsStackView.alignment = .center
+        chipsStackView.translatesAutoresizingMaskIntoConstraints = false
+        chipsScrollView.addSubview(chipsStackView)
+        
+        let chipsHeight = chipsScrollView.heightAnchor.constraint(equalToConstant: 32)
+        chipsHeight.priority = UILayoutPriority(999)
+        chipsHeight.isActive = true
+        
+        NSLayoutConstraint.activate([
+            chipsStackView.topAnchor.constraint(equalTo: chipsScrollView.topAnchor),
+            chipsStackView.bottomAnchor.constraint(equalTo: chipsScrollView.bottomAnchor),
+            chipsStackView.leadingAnchor.constraint(equalTo: chipsScrollView.leadingAnchor),
+            chipsStackView.trailingAnchor.constraint(equalTo: chipsScrollView.trailingAnchor),
+            chipsStackView.heightAnchor.constraint(equalTo: chipsScrollView.heightAnchor)
+        ])
+        
+        // Investigation Search Container
+        let investBox = createInputFieldContainer(height: 44)
+        investigationContentStack.addArrangedSubview(investBox)
+        
+        investigationTxt = InsetPaddedTextField()
+        investigationTxt.placeholder = "Search and add an investigation..."
+        investigationTxt.font = UIFont(name: "Poppins-Regular", size: 13.5) ?? UIFont.systemFont(ofSize: 13.5)
+        investigationTxt.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        investigationTxt.tintColor = UIColor(red: 25/255, green: 118/255, blue: 210/255, alpha: 1.0)
+        investigationTxt.isUserInteractionEnabled = true
+        investigationTxt.translatesAutoresizingMaskIntoConstraints = false
+        investigationTxt.addTarget(self, action: #selector(investigationTextChanged), for: .editingChanged)
+        investBox.addSubview(investigationTxt)
+        
+        investigationDropDown = UIImageView()
+        investigationDropDown.contentMode = .scaleAspectFit
+        if let dropImg = UIImage(systemName: "chevron.down") {
+            investigationDropDown.image = dropImg
+            investigationDropDown.tintColor = UIColor(red: 148/255, green: 163/255, blue: 184/255, alpha: 1.0)
+        } else if let dropImg = UIImage(named: "down_arrow") {
+            investigationDropDown.image = dropImg
+        }
+        investigationDropDown.translatesAutoresizingMaskIntoConstraints = false
+        investBox.addSubview(investigationDropDown)
+        
+        xrayButton = UIButton(type: .custom)
+        xrayButton.translatesAutoresizingMaskIntoConstraints = false
+        xrayButton.addTarget(self, action: #selector(xrayButtonTapped(_:)), for: .touchUpInside)
+        investBox.addSubview(xrayButton)
+        
+        NSLayoutConstraint.activate([
+            investCardStack.topAnchor.constraint(equalTo: investigationView.topAnchor, constant: 16),
+            investCardStack.bottomAnchor.constraint(equalTo: investigationView.bottomAnchor, constant: -16),
+            investCardStack.leadingAnchor.constraint(equalTo: investigationView.leadingAnchor, constant: 14),
+            investCardStack.trailingAnchor.constraint(equalTo: investigationView.trailingAnchor, constant: -14),
+            
+            investigationTxt.topAnchor.constraint(equalTo: investBox.topAnchor),
+            investigationTxt.bottomAnchor.constraint(equalTo: investBox.bottomAnchor),
+            investigationTxt.leadingAnchor.constraint(equalTo: investBox.leadingAnchor),
+            investigationTxt.trailingAnchor.constraint(equalTo: xrayButton.leadingAnchor),
+            
+            investigationDropDown.trailingAnchor.constraint(equalTo: investBox.trailingAnchor, constant: -14),
+            investigationDropDown.centerYAnchor.constraint(equalTo: investBox.centerYAnchor),
+            investigationDropDown.widthAnchor.constraint(equalToConstant: 14),
+            investigationDropDown.heightAnchor.constraint(equalToConstant: 14),
+            
+            xrayButton.topAnchor.constraint(equalTo: investBox.topAnchor),
+            xrayButton.bottomAnchor.constraint(equalTo: investBox.bottomAnchor),
+            xrayButton.trailingAnchor.constraint(equalTo: investBox.trailingAnchor),
+            xrayButton.widthAnchor.constraint(equalToConstant: 44)
+        ])
+        
+        // --- Card 8: Medicine (medicineView) ---
+        medicineView = createCardView()
+        contentStackView.addArrangedSubview(medicineView)
+        
+        let medCardStack = UIStackView()
+        medCardStack.axis = .vertical
+        medCardStack.spacing = 14
+        medCardStack.translatesAutoresizingMaskIntoConstraints = false
+        medicineView.addSubview(medCardStack)
+        
+        let medHeaderRow = UIStackView()
+        medHeaderRow.axis = .horizontal
+        medHeaderRow.alignment = .center
+        medHeaderRow.distribution = .equalSpacing
+        medHeaderRow.translatesAutoresizingMaskIntoConstraints = false
+        medCardStack.addArrangedSubview(medHeaderRow)
+        
+        medicineLbl = UILabel()
+        medicineLbl.text = "Medicine"
+        medicineLbl.font = UIFont(name: "Poppins-SemiBold", size: 14) ?? UIFont.systemFont(ofSize: 14, weight: .semibold)
+        medicineLbl.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        medHeaderRow.addArrangedSubview(medicineLbl)
+        
+        medicinceTogle = UISwitch()
+        medicinceTogle.onTintColor = UIColor(red: 25/255, green: 118/255, blue: 210/255, alpha: 1.0)
+        medicinceTogle.isOn = true
+        medicinceTogle.addTarget(self, action: #selector(medicineToggle(_:)), for: .valueChanged)
+        medHeaderRow.addArrangedSubview(medicinceTogle)
+        
+        medicineContentStack.axis = .vertical
+        medicineContentStack.spacing = 12
+        medicineContentStack.translatesAutoresizingMaskIntoConstraints = false
+        medCardStack.addArrangedSubview(medicineContentStack)
+        
+        tableView = UITableView(frame: .zero, style: .plain)
+        tableView.separatorStyle = .none
+        tableView.backgroundColor = .clear
+        tableView.isScrollEnabled = false
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        medicineContentStack.addArrangedSubview(tableView)
+        
+        tableHightConstraint = tableView.heightAnchor.constraint(equalToConstant: 0)
+        tableHightConstraint.priority = UILayoutPriority(999)
+        tableHightConstraint.isActive = true
+        
+        addMedicineView = UIButton(type: .system)
+        addMedicineView.setTitle("+ Add Medicine", for: .normal)
+        addMedicineView.titleLabel?.font = UIFont(name: "Poppins-SemiBold", size: 14) ?? UIFont.systemFont(ofSize: 14, weight: .semibold)
+        addMedicineView.setTitleColor(.white, for: .normal)
+        addMedicineView.backgroundColor = UIColor(red: 25/255, green: 118/255, blue: 210/255, alpha: 1.0) // #1976D2
+        addMedicineView.layer.cornerRadius = 8
+        addMedicineView.clipsToBounds = true
+        addMedicineView.translatesAutoresizingMaskIntoConstraints = false
+        let addMedHeight = addMedicineView.heightAnchor.constraint(equalToConstant: 44)
+        addMedHeight.priority = UILayoutPriority(999)
+        addMedHeight.isActive = true
+        addMedicineView.addTarget(self, action: #selector(addMedicineTapped(_:)), for: .touchUpInside)
+        medicineContentStack.addArrangedSubview(addMedicineView)
+        
+        NSLayoutConstraint.activate([
+            medCardStack.topAnchor.constraint(equalTo: medicineView.topAnchor, constant: 16),
+            medCardStack.bottomAnchor.constraint(equalTo: medicineView.bottomAnchor, constant: -16),
+            medCardStack.leadingAnchor.constraint(equalTo: medicineView.leadingAnchor, constant: 14),
+            medCardStack.trailingAnchor.constraint(equalTo: medicineView.trailingAnchor, constant: -14)
+        ])
+        
+        // --- Card 9: General Advice (genralView) ---
+        genralView = createCardView()
+        contentStackView.addArrangedSubview(genralView)
+        
+        let genralTitle = UILabel()
+        genralTitle.text = "General Advice"
+        genralTitle.font = UIFont(name: "Poppins-SemiBold", size: 14) ?? UIFont.systemFont(ofSize: 14, weight: .semibold)
+        genralTitle.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        genralTitle.translatesAutoresizingMaskIntoConstraints = false
+        genralView.addSubview(genralTitle)
+        
+        formatAdviceBtn.setTitle(" ≡ Format", for: .normal)
+        formatAdviceBtn.titleLabel?.font = UIFont(name: "Poppins-Medium", size: 12.5) ?? UIFont.systemFont(ofSize: 12.5, weight: .medium)
+        formatAdviceBtn.setTitleColor(UIColor(red: 29/255, green: 112/255, blue: 184/255, alpha: 1.0), for: .normal)
+        formatAdviceBtn.backgroundColor = .white
+        formatAdviceBtn.layer.cornerRadius = 8
+        formatAdviceBtn.layer.borderWidth = 1.5
+        formatAdviceBtn.layer.borderColor = UIColor(red: 29/255, green: 112/255, blue: 184/255, alpha: 1.0).cgColor
+        formatAdviceBtn.contentEdgeInsets = UIEdgeInsets(top: 4, left: 10, bottom: 4, right: 10)
+        formatAdviceBtn.translatesAutoresizingMaskIntoConstraints = false
+        formatAdviceBtn.addTarget(self, action: #selector(formatGeneralAdviceTapped), for: .touchUpInside)
+        genralView.addSubview(formatAdviceBtn)
+        
+        let genralBox = createInputFieldContainer(height: 96)
+        genralView.addSubview(genralBox)
+        
+        genralTxt = MultilineInputTextField()
+        genralTxt.placeholder = "General Advice"
+        genralTxt.translatesAutoresizingMaskIntoConstraints = false
+        genralBox.addSubview(genralTxt)
+        
+        NSLayoutConstraint.activate([
+            genralTitle.leadingAnchor.constraint(equalTo: genralView.leadingAnchor, constant: 14),
+            genralTitle.topAnchor.constraint(equalTo: genralView.topAnchor, constant: 14),
+            
+            formatAdviceBtn.trailingAnchor.constraint(equalTo: genralView.trailingAnchor, constant: -14),
+            formatAdviceBtn.centerYAnchor.constraint(equalTo: genralTitle.centerYAnchor),
+            formatAdviceBtn.heightAnchor.constraint(equalToConstant: 30),
+            
+            genralBox.topAnchor.constraint(equalTo: formatAdviceBtn.bottomAnchor, constant: 10),
+            genralBox.leadingAnchor.constraint(equalTo: genralView.leadingAnchor, constant: 14),
+            genralBox.trailingAnchor.constraint(equalTo: genralView.trailingAnchor, constant: -14),
+            genralBox.bottomAnchor.constraint(equalTo: genralView.bottomAnchor, constant: -14),
+            
+            genralTxt.topAnchor.constraint(equalTo: genralBox.topAnchor),
+            genralTxt.bottomAnchor.constraint(equalTo: genralBox.bottomAnchor),
+            genralTxt.leadingAnchor.constraint(equalTo: genralBox.leadingAnchor),
+            genralTxt.trailingAnchor.constraint(equalTo: genralBox.trailingAnchor)
+        ])
+        
+        // --- Card 10: Follow Up (followUpView) ---
+        followUpView = createCardView()
+        contentStackView.addArrangedSubview(followUpView)
+        
+        let followUpCardStack = UIStackView()
+        followUpCardStack.axis = .vertical
+        followUpCardStack.spacing = 14
+        followUpCardStack.translatesAutoresizingMaskIntoConstraints = false
+        followUpView.addSubview(followUpCardStack)
+        
+        let followUpHeaderRow = UIStackView()
+        followUpHeaderRow.axis = .horizontal
+        followUpHeaderRow.alignment = .center
+        followUpHeaderRow.distribution = .equalSpacing
+        followUpHeaderRow.translatesAutoresizingMaskIntoConstraints = false
+        followUpCardStack.addArrangedSubview(followUpHeaderRow)
+        
+        followUpTitle = UILabel()
+        followUpTitle.text = "Follow Up"
+        followUpTitle.font = UIFont(name: "Poppins-SemiBold", size: 14) ?? UIFont.systemFont(ofSize: 14, weight: .semibold)
+        followUpTitle.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        followUpHeaderRow.addArrangedSubview(followUpTitle)
+        
+        switchButton = UISwitch()
+        switchButton.onTintColor = UIColor(red: 25/255, green: 118/255, blue: 210/255, alpha: 1.0)
+        switchButton.isOn = true
+        switchButton.addTarget(self, action: #selector(followUpSwitch(_:)), for: .valueChanged)
+        followUpHeaderRow.addArrangedSubview(switchButton)
+        
+        followUpContentRow = UIView()
+        followUpContentRow.translatesAutoresizingMaskIntoConstraints = false
+        followUpCardStack.addArrangedSubview(followUpContentRow)
+        
+        let afterLbl = UILabel()
+        afterLbl.text = "After"
+        afterLbl.font = UIFont(name: "Poppins-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14)
+        afterLbl.textColor = UIColor(red: 100/255, green: 116/255, blue: 139/255, alpha: 1.0)
+        afterLbl.translatesAutoresizingMaskIntoConstraints = false
+        followUpContentRow.addSubview(afterLbl)
+        
+        let followUpDaysBox = createInputFieldContainer(height: 38)
+        followUpDaysBox.translatesAutoresizingMaskIntoConstraints = false
+        followUpContentRow.addSubview(followUpDaysBox)
+        
+        followUpDays = InsetPaddedTextField()
+        followUpDays.placeholder = "7"
+        followUpDays.textAlignment = .center
+        followUpDays.keyboardType = .numberPad
+        followUpDays.font = UIFont(name: "Poppins-SemiBold", size: 15) ?? UIFont.systemFont(ofSize: 15, weight: .semibold)
+        followUpDays.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        followUpDays.tintColor = UIColor(red: 25/255, green: 118/255, blue: 210/255, alpha: 1.0)
+        followUpDays.isUserInteractionEnabled = true
+        followUpDays.translatesAutoresizingMaskIntoConstraints = false
+        followUpDaysBox.addSubview(followUpDays)
+        
+        let daysLbl = UILabel()
+        daysLbl.text = "days"
+        daysLbl.font = UIFont(name: "Poppins-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14)
+        daysLbl.textColor = UIColor(red: 100/255, green: 116/255, blue: 139/255, alpha: 1.0)
+        daysLbl.translatesAutoresizingMaskIntoConstraints = false
+        followUpContentRow.addSubview(daysLbl)
+        
+        let rowHeight = followUpContentRow.heightAnchor.constraint(equalToConstant: 38)
+        rowHeight.priority = UILayoutPriority(999)
+        rowHeight.isActive = true
+        
+        NSLayoutConstraint.activate([
+            followUpCardStack.topAnchor.constraint(equalTo: followUpView.topAnchor, constant: 16),
+            followUpCardStack.bottomAnchor.constraint(equalTo: followUpView.bottomAnchor, constant: -16),
+            followUpCardStack.leadingAnchor.constraint(equalTo: followUpView.leadingAnchor, constant: 14),
+            followUpCardStack.trailingAnchor.constraint(equalTo: followUpView.trailingAnchor, constant: -14),
+            
+            afterLbl.leadingAnchor.constraint(equalTo: followUpContentRow.leadingAnchor),
+            afterLbl.centerYAnchor.constraint(equalTo: followUpContentRow.centerYAnchor),
+            
+            followUpDaysBox.leadingAnchor.constraint(equalTo: afterLbl.trailingAnchor, constant: 10),
+            followUpDaysBox.centerYAnchor.constraint(equalTo: followUpContentRow.centerYAnchor),
+            followUpDaysBox.widthAnchor.constraint(equalToConstant: 64),
+            followUpDaysBox.heightAnchor.constraint(equalToConstant: 38),
+            
+            followUpDays.topAnchor.constraint(equalTo: followUpDaysBox.topAnchor),
+            followUpDays.bottomAnchor.constraint(equalTo: followUpDaysBox.bottomAnchor),
+            followUpDays.leadingAnchor.constraint(equalTo: followUpDaysBox.leadingAnchor),
+            followUpDays.trailingAnchor.constraint(equalTo: followUpDaysBox.trailingAnchor),
+            
+            daysLbl.leadingAnchor.constraint(equalTo: followUpDaysBox.trailingAnchor, constant: 10),
+            daysLbl.centerYAnchor.constraint(equalTo: followUpContentRow.centerYAnchor)
+        ])
+        
+        // Dummy constraints so legacy constraint references don't crash
+        genralViewHeight = NSLayoutConstraint()
+        investigationViewHeight = NSLayoutConstraint()
+        medicineViewHeight = NSLayoutConstraint()
+        prescriptionHeight = NSLayoutConstraint()
+    }
+    
+    private func createCardView() -> UIView {
+        let card = UIView()
+        card.backgroundColor = .white
+        card.layer.cornerRadius = 14
+        card.layer.borderWidth = 1
+        card.layer.borderColor = UIColor(red: 226/255, green: 232/255, blue: 240/255, alpha: 1.0).cgColor // #E2E8F0
+        card.layer.shadowColor = UIColor.black.cgColor
+        card.layer.shadowOpacity = 0.03
+        card.layer.shadowOffset = CGSize(width: 0, height: 2)
+        card.layer.shadowRadius = 4
+        card.translatesAutoresizingMaskIntoConstraints = false
+        return card
+    }
+    
+    private func createInputFieldContainer(height: CGFloat = 44) -> UIView {
+        let container = UIView()
+        container.backgroundColor = UIColor(red: 248/255, green: 250/255, blue: 252/255, alpha: 1.0) // #F8FAFC
+        container.layer.cornerRadius = 8
+        container.layer.borderWidth = 1
+        container.layer.borderColor = UIColor(red: 226/255, green: 232/255, blue: 240/255, alpha: 1.0).cgColor // #E2E8F0
+        container.translatesAutoresizingMaskIntoConstraints = false
+        let h = container.heightAnchor.constraint(equalToConstant: height)
+        h.priority = UILayoutPriority(999)
+        h.isActive = true
+        return container
     }
 }
 

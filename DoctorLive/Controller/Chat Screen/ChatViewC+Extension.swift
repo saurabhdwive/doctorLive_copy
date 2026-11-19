@@ -521,7 +521,7 @@ extension ChatViewC: UITableViewDataSource{
                 ])
                 containerCell.stackView.addArrangedSubview(chipCell) // Append it
                 
-                if chat?.is_status == "1"{
+//                if chat?.is_status == "1"{
                      let ConsultationCell = ChatActionCardCell(style: .default, reuseIdentifier: nil)
                     ConsultationCell.titleLabel.text = "Consultation completed"
                     ConsultationCell.subLabel.text = "Write and send the prescription to finish this consultation."
@@ -542,7 +542,7 @@ extension ChatViewC: UITableViewDataSource{
                         ConsultationCell.contentView.trailingAnchor.constraint(equalTo: ConsultationCell.trailingAnchor)
                     ])
                     containerCell.stackView.addArrangedSubview(ConsultationCell)
-                }
+//                }
                 return containerCell
              case "PRESCRIPTION_SENT":
                 let containerCell = self.chatTblVw.dequeueReusableCell(withIdentifier: "ChatDynamicStackCell") as! ChatDynamicStackCell

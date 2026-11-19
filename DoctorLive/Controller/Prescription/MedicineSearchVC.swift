@@ -10,6 +10,7 @@ import PromiseKit
 
 
 class MedicineSearchVC: UIViewController, UISearchBarDelegate {
+    var medicineDetailCallback: ((Medicinelisting) -> Void)?
     var medicinecallback: ((String?, String?)->())?
     @IBOutlet weak var titleTxt: UILabel!
     
@@ -32,7 +33,11 @@ class MedicineSearchVC: UIViewController, UISearchBarDelegate {
    }
 
     @IBAction func backButtonTapped(_ sender: Any) {
-        self.navigationController?.popViewController(animated: true)
+        if let nav = self.navigationController, nav.viewControllers.first != self {
+            nav.popViewController(animated: true)
+        } else {
+            self.dismiss(animated: true, completion: nil)
+        }
     }
     func setUpTableView() {
         tableView.delegate = self
@@ -58,11 +63,16 @@ extension MedicineSearchVC: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let medicine = bankListArray[indexPath.row].brandName
-        let id = bankListArray[indexPath.row].id
-        self.navigationController?.popViewController(animated: true)
+        let item = bankListArray[indexPath.row]
+        let medicine = item.brandName
+        let id = item.id
+        medicineDetailCallback?(item)
         medicinecallback?(medicine, id)
-       
+        if let nav = self.navigationController, nav.viewControllers.first != self {
+            nav.popViewController(animated: true)
+        } else {
+            self.dismiss(animated: true, completion: nil)
+        }
     }
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
 

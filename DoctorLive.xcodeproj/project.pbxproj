@@ -347,6 +347,7 @@
 		CEFA0CBB26C4435C006587B2 /* Poppins-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CEFA0C9D26C4435C006587B2 /* Poppins-SemiBold.ttf */; };
 		CEFA0CBC26C4435C006587B2 /* Poppins-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CEFA0C9E26C4435C006587B2 /* Poppins-Italic.ttf */; };
 		CEFA0CBD26C4435C006587B2 /* Toast.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEFA0C9F26C4435C006587B2 /* Toast.swift */; };
+		F9FCF58D8D0A4D32763DD698 /* GeneralAdviceFormatViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB444425910CBE6C848D599D /* GeneralAdviceFormatViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -686,6 +687,7 @@
 		8E57B2EB401795F2179570B3 /* VideoCallViewC+ConnectionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "VideoCallViewC+ConnectionState.swift"; sourceTree = "<group>"; };
 		98DE42317ACEB360B33E36AF /* Pods-DoctorLive.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DoctorLive.release.xcconfig"; path = "Target Support Files/Pods-DoctorLive/Pods-DoctorLive.release.xcconfig"; sourceTree = "<group>"; };
 		AE51AADFF45B286D6F167895 /* Pods_DoctorLive.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_DoctorLive.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CB444425910CBE6C848D599D /* GeneralAdviceFormatViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GeneralAdviceFormatViewController.swift; sourceTree = "<group>"; };
 		CE10DF0426CAD84100036EF4 /* LoginVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginVC.swift; sourceTree = "<group>"; };
 		CE10DF0726CAD8AF00036EF4 /* SelectLanguageVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectLanguageVC.swift; sourceTree = "<group>"; };
 		CE10DF0A26CAD90C00036EF4 /* WelcomeVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeVC.swift; sourceTree = "<group>"; };
@@ -861,6 +863,7 @@
 				0C5681C927638380001D5D63 /* MedicineSearchVC.xib */,
 				0C5681CC276387DA001D5D63 /* MedicineTableViewCell.swift */,
 				0C5681CD276387DA001D5D63 /* MedicineTableViewCell.xib */,
+				CB444425910CBE6C848D599D /* GeneralAdviceFormatViewController.swift */,
 			);
 			path = Prescription;
 			sourceTree = "<group>";
@@ -2216,6 +2219,7 @@
 				18BBB94F2CDCA65500B436BC /* QuestionListViewC+ApiService.swift in Sources */,
 				18BBB9472CDC9B6400B436BC /* QuestionListViewC.swift in Sources */,
 				0C91BCFF2712D1D500397F08 /* WidhrawRequest.swift in Sources */,
+				F9FCF58D8D0A4D32763DD698 /* GeneralAdviceFormatViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

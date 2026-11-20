@@ -45,6 +45,7 @@ struct APIEndpoint {
     static let updateAvilability = "doctors/updateavailability"
     static let deleteAvilability = "doctors/deleteavailability"
     static let savePrescription = "doctor/addprescription"
+    static let changePatient = "doctor/changepatient"
     static let appVersion = "common/version"
     static let myEarningNew = "doctor/myearningnew"
     static let withdrawRequestNew = "doctor/withdrawrequestnew"

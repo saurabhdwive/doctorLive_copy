@@ -54,6 +54,11 @@ class PrescriptionTemplateCell: UITableViewCell {
     private let useNowButton = UIButton(type: .system)
     private let duplicateButton = UIButton(type: .system)
     
+    private var buttonsTopConstraint: NSLayoutConstraint!
+    private var buttonsHeightConstraint: NSLayoutConstraint!
+    private var buttonsBottomConstraint: NSLayoutConstraint!
+    private var chipsBottomConstraint: NSLayoutConstraint!
+    
     var onUseNow: (() -> Void)?
     var onDuplicate: (() -> Void)?
     var onEdit: (() -> Void)?
@@ -140,7 +145,7 @@ class PrescriptionTemplateCell: UITableViewCell {
         // Button row
         buttonsStackView.axis = .horizontal
         buttonsStackView.spacing = 12
-        buttonsStackView.distribution = .fillEqually
+        buttonsStackView.distribution = .fill
         buttonsStackView.translatesAutoresizingMaskIntoConstraints = false
         cardView.addSubview(buttonsStackView)
         
@@ -155,16 +160,13 @@ class PrescriptionTemplateCell: UITableViewCell {
         useNowButton.addTarget(self, action: #selector(useNowTapped), for: .touchUpInside)
         buttonsStackView.addArrangedSubview(useNowButton)
         
-        // "Duplicate" button
-        duplicateButton.setTitle("Duplicate".localized(), for: .normal)
-        duplicateButton.titleLabel?.font = UIFont(name: "Poppins-Medium", size: 13.5) ?? UIFont.systemFont(ofSize: 13.5, weight: .medium)
-        duplicateButton.setTitleColor(UIColor(red: 51/255, green: 65/255, blue: 85/255, alpha: 1.0), for: .normal)
-        duplicateButton.backgroundColor = .white
-        duplicateButton.layer.cornerRadius = 10
-        duplicateButton.layer.borderWidth = 1.0
-        duplicateButton.layer.borderColor = UIColor(red: 203/255, green: 213/255, blue: 225/255, alpha: 1.0).cgColor
-        duplicateButton.addTarget(self, action: #selector(duplicateTapped), for: .touchUpInside)
-        buttonsStackView.addArrangedSubview(duplicateButton)
+        // "Duplicate" button is completely hidden as per requirement
+        duplicateButton.isHidden = true
+        
+        buttonsTopConstraint = buttonsStackView.topAnchor.constraint(equalTo: chipsScrollView.bottomAnchor, constant: 12)
+        buttonsHeightConstraint = buttonsStackView.heightAnchor.constraint(equalToConstant: 40)
+        buttonsBottomConstraint = cardView.bottomAnchor.constraint(equalTo: buttonsStackView.bottomAnchor, constant: 14)
+        chipsBottomConstraint = cardView.bottomAnchor.constraint(equalTo: chipsScrollView.bottomAnchor, constant: 14)
         
         // Constraints
         NSLayoutConstraint.activate([
@@ -218,17 +220,35 @@ class PrescriptionTemplateCell: UITableViewCell {
             chipsStackView.heightAnchor.constraint(equalTo: chipsScrollView.heightAnchor),
             
             // Buttons row
-            buttonsStackView.topAnchor.constraint(equalTo: chipsScrollView.bottomAnchor, constant: 12),
             buttonsStackView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 14),
             buttonsStackView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -14),
-            buttonsStackView.heightAnchor.constraint(equalToConstant: 40),
-            buttonsStackView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -14)
+            buttonsTopConstraint,
+            buttonsHeightConstraint,
+            buttonsBottomConstraint
         ])
     }
     
-    func configure(with template: PrescriptionTemplate) {
+    func configure(with template: PrescriptionTemplate, showUseNow: Bool = true) {
         titleLabel.text = template.title
         subtitleLabel.text = "Used \(template.usedCount) times · updated \(template.updatedAt)"
+        
+        duplicateButton.isHidden = true
+        useNowButton.isHidden = !showUseNow
+        buttonsStackView.isHidden = !showUseNow
+        
+        if showUseNow {
+            chipsBottomConstraint.isActive = false
+            buttonsTopConstraint.constant = 12
+            buttonsHeightConstraint.constant = 40
+            buttonsTopConstraint.isActive = true
+            buttonsHeightConstraint.isActive = true
+            buttonsBottomConstraint.isActive = true
+        } else {
+            buttonsBottomConstraint.isActive = false
+            buttonsTopConstraint.isActive = false
+            buttonsHeightConstraint.isActive = false
+            chipsBottomConstraint.isActive = true
+        }
         
         // Rebuild chips
         chipsStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
@@ -725,7 +745,7 @@ extension PrescriptionTemplatesViewController: UITableViewDataSource, UITableVie
         }
         
         let template = templates[indexPath.row]
-        cell.configure(with: template)
+        cell.configure(with: template, showUseNow: isSelectMode)
         
         cell.onUseNow = { [weak self] in
             self?.useTemplate(template, index: indexPath.row)
@@ -745,6 +765,10 @@ extension PrescriptionTemplatesViewController: UITableViewDataSource, UITableVie
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let template = templates[indexPath.row]
-        useTemplate(template, index: indexPath.row)
+        if isSelectMode {
+            useTemplate(template, index: indexPath.row)
+        } else {
+            editTemplate(template, index: indexPath.row)
+        }
     }
 }

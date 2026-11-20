@@ -253,6 +253,31 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
         return ""
     }
     
+    var isPatientOtherThanMyself: Bool {
+        if let rel = currentMemberRelationship?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(), !rel.isEmpty {
+            if rel != "me" && rel != "account holder" && rel != "myself" {
+                return true
+            }
+        }
+        if let rel = data["relationship"]?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(), !rel.isEmpty {
+            if rel != "me" && rel != "account holder" && rel != "myself" {
+                return true
+            }
+        }
+        if let rel = data["member_relationship"]?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(), !rel.isEmpty {
+            if rel != "me" && rel != "account holder" && rel != "myself" {
+                return true
+            }
+        }
+        if let memberId = data["member_id"]?.trimmingCharacters(in: .whitespacesAndNewlines), !memberId.isEmpty {
+            let rel = currentMemberRelationship?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? ""
+            if rel != "me" && rel != "account holder" && rel != "myself" {
+                return true
+            }
+        }
+        return false
+    }
+    
     // MARK: - Lifecycle
     override func loadView() {
         buildModernUI()
@@ -341,6 +366,11 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
         
         if comeFromMedicne == true {
             print("hi")
+            investigationToggle.isOn = investigationToggleState
+            investigationContentStack.isHidden = !investigationToggleState
+            investigationTxt.isHidden = !investigationToggleState
+            investigationDropDown.isHidden = !investigationToggleState
+            updateInvestigationChips()
         } else {
             if comeFrom == "videoCallViaChat" {
                 savePrescriptionData()
@@ -374,6 +404,8 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
         
         genralExamStack.isHidden = !genralSwitchButtonState
         investigationContentStack.isHidden = !investigationToggleState
+        investigationTxt.isHidden = !investigationToggleState
+        investigationDropDown.isHidden = !investigationToggleState
         medicineContentStack.isHidden = !medicineSwitch
         followUpContentRow.isHidden = !followUpState
         
@@ -756,13 +788,31 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
         self.genralSwitchButton.isOn = shouldTurnOnExam
         self.genralExamSwitch(self.genralSwitchButton)
         if let tests = template.investigations, !tests.isEmpty {
-            self.investigationTxt.text = tests.joined(separator: ", ")
+            self.selectedNames = tests
+            let text = tests.joined(separator: ", ")
+            self.investigationTxt.text = text
+            self.investigationToggleState = true
             self.investigationToggle.isOn = true
-            self.investigationToggleTapped(self.investigationToggle)
+            self.investigationContentStack.isHidden = false
+            self.investigationTxt.isHidden = false
+            self.investigationDropDown.isHidden = false
+            self.chipsScrollView.isHidden = false
             self.updateInvestigationChips()
+            PrescriptionDetail.investigationGuide = text
+        } else {
+            self.selectedNames = []
+            self.investigationTxt.text = ""
+            self.investigationToggleState = false
+            self.investigationToggle.isOn = false
+            self.investigationContentStack.isHidden = true
+            self.investigationTxt.isHidden = true
+            self.investigationDropDown.isHidden = true
+            self.chipsScrollView.isHidden = true
+            PrescriptionDetail.investigationGuide = ""
         }
         if let advice = template.generalAdvice, !advice.isEmpty {
-            self.genralTxt.text = advice
+            self.genralTxt.text = AdviceHTMLHelper.htmlToPlainText(advice)
+            PrescriptionDetail.genralAdvice = self.genralTxt.text
         }
         if let followUp = template.followUpDays, !followUp.isEmpty {
             self.followUpDays.text = followUp
@@ -1026,23 +1076,27 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
     }
     
     @IBAction func submitButtonTapped(_ sender: Any) {
+        print("🔘 [Submit] Submit button clicked")
         if self.ChiefTxtComplain.text?.isEmpty ?? false {
+            print("⚠️ [Submit] Validation failed: Chief Complain is empty")
             AppToast.showMessage(message: "Please Add Chief Complain".localized())
         } else if self.provisionTxt.text?.isEmpty ?? false {
+            print("⚠️ [Submit] Validation failed: Provisional Diagnosis is empty")
             AppToast.showMessage(message: "Please Add provisonal Diagnosis".localized())
         } else if self.genralTxt.text?.isEmpty ?? false {
+            print("⚠️ [Submit] Validation failed: General Advice is empty")
             AppToast.showMessage(message: "Please Add General Advice".localized())
         } else {
             let alertController = UIAlertController(title: "Alert!".localized(), message: "Are you sure you want to save this prescription?".localized(), preferredStyle: .alert)
             
             let OKAction = UIAlertAction(title: "Yes".localized(), style: .default) { (action:UIAlertAction!) in
+                print("✅ [Submit] Doctor confirmed: Saving prescription...")
                 self.performSavePrescription()
-                print("Ok button tapped");
             }
             alertController.addAction(OKAction)
             
             let cancelAction = UIAlertAction(title: "No".localized(), style: .cancel) { (action:UIAlertAction!) in
-                print("Cancel button tapped");
+                print("❌ [Submit] Doctor cancelled prescription save")
             }
             alertController.addAction(cancelAction)
             

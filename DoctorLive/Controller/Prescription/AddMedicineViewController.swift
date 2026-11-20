@@ -37,6 +37,12 @@ class AddMedicineViewController: UIViewController, UITextFieldDelegate, UIGestur
     // Modern UI Elements
     private let sheetView = UIView()
     private let closeBtn = UIButton(type: .custom)
+    private let selectedMedicineCard = UIView()
+    private let medicineIconCircle = UIView()
+    private let medicineBrandLabel = UILabel()
+    private let medicineGenericFormLabel = UILabel()
+    private let changeMedicineBtn = UIButton(type: .system)
+    private var hasAutoOpenedSearch: Bool = false
     
     private let pill1 = UIButton(type: .custom)
     private let pill2 = UIButton(type: .custom)
@@ -67,6 +73,10 @@ class AddMedicineViewController: UIViewController, UITextFieldDelegate, UIGestur
     
     var medicineId: String?
     var selectedMedicineItem: Medicinelisting?
+    var dose: String = ""
+    var frequency: String = ""
+    var duration: String = ""
+    var instruction: String = ""
     
     // MARK: - Lifecycle
     override func loadView() {
@@ -84,6 +94,14 @@ class AddMedicineViewController: UIViewController, UITextFieldDelegate, UIGestur
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if !hasAutoOpenedSearch && (self.medicineName.isEmpty) && (self.editMed != true) {
+            hasAutoOpenedSearch = true
+            selectMedicineTapped()
+        }
     }
     
     deinit {
@@ -224,38 +242,102 @@ class AddMedicineViewController: UIViewController, UITextFieldDelegate, UIGestur
             stackView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor)
         ])
         
-        // --- Component 1: Medicine Name Section ---
+        // --- Component 1: Medicine Selection Card ---
         let medicineNameSection = UIStackView()
         medicineNameSection.axis = .vertical
         medicineNameSection.spacing = 6
         stackView.addArrangedSubview(medicineNameSection)
         
         let medicineTitleLbl = UILabel()
-        medicineTitleLbl.text = "Medicine Name".localized()
+        medicineTitleLbl.text = "Medicine Name *".localized()
         medicineTitleLbl.font = UIFont(name: "Poppins-SemiBold", size: 14) ?? UIFont.systemFont(ofSize: 14, weight: .semibold)
         medicineTitleLbl.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
         medicineNameSection.addArrangedSubview(medicineTitleLbl)
         
-        let medicineBox = createInputFieldContainer(height: 46)
-        medicineNameSection.addArrangedSubview(medicineBox)
+        selectedMedicineCard.backgroundColor = UIColor(red: 248/255, green: 250/255, blue: 252/255, alpha: 1.0) // #F8FAFC
+        selectedMedicineCard.layer.cornerRadius = 12
+        selectedMedicineCard.layer.borderWidth = 1.5
+        selectedMedicineCard.layer.borderColor = UIColor(red: 226/255, green: 232/255, blue: 240/255, alpha: 1.0).cgColor // #E2E8F0
+        selectedMedicineCard.translatesAutoresizingMaskIntoConstraints = false
+        selectedMedicineCard.isUserInteractionEnabled = true
         
-        medicineNameTxt = InsetPaddedTextField()
-        medicineNameTxt.placeholder = "e.g. Napa 500 mg"
-        medicineNameTxt.font = UIFont(name: "Poppins-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14)
-        medicineNameTxt.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
-        medicineNameTxt.tintColor = UIColor(red: 25/255, green: 118/255, blue: 210/255, alpha: 1.0)
-        medicineNameTxt.autocapitalizationType = .words
-        medicineNameTxt.returnKeyType = .done
-        medicineNameTxt.delegate = self
-        medicineNameTxt.translatesAutoresizingMaskIntoConstraints = false
-        medicineBox.addSubview(medicineNameTxt)
+        let cardTap = UITapGestureRecognizer(target: self, action: #selector(selectMedicineTapped))
+        selectedMedicineCard.addGestureRecognizer(cardTap)
+        medicineNameSection.addArrangedSubview(selectedMedicineCard)
+        
+        let cardContainer = UIStackView()
+        cardContainer.axis = .horizontal
+        cardContainer.spacing = 12
+        cardContainer.alignment = .center
+        cardContainer.isUserInteractionEnabled = false
+        cardContainer.translatesAutoresizingMaskIntoConstraints = false
+        selectedMedicineCard.addSubview(cardContainer)
+        
+        // Left Icon
+        medicineIconCircle.backgroundColor = UIColor(red: 239/255, green: 246/255, blue: 255/255, alpha: 1.0) // #EFF6FF
+        medicineIconCircle.layer.cornerRadius = 20
+        medicineIconCircle.layer.masksToBounds = true
+        medicineIconCircle.translatesAutoresizingMaskIntoConstraints = false
+        cardContainer.addArrangedSubview(medicineIconCircle)
+        
+        let iconLabel = UILabel()
+        iconLabel.text = "💊"
+        iconLabel.font = UIFont.systemFont(ofSize: 18)
+        iconLabel.textAlignment = .center
+        iconLabel.translatesAutoresizingMaskIntoConstraints = false
+        medicineIconCircle.addSubview(iconLabel)
+        
+        // Center Text Stack
+        let centerStack = UIStackView()
+        centerStack.axis = .vertical
+        centerStack.spacing = 3
+        centerStack.translatesAutoresizingMaskIntoConstraints = false
+        cardContainer.addArrangedSubview(centerStack)
+        
+        medicineBrandLabel.text = "Search & Select Medicine".localized()
+        medicineBrandLabel.font = UIFont(name: "Poppins-SemiBold", size: 15) ?? UIFont.systemFont(ofSize: 15, weight: .semibold)
+        medicineBrandLabel.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        medicineBrandLabel.numberOfLines = 2
+        centerStack.addArrangedSubview(medicineBrandLabel)
+        
+        medicineGenericFormLabel.text = "Tap to search or browse medicine database".localized()
+        medicineGenericFormLabel.font = UIFont(name: "Poppins-Regular", size: 12) ?? UIFont.systemFont(ofSize: 12)
+        medicineGenericFormLabel.textColor = UIColor(red: 100/255, green: 116/255, blue: 139/255, alpha: 1.0)
+        medicineGenericFormLabel.numberOfLines = 1
+        centerStack.addArrangedSubview(medicineGenericFormLabel)
+        
+        // Right Action Button
+        changeMedicineBtn.setTitle("Search".localized(), for: .normal)
+        changeMedicineBtn.titleLabel?.font = UIFont(name: "Poppins-Medium", size: 13) ?? UIFont.systemFont(ofSize: 13, weight: .medium)
+        changeMedicineBtn.setTitleColor(UIColor(red: 29/255, green: 112/255, blue: 184/255, alpha: 1.0), for: .normal)
+        changeMedicineBtn.backgroundColor = UIColor(red: 240/255, green: 247/255, blue: 255/255, alpha: 1.0)
+        changeMedicineBtn.layer.cornerRadius = 6
+        changeMedicineBtn.layer.borderWidth = 1
+        changeMedicineBtn.layer.borderColor = UIColor(red: 191/255, green: 219/255, blue: 254/255, alpha: 1.0).cgColor
+        changeMedicineBtn.isUserInteractionEnabled = false
+        changeMedicineBtn.contentEdgeInsets = UIEdgeInsets(top: 6, left: 12, bottom: 6, right: 12)
+        changeMedicineBtn.translatesAutoresizingMaskIntoConstraints = false
+        cardContainer.addArrangedSubview(changeMedicineBtn)
         
         NSLayoutConstraint.activate([
-            medicineNameTxt.topAnchor.constraint(equalTo: medicineBox.topAnchor),
-            medicineNameTxt.bottomAnchor.constraint(equalTo: medicineBox.bottomAnchor),
-            medicineNameTxt.leadingAnchor.constraint(equalTo: medicineBox.leadingAnchor),
-            medicineNameTxt.trailingAnchor.constraint(equalTo: medicineBox.trailingAnchor)
+            medicineIconCircle.widthAnchor.constraint(equalToConstant: 40),
+            medicineIconCircle.heightAnchor.constraint(equalToConstant: 40),
+            
+            iconLabel.centerXAnchor.constraint(equalTo: medicineIconCircle.centerXAnchor),
+            iconLabel.centerYAnchor.constraint(equalTo: medicineIconCircle.centerYAnchor),
+            
+            cardContainer.leadingAnchor.constraint(equalTo: selectedMedicineCard.leadingAnchor, constant: 12),
+            cardContainer.trailingAnchor.constraint(equalTo: selectedMedicineCard.trailingAnchor, constant: -12),
+            cardContainer.topAnchor.constraint(equalTo: selectedMedicineCard.topAnchor, constant: 12),
+            cardContainer.bottomAnchor.constraint(equalTo: selectedMedicineCard.bottomAnchor, constant: -12),
+            
+            selectedMedicineCard.heightAnchor.constraint(greaterThanOrEqualToConstant: 64)
         ])
+        
+        // Backing text field for validation and data binding
+        medicineNameTxt = InsetPaddedTextField()
+        medicineNameTxt.isHidden = true
+        sheetView.addSubview(medicineNameTxt)
         
         // --- Component 2: Dosage Section ---
         let dosageSection = UIStackView()
@@ -446,27 +528,66 @@ class AddMedicineViewController: UIViewController, UITextFieldDelegate, UIGestur
             addMedicineLbl.text = "Edit Medicine".localized()
             addButton.setTitle("Update Medicine".localized(), for: .normal)
             
-            let rawName = editMedicne["name"] ?? ""
+            let rawName = editMedicne["name"] ?? (!self.medicineName.isEmpty ? self.medicineName : "")
             self.medicineName = rawName
             self.medicineNameTxt.text = rawName
-            self.medicineId = editMedicne["id"] ?? ""
+            self.medicineId = editMedicne["id"] ?? (self.medicineId ?? "")
             
-            if let dose = editMedicne["dosage"], !dose.isEmpty {
-                doseTxt.text = dose
+            updateMedicineCardUI(brand: rawName, strength: "", generic: "", form: "")
+            
+            let doseVal = editMedicne["dosage"] ?? self.dose
+            if !doseVal.isEmpty {
+                doseTxt.text = doseVal
             }
-            if let freq = editMedicne["frequency_first"], !freq.isEmpty {
-                selectFrequency(preset: freq)
+            let freqVal = editMedicne["frequency_first"] ?? self.frequency
+            if !freqVal.isEmpty {
+                selectFrequency(preset: freqVal)
             }
-            if let duration = editMedicne["duration"], !duration.isEmpty {
-                durationTxt.text = duration
+            let durVal = editMedicne["duration"] ?? self.duration
+            if !durVal.isEmpty {
+                durationTxt.text = durVal
             }
-            if let meals = editMedicne["meals"], !meals.isEmpty {
-                mealTxt.text = meals
+            let mealVal = editMedicne["meals"] ?? self.instruction
+            if !mealVal.isEmpty {
+                mealTxt.text = mealVal
             }
         } else if !medicineName.isEmpty {
             medicineNameTxt.text = medicineName
+            updateMedicineCardUI(brand: medicineName, strength: "", generic: "", form: "")
         } else {
             medicineNameTxt.text = ""
+            updateMedicineCardUI(brand: "", strength: "", generic: "", form: "")
+        }
+    }
+    
+    private func updateMedicineCardUI(brand: String, strength: String, generic: String, form: String) {
+        let isSelected = !brand.isEmpty
+        if isSelected {
+            medicineBrandLabel.text = brand
+            medicineBrandLabel.textColor = UIColor(red: 15/255, green: 23/255, blue: 42/255, alpha: 1.0)
+            
+            var subParts: [String] = []
+            if !generic.isEmpty { subParts.append(generic) }
+            if !form.isEmpty { subParts.append(form) }
+            if !strength.isEmpty && !brand.contains(strength) { subParts.append(strength) }
+            
+            let subtitle = subParts.joined(separator: " · ")
+            medicineGenericFormLabel.text = subtitle.isEmpty ? "Tap to change medicine".localized() : subtitle
+            medicineGenericFormLabel.textColor = UIColor(red: 71/255, green: 85/255, blue: 105/255, alpha: 1.0)
+            
+            changeMedicineBtn.setTitle("Change".localized(), for: .normal)
+            selectedMedicineCard.backgroundColor = UIColor(red: 240/255, green: 247/255, blue: 255/255, alpha: 1.0)
+            selectedMedicineCard.layer.borderColor = UIColor(red: 37/255, green: 99/255, blue: 235/255, alpha: 1.0).cgColor
+        } else {
+            medicineBrandLabel.text = "Search & Select Medicine".localized()
+            medicineBrandLabel.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+            
+            medicineGenericFormLabel.text = "Tap to search or browse medicine database".localized()
+            medicineGenericFormLabel.textColor = UIColor(red: 100/255, green: 116/255, blue: 139/255, alpha: 1.0)
+            
+            changeMedicineBtn.setTitle("Search".localized(), for: .normal)
+            selectedMedicineCard.backgroundColor = UIColor(red: 248/255, green: 250/255, blue: 252/255, alpha: 1.0)
+            selectedMedicineCard.layer.borderColor = UIColor(red: 226/255, green: 232/255, blue: 240/255, alpha: 1.0).cgColor
         }
     }
     
@@ -541,7 +662,59 @@ class AddMedicineViewController: UIViewController, UITextFieldDelegate, UIGestur
     
     // MARK: - Actions
     @objc func selectMedicineTapped() {
-        medicineNameTxt?.becomeFirstResponder()
+        let vc = MedicineSearchVC()
+        self.medicineEdit = false
+        var didHandleDetail = false
+        vc.medicineDetailCallback = { [weak self] item in
+            guard let self = self else { return }
+            didHandleDetail = true
+            self.selectedMedicineItem = item
+            let brand = item.brandName ?? ""
+            let strength = item.strength ?? ""
+            let generic = item.genericName ?? ""
+            let form = item.form ?? ""
+            
+            self.medicineName = brand
+            self.medicineId = item.id ?? ""
+            
+            var fullName = brand
+            if !strength.isEmpty && !brand.contains(strength) {
+                fullName += " \(strength)"
+            }
+            self.medicineNameTxt.text = fullName
+            self.updateMedicineCardUI(brand: fullName, strength: strength, generic: generic, form: form)
+            
+            // Smart dosage suggestion based on medicine form
+            let lowerForm = form.lowercased()
+            if lowerForm.contains("syrup") || lowerForm.contains("suspension") || lowerForm.contains("liquid") || lowerForm.contains("drop") {
+                if self.doseTxt.text?.isEmpty ?? true || self.doseTxt.text == "1 Tablet" {
+                    self.doseTxt.text = "5 ml"
+                }
+            } else if lowerForm.contains("capsule") {
+                if self.doseTxt.text?.isEmpty ?? true || self.doseTxt.text == "1 Tablet" {
+                    self.doseTxt.text = "1 Capsule"
+                }
+            } else if lowerForm.contains("tablet") {
+                if self.doseTxt.text?.isEmpty ?? true || self.doseTxt.text == "5 ml" {
+                    self.doseTxt.text = "1 Tablet"
+                }
+            }
+        }
+        vc.medicinecallback = { [weak self] (name, id) in
+            guard let self = self else { return }
+            if !didHandleDetail {
+                let chosenName = name ?? ""
+                self.medicineName = chosenName
+                self.medicineId = id ?? ""
+                self.medicineNameTxt.text = chosenName
+                self.updateMedicineCardUI(brand: chosenName, strength: "", generic: "", form: "")
+            }
+        }
+        
+        let nav = UINavigationController(rootViewController: vc)
+        nav.navigationBar.isHidden = true
+        nav.modalPresentationStyle = .fullScreen
+        self.present(nav, animated: true, completion: nil)
     }
     
     @IBAction func addMedicneTapped(_ sender: Any) {

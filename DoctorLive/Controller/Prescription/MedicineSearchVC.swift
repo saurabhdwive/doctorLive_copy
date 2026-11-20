@@ -29,8 +29,13 @@ class MedicineSearchVC: UIViewController, UISearchBarDelegate {
         searchBar.placeholder = "Search here".localized()
         searchBar.delegate = self
         setUpTableView()
-
-   }
+        performBankList("")
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: animated)
+    }
 
     @IBAction func backButtonTapped(_ sender: Any) {
         if let nav = self.navigationController, nav.viewControllers.first != self {
@@ -49,22 +54,52 @@ class MedicineSearchVC: UIViewController, UISearchBarDelegate {
 
 extension MedicineSearchVC: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if bankListArray.isEmpty {
+            let query = searchBar.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            return query.isEmpty ? 0 : 1
+        }
         return bankListArray.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-       let cell = tableView.dequeueReusableCell(withIdentifier: "MedicineTableViewCell", for: indexPath) as! MedicineTableViewCell
-        cell.medicineName.text = bankListArray[indexPath.row].genericName
-        cell.medicineType.text = bankListArray[indexPath.row].form
-        cell.medicineCompany.text = bankListArray[indexPath.row].brandName
-        cell.drugQunatity.text = bankListArray[indexPath.row].strength
+        let cell = tableView.dequeueReusableCell(withIdentifier: "MedicineTableViewCell", for: indexPath) as! MedicineTableViewCell
+        if bankListArray.isEmpty {
+            let query = searchBar.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            cell.medicineName.text = query
+            cell.medicineType.text = "Tap to use custom medicine".localized()
+            cell.medicineCompany.text = ""
+            cell.drugQunatity.text = ""
+            return cell
+        }
+        guard indexPath.row < bankListArray.count else { return cell }
+        let item = bankListArray[indexPath.row]
+        let brand = item.brandName ?? ""
+        let generic = item.genericName ?? ""
+        let form = item.form ?? ""
+        let strength = item.strength ?? ""
         
+        cell.medicineName.text = !brand.isEmpty ? brand : generic
+        cell.medicineType.text = generic
+        cell.medicineCompany.text = form
+        cell.drugQunatity.text = strength
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if bankListArray.isEmpty {
+            let query = searchBar.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            guard !query.isEmpty else { return }
+            medicinecallback?(query, "")
+            if let nav = self.navigationController, nav.viewControllers.first != self {
+                nav.popViewController(animated: true)
+            } else {
+                self.dismiss(animated: true, completion: nil)
+            }
+            return
+        }
+        guard indexPath.row < bankListArray.count else { return }
         let item = bankListArray[indexPath.row]
-        let medicine = item.brandName
+        let medicine = item.brandName ?? item.genericName ?? ""
         let id = item.id
         medicineDetailCallback?(item)
         medicinecallback?(medicine, id)
@@ -74,14 +109,20 @@ extension MedicineSearchVC: UITableViewDelegate, UITableViewDataSource {
             self.dismiss(animated: true, completion: nil)
         }
     }
+    
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-
-        self.performBankList(searchBar.text ?? "")
+        workItem?.cancel()
+        let task = DispatchWorkItem { [weak self] in
+            self?.performBankList(searchText)
+        }
+        workItem = task
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: task)
     }
-//    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-//        return 100
-//    }
-   
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.resignFirstResponder()
+        performBankList(searchBar.text ?? "")
+    }
 
 }
 extension MedicineSearchVC {
@@ -90,9 +131,10 @@ extension MedicineSearchVC {
             service!.medicineList(parameters: param, header: "DeviceToken")
         }.done { (model: MedicineListModel) in
             self.handleResponse(model: model)
-        }.catch { (error) in
+        }.catch { [weak self] (error) in
             DispatchQueue.main.async {
-                
+                self?.bankListArray = []
+                self?.tableView.reloadData()
             }
         }.finally {
             DispatchQueue.main.async {
@@ -101,9 +143,9 @@ extension MedicineSearchVC {
         }
     }
     
-   @objc func performBankList(_ text:String){
+   @objc func performBankList(_ text: String){
         var parameter = [String: String]()
-        guard let code = UserDefaults.standard.string(forKey: Constants.languageCode) else { return }
+        let code = UserDefaults.standard.string(forKey: Constants.languageCode) ?? "en"
         parameter = ["language_type": code,
                      "keyword": text]
         banklist(param: parameter)
@@ -111,14 +153,10 @@ extension MedicineSearchVC {
     
     func handleResponse(model: MedicineListModel){
         if model.status == "SUCCESS"{
-            print(model)
-            self.bankListArray = model.medicinelisting?.reversed() ?? [Medicinelisting]()
-            self.tableView.reloadData()
-//            for person in model.medicinelisting! {
-//                bankListArray.append(person.brandName ?? "")
-//            }
-        }else{
-            
+            self.bankListArray = model.medicinelisting ?? [Medicinelisting]()
+        } else {
+            self.bankListArray = []
         }
+        self.tableView.reloadData()
     }
 }

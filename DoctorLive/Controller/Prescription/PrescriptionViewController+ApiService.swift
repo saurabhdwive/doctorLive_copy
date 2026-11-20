@@ -7,18 +7,48 @@
 
 import Foundation
 import PromiseKit
+import Alamofire
 
 extension PrescriptionViewController{
     func savePrescription(param:[String:Any]?) {
         LoaderController.sharedInstance.showLoader(view: self.view)
-        ApiManager.instance.fetchApiService(method: .post, url: APIEndpoint.savePrescription, passDict: param, header: ApiManager.instance.getHeadeWithJwtToken())  { [self] (result) in
+        let headers = ApiManager.instance.getHeadeWithJwtToken()
+        let fullUrl = Domain.baseUrl().appending(APIEndpoint.savePrescription)
+        
+        print("\n================= API REQUEST ======================")
+        print("🚀 URL: \(fullUrl)")
+        print("🚀 Method: POST")
+        print("🚀 Encoding: raw JSON (JSONEncoding.default)")
+        print("🚀 Headers: \(headers)")
+        if let params = param {
+            if let jsonData = try? JSONSerialization.data(withJSONObject: params, options: .prettyPrinted),
+               let jsonString = String(data: jsonData, encoding: .utf8) {
+                print("🚀 Payload (formatted JSON):\n\(jsonString)")
+            } else {
+                print("🚀 Params: \(params)")
+            }
+        }
+        print("====================================================\n")
+        
+        ApiManager.instance.fetchApiService(method: .post, url: APIEndpoint.savePrescription, passDict: param, header: headers) { [self] (result) in
             DispatchQueue.main.async {
                 LoaderController.sharedInstance.removeLoader()
             }
             switch result {
             case .success(let data):
+                let rawString = String(data: data, encoding: .utf8) ?? ""
+                print("\n================= API RESPONSE [SUCCESS] ======================")
+                print("📥 URL: \(fullUrl)")
+                print("📥 Raw Response: \(rawString)")
+                if let jsonObject = try? JSONSerialization.jsonObject(with: data, options: []),
+                   let prettyData = try? JSONSerialization.data(withJSONObject: jsonObject, options: .prettyPrinted),
+                   let prettyString = String(data: prettyData, encoding: .utf8) {
+                    print("📥 Response (JSON):\n\(prettyString)")
+                }
+                print("===============================================================\n")
+                
                 let modelData = try? JSONDecoder().decode(SavePrescriptionModel.self, from: data)
-                print(modelData!)
+                print("📋 Decoded SavePrescriptionModel: \(String(describing: modelData))")
                 self.pastHistoryTxt.text = ""
                 self.provisionTxt.text = ""
                 self.tempLable.text = ""
@@ -52,8 +82,10 @@ extension PrescriptionViewController{
                 }
                 break
             case .failure(let error):
-                print("error.........\(error.localizedDescription)")
-                
+                print("\n================= API RESPONSE [FAILURE] ======================")
+                print("❌ URL: \(fullUrl)")
+                print("❌ Error: \(error.localizedDescription)")
+                print("===============================================================\n")
                 LoaderController.sharedInstance.removeLoader()
                 break
             }
@@ -61,12 +93,27 @@ extension PrescriptionViewController{
     }
     
     func performSavePrescription(){
-        guard let token = UserDefaults.standard.string(forKey: Constants.accessToken) else { return }
-        guard let bookingId = bookingId else { return}
-        guard let cheifComplain = ChiefTxtComplain.text else { return}
+        guard let token = UserDefaults.standard.string(forKey: Constants.accessToken) else {
+            print("❌ [Save Prescription] Missing accessToken in UserDefaults")
+            return
+        }
+        guard let bookingId = bookingId else {
+            print("❌ [Save Prescription] Missing bookingId")
+            return
+        }
+        guard let cheifComplain = ChiefTxtComplain.text else {
+            print("❌ [Save Prescription] Missing ChiefTxtComplain")
+            return
+        }
         let pastHistory = pastHistoryTxt.text
-        guard let general = genral else { return}
-        guard let userid = UserDefaults.standard.string(forKey: Constants.userId) else { return}
+        guard let general = genral else {
+            print("❌ [Save Prescription] Missing general exam state")
+            return
+        }
+        guard let userid = UserDefaults.standard.string(forKey: Constants.userId) else {
+            print("❌ [Save Prescription] Missing userId in UserDefaults")
+            return
+        }
         let temprature = tempLable.text
         let systolicBps = systolicBp.text
         let diaystolicBp = diaystolicLable.text
@@ -86,6 +133,7 @@ extension PrescriptionViewController{
             
         }
         
+        let htmlAdvice = AdviceHTMLHelper.convertToHTML(plainOrFormattedText: generalAdvice ?? "")
         var parameter = [String: Any]()
         parameter = ["token": token,
                      "language_type": code,
@@ -102,7 +150,9 @@ extension PrescriptionViewController{
                      "blood_sugar_second": bloodSugar2nd ?? "",
                      "diagnosis": diagnosis ?? "",
                      "investigation": self.investigationTxt.text ?? "",
-                     "general_advice": generalAdvice ?? "",
+//                     "general_advice": generalAdvice ?? "",
+                     "general_advice": htmlAdvice,
+                     "advice": htmlAdvice,
                      "followup": self.avilability ?? "",
                      "followup_value": followup ?? "",
                      "medicine": medicineArray]
@@ -112,7 +162,89 @@ extension PrescriptionViewController{
         if let pName = self.userName.text, !pName.isEmpty {
             parameter["patient_name"] = pName
         }
-        savePrescription(param: parameter)
+        
+        if self.isPatientOtherThanMyself {
+            print("🔄 Patient changed to member other than myself. Calling changepatient API before addprescription...")
+            self.callChangePatientApi { [weak self] _ in
+                guard let self = self else { return }
+                self.savePrescription(param: parameter)
+            }
+        } else {
+            savePrescription(param: parameter)
+        }
+    }
+    
+    func callChangePatientApi(completion: @escaping (Bool) -> Void) {
+        LoaderController.sharedInstance.showLoader(view: self.view)
+        let token = UserDefaults.standard.string(forKey: Constants.accessToken) ?? ""
+        let code = UserDefaults.standard.string(forKey: Constants.languageCode) ?? "en"
+        let bId = self.bookingId ?? self.data["booking_id"] ?? ""
+//        let uId = self.effectivePatientUserId
+        let memberId = self.data["member_id"] ?? ""
+//        let pName = self.userName.text ?? ""
+//        let rel = self.currentMemberRelationship ?? self.data["relationship"] ?? ""
+//        let gen = self.gender.text ?? self.data["gender"] ?? ""
+//        let dob = self.data["dob"] ?? self.yearOldLable.text ?? ""
+        
+        let param: [String: Any] = [
+            "token": token,
+            "language_type": code,
+            "booking_id": bId,
+            // "user_id": uId,
+            "member_id": memberId,
+            // "patient_name": pName,
+            // "patient_id": memberId,
+            // "relationship": rel,
+            // "gender": gen,
+            // "dob": dob
+        ]
+        
+        let headers = ApiManager.instance.getHeadeWithJwtToken()
+        let fullUrl = Domain.baseUrl().appending("doctor/changepatient")
+        var httpHeaders = HTTPHeaders()
+        for (k, v) in headers {
+            httpHeaders.add(name: k, value: v)
+        }
+        
+        print("\n================= API REQUEST (CHANGE PATIENT) ======================")
+        print("🚀 URL: \(fullUrl)")
+        print("🚀 Method: POST")
+        print("🚀 Encoding: form-data (multipart/form-data)")
+        print("🚀 Headers: \(httpHeaders.dictionary)")
+        print("🚀 Params: \(param)")
+        print("=====================================================================\n")
+        
+        AF.upload(multipartFormData: { multiPart in
+            for (key, value) in param {
+                if let data = "\(value)".data(using: .utf8) {
+                    multiPart.append(data, withName: key)
+                }
+            }
+        }, to: fullUrl, method: .post, headers: httpHeaders).responseData { response in
+            switch response.result {
+            case .success(let data):
+                let rawString = String(data: data, encoding: .utf8) ?? ""
+                print("\n================= API RESPONSE (CHANGE PATIENT) [SUCCESS] =====================")
+                print("📥 URL: \(fullUrl)")
+                print("📥 Raw Response: \(rawString)")
+                if let jsonObject = try? JSONSerialization.jsonObject(with: data, options: []),
+                   let prettyData = try? JSONSerialization.data(withJSONObject: jsonObject, options: .prettyPrinted),
+                   let prettyString = String(data: prettyData, encoding: .utf8) {
+                    print("📥 Response (JSON):\n\(prettyString)")
+                }
+                print("===============================================================================\n")
+                completion(true)
+            case .failure(let error):
+                print("\n================= API RESPONSE (CHANGE PATIENT) [FAILURE] ======================")
+                print("❌ URL: \(fullUrl)")
+                print("❌ Error: \(error.localizedDescription)")
+                if let data = response.data, let str = String(data: data, encoding: .utf8) {
+                    print("❌ Error Body: \(str)")
+                }
+                print("================================================================================\n")
+                completion(false)
+            }
+        }
     }
 }
 

@@ -196,6 +196,7 @@
 		1E313DAB63C517A491809251 /* AgoraCallConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A5591C0B68DD01E4ADE3EA5 /* AgoraCallConnectionManager.swift */; };
 		40370CB3B3C4EDBC74DA75DE /* VideoCallViewC+ConnectionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E57B2EB401795F2179570B3 /* VideoCallViewC+ConnectionState.swift */; };
 		466BDBC54BA6F54A9092230E /* CreateEditTemplateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0C0DCC16B5163907376DCEC /* CreateEditTemplateViewController.swift */; };
+		E1A0B2C3D4E5F601A1B2C3D5 /* AdviceHTMLHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A0B2C3D4E5F601A1B2C3D4 /* AdviceHTMLHelper.swift */; };
 		4F2889A726EB769600634D8A /* UpdatePersonalDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F2889A626EB769600634D8A /* UpdatePersonalDetails.swift */; };
 		4F2889A926EE112D00634D8A /* DeleteQualification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F2889A826EE112D00634D8A /* DeleteQualification.swift */; };
 		4F2889AB26EE114100634D8A /* DeleteExpiernce.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F2889AA26EE114100634D8A /* DeleteExpiernce.swift */; };
@@ -694,6 +695,7 @@
 		98DE42317ACEB360B33E36AF /* Pods-DoctorLive.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DoctorLive.release.xcconfig"; path = "Target Support Files/Pods-DoctorLive/Pods-DoctorLive.release.xcconfig"; sourceTree = "<group>"; };
 		AE51AADFF45B286D6F167895 /* Pods_DoctorLive.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_DoctorLive.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0C0DCC16B5163907376DCEC /* CreateEditTemplateViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CreateEditTemplateViewController.swift; sourceTree = "<group>"; };
+		E1A0B2C3D4E5F601A1B2C3D4 /* AdviceHTMLHelper.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AdviceHTMLHelper.swift; sourceTree = "<group>"; };
 		CA6E867D252CC63BA1690348 /* PrescriptionTemplateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PrescriptionTemplateModel.swift; sourceTree = "<group>"; };
 		CB444425910CBE6C848D599D /* GeneralAdviceFormatViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GeneralAdviceFormatViewController.swift; sourceTree = "<group>"; };
 		AA110001276387DA001D5D01 /* DoctorMemberModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DoctorMemberModel.swift; sourceTree = "<group>"; };
@@ -877,6 +879,7 @@
 				0C5681CD276387DA001D5D63 /* MedicineTableViewCell.xib */,
 				CB444425910CBE6C848D599D /* GeneralAdviceFormatViewController.swift */,
 				CA6E867D252CC63BA1690348 /* PrescriptionTemplateModel.swift */,
+				E1A0B2C3D4E5F601A1B2C3D4 /* AdviceHTMLHelper.swift */,
 				C0C0DCC16B5163907376DCEC /* CreateEditTemplateViewController.swift */,
 				EA3215553A0582996166D153 /* PrescriptionTemplatesViewController.swift */,
 				AA110001276387DA001D5D01 /* DoctorMemberModel.swift */,
@@ -2239,6 +2242,7 @@
 				0C91BCFF2712D1D500397F08 /* WidhrawRequest.swift in Sources */,
 				F9FCF58D8D0A4D32763DD698 /* GeneralAdviceFormatViewController.swift in Sources */,
 				E846DCB5C85F50AC7192F7E4 /* PrescriptionTemplateModel.swift in Sources */,
+				E1A0B2C3D4E5F601A1B2C3D5 /* AdviceHTMLHelper.swift in Sources */,
 				466BDBC54BA6F54A9092230E /* CreateEditTemplateViewController.swift in Sources */,
 				89A368CB9FA7DB2290250361 /* PrescriptionTemplatesViewController.swift in Sources */,
 				BB110001276387DA001D5D01 /* DoctorMemberModel.swift in Sources */,

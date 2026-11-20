@@ -111,6 +111,7 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
     private let followUpDaysTxt = InsetPaddedTextField()
     
     private var medicinesList: [TemplateMedicine] = []
+    private var editingMedicineIndex: Int?
     private let medicinesContainerStack = UIStackView()
     private let medCountBadge = UIView()
     private let medCountLabel = UILabel()
@@ -711,6 +712,10 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
             card.layer.cornerRadius = 12
             card.layer.borderWidth = 1
             card.layer.borderColor = UIColor(red: 226/255, green: 232/255, blue: 240/255, alpha: 1.0).cgColor
+            card.tag = index
+            card.isUserInteractionEnabled = true
+            let tap = UITapGestureRecognizer(target: self, action: #selector(editMedicineFromTemplate(_:)))
+            card.addGestureRecognizer(tap)
             card.translatesAutoresizingMaskIntoConstraints = false
             
             let medName = UILabel()
@@ -794,7 +799,32 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
         }
     }
     
+    @objc private func editMedicineFromTemplate(_ sender: UITapGestureRecognizer) {
+        guard let view = sender.view else { return }
+        let index = view.tag
+        guard index < medicinesList.count else { return }
+        editingMedicineIndex = index
+        let med = medicinesList[index]
+        
+        let storyboard = UIStoryboard(name: "Auth", bundle: nil)
+        let vc = storyboard.instantiateViewController(withIdentifier: "AddMedicineViewController") as! AddMedicineViewController
+        vc.delegate = self
+        vc.editMed = true
+        vc.editMedicne = [
+            "id": med.id ?? "",
+            "name": med.name,
+            "dosage": med.dosage,
+            "frequency_first": med.frequencyFirst,
+            "duration": med.duration,
+            "meals": med.meals
+        ]
+        vc.modalPresentationStyle = .overFullScreen
+        vc.modalTransitionStyle = .crossDissolve
+        self.present(vc, animated: true, completion: nil)
+    }
+    
     @objc private func addMedicineTapped() {
+        editingMedicineIndex = nil
         let view = UIStoryboard.init(name: "Auth", bundle: nil)
         let vc = view.instantiateViewController(withIdentifier: "AddMedicineViewController") as! AddMedicineViewController
         vc.delegate = self
@@ -954,6 +984,8 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
     }
     
     private func saveTemplateViaApi(template: PrescriptionTemplate) {
+        /*
+        // Existing implementation preserved:
         let token = UserDefaults.standard.string(forKey: Constants.accessToken) ?? ""
         let code = UserDefaults.standard.string(forKey: Constants.languageCode) ?? "en"
         let isExamOn = genralSwitchButton.isOn
@@ -983,11 +1015,6 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
             "investigations": (template.investigations ?? []).joined(separator: ", ")
         ]
         
-        if let meds = template.medicines {
-        if let meds = template.medicines {
-        if let meds = template.medicines {
-        if let meds = template.medicines {
-        if let meds = template.medicines {
         if let meds = template.medicines {
             let medDicts = meds.map { med -> [String: Any] in
                 var dict: [String: Any] = [
@@ -1029,6 +1056,78 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
                 print("Template create API fallback: \(error.localizedDescription)")
             }
         }
+        */
+
+        // Same request structure as PrescriptionViewController (excluding booking_id, user_id, member_id, patient_name)
+        let token = UserDefaults.standard.string(forKey: Constants.accessToken) ?? ""
+        let code = UserDefaults.standard.string(forKey: Constants.languageCode) ?? "en"
+        let cheifComplain = chiefComplaintTxt.text ?? template.chiefComplain ?? ""
+        let pastHistory = pastHistoryTxt.text ?? template.pastHistory ?? ""
+        let general = genralSwitchButton.isOn ? "1" : "0"
+        let temprature = tempTxt.text ?? template.temperature ?? ""
+        let systolicBps = systolicTxt.text ?? template.bloodPressureSystolic ?? ""
+        let diaystolicBp = diastolicTxt.text ?? template.bloodPressureDiastolic ?? ""
+        let pulse = pulseTxt.text ?? template.pulse ?? ""
+        let bloodSugarFast = sugarTxt.text ?? template.bloodSugar ?? ""
+        let bloodSugar2nd = ""
+        let diagnosis = provisionalDiagnosisTxt.text ?? template.provisionalDiagnosis ?? ""
+        let generalAdvice = generalAdviceTxt.text ?? template.generalAdvice ?? ""
+        let followupValue = followUpDaysTxt.text ?? template.followUpDays ?? ""
+        let followup = followupValue.isEmpty ? "0" : followupValue
+        
+        var medicineArray = [[String: Any]]()
+        (template.medicines ?? medicinesList).forEach { slot in
+            let medDict: [String: Any] = [
+                "name": "\(slot.name)",
+                "id": "\(slot.id ?? "")",
+                "dosage": "\(slot.dosage)",
+                "frequency_first": "\(slot.frequencyFirst)",
+                "duration": "\(slot.duration)",
+                "meals": "\(slot.meals)"
+            ]
+            medicineArray.append(medDict)
+        }
+        
+        var parameter: [String: Any] = [
+            "token": token,
+            "language_type": code,
+            "title": template.title,
+            "chief_complain": cheifComplain,
+            "past_history": pastHistory,
+            "general": general,
+            "temperature": temprature,
+            "blood_first": systolicBps,
+            "blood_second": diaystolicBp,
+            "pulse": pulse,
+            "blood_sugar_first": bloodSugarFast,
+            "blood_sugar_second": bloodSugar2nd,
+            "diagnosis": diagnosis,
+            "investigation": investigationsTxt.text ?? "",
+            "general_advice": generalAdvice,
+            "followup": followup,
+            "followup_value": followupValue,
+            "medicines": medicineArray
+        ]
+        
+        if let existingId = existingTemplate?.id {
+            parameter["template_id"] = existingId
+            parameter["id"] = existingId
+            firstly {
+                service!.updatePrescriptionTemplate(parameters: parameter, header: "DeviceToken")
+            }.done { (resp: PrescriptionTemplateCommonResponse) in
+                print("Template updated successfully on server: \(resp)")
+            }.catch { error in
+                print("Template update API fallback: \(error.localizedDescription)")
+            }
+        } else {
+            firstly {
+                service!.createPrescriptionTemplate(parameters: parameter, header: "DeviceToken")
+            }.done { (resp: PrescriptionTemplateCommonResponse) in
+                print("Template created successfully on server: \(resp)")
+            }.catch { error in
+                print("Template create API fallback: \(error.localizedDescription)")
+            }
+        }
     }
 }
 
@@ -1050,6 +1149,18 @@ extension CreateEditTemplateViewController: DataDelegate {
     }
     
     func userEditData(passData: [Medicine]) {
-        // Not used here
+        if let idx = editingMedicineIndex, idx < medicinesList.count, let updated = passData.first {
+            let cleanId = (updated.id.isEmpty || Int(updated.id) == nil) ? medicinesList[idx].id : updated.id
+            medicinesList[idx] = TemplateMedicine(
+                id: cleanId,
+                name: updated.name,
+                dosage: updated.dosage,
+                frequencyFirst: updated.frequencyFirst,
+                duration: updated.duration,
+                meals: updated.meals
+            )
+            editingMedicineIndex = nil
+            refreshMedicinesUI()
+        }
     }
 }

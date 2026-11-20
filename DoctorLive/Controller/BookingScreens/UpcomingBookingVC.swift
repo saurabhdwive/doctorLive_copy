@@ -812,7 +812,8 @@ extension UpcomingBookingVC: UITableViewDelegate, UITableViewDataSource {
                                 "reason": pastOnCall[index].reasonVisit ?? "",
                                 "date": "\(pastOnCall[index].memberDob ?? "") Yrs,",
                                 "id": pastOnCall[index].id ?? "",
-                                "user_id": pastOnCall[index].userId ?? ""]
+                                "user_id": pastOnCall[index].userId ?? "",
+                                "member_id": pastOnCall[index].memberId ?? ""]
                 } else{
                     userData = ["name": pastOnCall[index].memberName ?? "",
                                 "gender": pastOnCall[index].memberGender ?? "",
@@ -820,7 +821,8 @@ extension UpcomingBookingVC: UITableViewDelegate, UITableViewDataSource {
                                 "reason": pastOnCall[index].reasonVisit ?? "",
                                 "date": "\(pastOnCall[index].memberDob ?? "")Yrs,",
                                 "id": pastOnCall[index].id ?? "",
-                                "user_id": pastOnCall[index].userId ?? ""]
+                                "user_id": pastOnCall[index].userId ?? "",
+                                "member_id": pastOnCall[index].memberId ?? ""]
                 }
                 vc.data = userData
                 self.navigationController?.pushViewController(vc, animated: true)
@@ -845,7 +847,8 @@ extension UpcomingBookingVC: UITableViewDelegate, UITableViewDataSource {
                                 "reason": pastVisit[index].reasonVisit ?? "",
                                 "date": "\(pastVisit[index].memberDob ?? "") Yrs,",
                                 "id": pastVisit[index].id ?? "",
-                                "user_id": pastVisit[index].userId ?? ""]
+                                "user_id": pastVisit[index].userId ?? "",
+                                "member_id": pastVisit[index].memberId ?? ""]
                 } else{
                     userData = ["name": pastVisit[index].memberName ?? "",
                                 "gender": pastVisit[index].memberGender ?? "",
@@ -853,7 +856,8 @@ extension UpcomingBookingVC: UITableViewDelegate, UITableViewDataSource {
                                 "reason": pastVisit[index].reasonVisit ?? "",
                                 "date": "\(pastVisit[index].memberDob ?? "") Yrs,",
                                 "id": pastVisit[index].id ?? "",
-                                "user_id": pastVisit[index].userId ?? ""]
+                                "user_id": pastVisit[index].userId ?? "",
+                                "member_id": pastVisit[index].memberId ?? ""]
                 }
                 
                 vc.data = userData
@@ -882,7 +886,8 @@ extension UpcomingBookingVC: UITableViewDelegate, UITableViewDataSource {
                             "reason": pastVisit[index].reasonVisit ?? "",
                             "date": "\(pastVisit[index].memberDob ?? "") Yrs,",
                             "id": pastVisit[index].id ?? "",
-                            "user_id": pastVisit[index].userId ?? ""]
+                            "user_id": pastVisit[index].userId ?? "",
+                            "member_id": pastVisit[index].memberId ?? ""]
             } else{
                 userData = ["name": pastVisit[index].memberName ?? "",
                             "gender": pastVisit[index].memberGender ?? "",
@@ -890,7 +895,8 @@ extension UpcomingBookingVC: UITableViewDelegate, UITableViewDataSource {
                             "reason": pastVisit[index].reasonVisit ?? "",
                             "date": "\(pastVisit[index].memberDob ?? "") Yrs,",
                             "id": pastVisit[index].id ?? "",
-                            "user_id": pastVisit[index].userId ?? ""]
+                            "user_id": pastVisit[index].userId ?? "",
+                            "member_id": pastVisit[index].memberId ?? ""]
             }
             
             vc.data = userData

@@ -50,15 +50,17 @@ struct PatientMember: Codable {
         member_created_date = try? container.decode(String.self, forKey: .member_created_date)
     }
     
-    var formattedGender: String {
-        let g = (member_gender ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    static func formatGender(_ raw: String?) -> String {
+        guard let g = raw?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(), !g.isEmpty else {
+            return ""
+        }
         if g.hasPrefix("m") { return "Male" }
         if g.hasPrefix("f") { return "Female" }
         return "Others"
     }
     
-    var formattedAge: String {
-        guard let dob = member_dob?.trimmingCharacters(in: .whitespacesAndNewlines), !dob.isEmpty else {
+    static func formatAge(from rawDob: String?) -> String {
+        guard let dob = rawDob?.trimmingCharacters(in: .whitespacesAndNewlines), !dob.isEmpty else {
             return ""
         }
         
@@ -71,6 +73,7 @@ struct PatientMember: Codable {
         let cleaned = dob.replacingOccurrences(of: " Yrs,", with: "")
                          .replacingOccurrences(of: "Yrs,", with: "")
                          .replacingOccurrences(of: " Yrs", with: "")
+                         .replacingOccurrences(of: "yrs", with: "")
                          .replacingOccurrences(of: "y", with: "")
                          .trimmingCharacters(in: .whitespacesAndNewlines)
         if let years = Int(cleaned) {
@@ -78,7 +81,7 @@ struct PatientMember: Codable {
         }
         
         // Try parsing date formats (e.g. "1994-12-12" or "1994/12/12" or "dd-MM-yyyy")
-        let formatters = ["yyyy-MM-dd", "yyyy/MM/dd", "dd-MM-yyyy", "dd/MM/yyyy"]
+        let formatters = ["yyyy-MM-dd", "yyyy/MM/dd", "dd-MM-yyyy", "dd/MM/yyyy", "yyyy-MM-dd'T'HH:mm:ss.000Z"]
         for format in formatters {
             let df = DateFormatter()
             df.dateFormat = format
@@ -92,6 +95,14 @@ struct PatientMember: Codable {
         }
         
         return dob
+    }
+    
+    var formattedGender: String {
+        return PatientMember.formatGender(member_gender)
+    }
+    
+    var formattedAge: String {
+        return PatientMember.formatAge(from: member_dob)
     }
     
     var displayRelationship: String {

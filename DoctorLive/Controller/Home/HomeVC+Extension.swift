@@ -128,7 +128,14 @@ extension HomeVC: UITableViewDataSource {
             vc.recieverId = firstCall.userId ?? ""
             vc.roomId = firstCall.id ?? ""
             vc.profilePic = ""
-            vc.patientName = firstCall.memberName ?? patientName
+            
+            let callMemberName = firstCall.memberName?.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let mName = callMemberName, !mName.isEmpty, mName.lowercased() != "me" {
+                vc.patientName = mName
+            } else {
+                vc.patientName = !patientName.isEmpty ? patientName : (firstCall.name ?? "")
+            }
+            
             vc.sinchToken = firstCall.devicetoken ?? ""
             vc.userId = firstCall.userId ?? ""
             vc.bookingId = firstCall.id ?? ""
@@ -147,7 +154,14 @@ extension HomeVC: UITableViewDataSource {
             vc.recieverId = matchedCall?.userId ?? ""
             vc.roomId = booking.id
             vc.profilePic = ""
-            vc.patientName = matchedCall?.memberName ?? patientName
+            
+            let callMemberName = matchedCall?.memberName?.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let mName = callMemberName, !mName.isEmpty, mName.lowercased() != "me" {
+                vc.patientName = mName
+            } else {
+                vc.patientName = !patientName.isEmpty ? patientName : (matchedCall?.name ?? "")
+            }
+            
             vc.sinchToken = matchedCall?.devicetoken ?? ""
             vc.userId = matchedCall?.userId ?? ""
             vc.bookingId = booking.id

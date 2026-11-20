@@ -427,12 +427,36 @@ class HomeVC: UIViewController {
     }
     
     @objc func prescriptionBtnTap(_ sender: UIButton){
-        let call = self.allBookingData[sender.tag].call?.first
+        let group = self.allBookingData[sender.tag]
+        let call = group.call?.first
         if call?.filePdf ?? EMPTY == EMPTY {
             let viewC = PrescriptionViewController()
             viewC.bookingId = call?.id ?? EMPTY
-            viewC.patientUserId = self.allBookingData[sender.tag].patientId
-            viewC.data["user_id"] = self.allBookingData[sender.tag].patientId ?? ""
+            viewC.patientUserId = group.patientId
+            
+            let callMemberName = call?.memberName?.trimmingCharacters(in: .whitespacesAndNewlines)
+            let isSpecificMember = (callMemberName != nil && !callMemberName!.isEmpty && callMemberName!.lowercased() != "me")
+            let patientName: String
+            if isSpecificMember {
+                patientName = callMemberName!
+            } else {
+                let primaryName = call?.name ?? group.patientName ?? ""
+                patientName = primaryName.isEmpty ? (callMemberName ?? "") : primaryName
+            }
+            
+            let gender = call?.memberGender ?? group.gender ?? ""
+            let dob = call?.memberDob ?? group.dob ?? ""
+            let memberId = call?.memberId ?? ""
+            
+            viewC.data = [
+                "name": patientName,
+                "gender": gender,
+                "date": dob,
+                "dob": dob,
+                "user_id": group.patientId ?? call?.userId ?? "",
+                "member_id": memberId,
+                "booking_id": call?.id ?? ""
+            ]
             self.navigationController?.pushViewController(viewC, animated: true)
         }else{
             let vc = PrescriptionViewVC()

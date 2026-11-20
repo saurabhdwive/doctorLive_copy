@@ -534,6 +534,9 @@ extension ChatViewC: UITableViewDataSource{
                         viewC.bookingId = self?.roomId ?? ""
                         viewC.patientUserId = self?.userId
                         viewC.data["user_id"] = self?.userId ?? ""
+                        if let name = self?.patientName, !name.isEmpty, name.lowercased() != "me" {
+                            viewC.data["name"] = name
+                        }
                         self?.navigationController?.pushViewController(viewC, animated: true)
                     }
                     ConsultationCell.contentView.translatesAutoresizingMaskIntoConstraints = false

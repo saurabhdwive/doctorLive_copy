@@ -653,20 +653,32 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
         chiefComplaintTxt.text = item.chiefComplain
         pastHistoryTxt.text = item.pastHistory
         
-        tempTxt.text = item.temperature
-        pulseTxt.text = item.pulse
-        systolicTxt.text = item.bloodPressureSystolic
-        diastolicTxt.text = item.bloodPressureDiastolic
-        sugarTxt.text = item.bloodSugar
+        tempTxt.text = (item.temperature == "0") ? "" : item.temperature
+        pulseTxt.text = (item.pulse == "0") ? "" : item.pulse
+        systolicTxt.text = (item.bloodPressureSystolic == "0") ? "" : item.bloodPressureSystolic
+        diastolicTxt.text = (item.bloodPressureDiastolic == "0") ? "" : item.bloodPressureDiastolic
+        sugarTxt.text = (item.bloodSugar == "0") ? "" : item.bloodSugar
         
-        let hasVitals = !(item.temperature?.isEmpty ?? true) ||
-                        !(item.pulse?.isEmpty ?? true) ||
-                        !(item.bloodPressureSystolic?.isEmpty ?? true) ||
-                        !(item.bloodPressureDiastolic?.isEmpty ?? true) ||
-                        !(item.bloodSugar?.isEmpty ?? true)
+        let shouldTurnOn: Bool
+        if let gen = item.general {
+            shouldTurnOn = (gen == "1")
+        } else {
+            let temp = item.temperature?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let pulse = item.pulse?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let sys = item.bloodPressureSystolic?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let dia = item.bloodPressureDiastolic?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let sugar = item.bloodSugar?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            
+            let hasVitals = (!temp.isEmpty && temp != "0") ||
+                            (!pulse.isEmpty && pulse != "0") ||
+                            (!sys.isEmpty && sys != "0") ||
+                            (!dia.isEmpty && dia != "0") ||
+                            (!sugar.isEmpty && sugar != "0")
+            shouldTurnOn = hasVitals
+        }
         
-        genralSwitchButton.isOn = hasVitals
-        genralExamStack.isHidden = !hasVitals
+        genralSwitchButton.isOn = shouldTurnOn
+        genralExamStack.isHidden = !shouldTurnOn
         
         provisionalDiagnosisTxt.text = item.provisionalDiagnosis
         generalAdviceTxt.text = item.generalAdvice
@@ -923,6 +935,7 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
             pastHistory: (past?.isEmpty ?? true) ? nil : past,
             provisionalDiagnosis: provisionalDiagnosisTxt.text,
             generalAdvice: generalAdviceTxt.text,
+            general: isExamOn ? "1" : "0",
             temperature: (temp?.isEmpty ?? true) ? nil : temp,
             bloodPressureSystolic: (sys?.isEmpty ?? true) ? nil : sys,
             bloodPressureDiastolic: (dia?.isEmpty ?? true) ? nil : dia,
@@ -959,23 +972,42 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
             "blood_pressure_diastolic": template.bloodPressureDiastolic ?? "",
             "blood_sugar": template.bloodSugar ?? "",
             "blood_sugar_first": template.bloodSugar ?? "",
+            "diagnosis": template.provisionalDiagnosis ?? "",
             "provisional_diagnosis": template.provisionalDiagnosis ?? "",
             "general_advice": template.generalAdvice ?? "",
+            "advice": template.generalAdvice ?? "",
+            "followup": template.followUpDays ?? "",
             "follow_up_days": template.followUpDays ?? "",
-            "investigations": template.investigations ?? [],
-            "investigation": (template.investigations ?? []).joined(separator: ", ")
+            "followup_value": template.followUpDays ?? "",
+//            "investigation": template.investigations ?? [],
+            "investigations": (template.investigations ?? []).joined(separator: ", ")
         ]
         
         if let meds = template.medicines {
-            let medDicts = meds.map { [
-                "name": $0.name,
-                "dosage": $0.dosage,
-                "frequency_first": $0.frequencyFirst,
-                "duration": $0.duration,
-                "meals": $0.meals
-            ]}
+        if let meds = template.medicines {
+        if let meds = template.medicines {
+        if let meds = template.medicines {
+        if let meds = template.medicines {
+        if let meds = template.medicines {
+            let medDicts = meds.map { med -> [String: Any] in
+                var dict: [String: Any] = [
+                    "name": med.name,
+                    "dosage": med.dosage,
+                    "frequency_first": med.frequencyFirst,
+                    "duration": med.duration,
+                    "meals": med.meals
+                ]
+                // Only send id if it's an existing valid integer id from the backend
+                if let id = med.id, !id.isEmpty, Int(id) != nil {
+                    dict["id"] = id
+                }
+                if let str = med.strength, !str.isEmpty {
+                    dict["medicine_strength"] = str
+                }
+                return dict
+            }
             param["medicines"] = medDicts
-            param["medicine"] = medDicts
+//            param["medicine"] = medDicts
         }
         
         if let existingId = existingTemplate?.id {
@@ -1003,8 +1035,9 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
 extension CreateEditTemplateViewController: DataDelegate {
     func userData(passData: [Medicine]) {
         for med in passData {
+            let cleanId = (med.id.isEmpty || Int(med.id) == nil) ? nil : med.id
             let item = TemplateMedicine(
-                id: med.id,
+                id: cleanId,
                 name: med.name,
                 dosage: med.dosage,
                 frequencyFirst: med.frequencyFirst,

@@ -149,6 +149,9 @@ class ChatViewController: UIViewController, UIImagePickerControllerDelegate, UIN
             vc.data = data
             vc.patientUserId = oncallPatientId
             vc.data["user_id"] = oncallPatientId ?? ""
+            if let pName = self.name, !pName.isEmpty, pName.lowercased() != "me", (vc.data["name"] ?? "").isEmpty {
+                vc.data["name"] = pName
+            }
             vc.bookingId = bookingId
             vc.followUpState = followUpState
             vc.investigationToggleState = investigationState

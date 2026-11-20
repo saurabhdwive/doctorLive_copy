@@ -630,6 +630,7 @@ class PrescriptionTemplatesViewController: UIViewController {
             pastHistory: template.pastHistory,
             provisionalDiagnosis: template.provisionalDiagnosis,
             generalAdvice: template.generalAdvice,
+            general: template.general,
             temperature: template.temperature,
             bloodPressureSystolic: template.bloodPressureSystolic,
             bloodPressureDiastolic: template.bloodPressureDiastolic,

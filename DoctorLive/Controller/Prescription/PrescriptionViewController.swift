@@ -260,22 +260,31 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        if bookedPatientName == nil {
-            bookedPatientName = data["name"] ?? userName.text
-        }
         validations()
         setupUi()
-        userName.text = data["name"] ?? "Md Modasser"
-        yearOldLable.text = data["date"] ?? "32 Yrs,"
-        if data["gender"] == "f" {
-            gender.text = "Female".localized()
-        } else if data["gender"] == "m" {
-            gender.text = "Male".localized()
-        } else {
-            gender.text = "Others".localized()
+        
+        let initialName = data["name"] ?? data["patient_name"] ?? data["memberName"] ?? bookedPatientName ?? ""
+        let initialGender = data["gender"] ?? data["patient_gender"] ?? data["member_gender"] ?? ""
+        let initialDob = data["date"] ?? data["dob"] ?? data["member_dob"] ?? ""
+        let initialRel = data["relationship"] ?? data["member_relationship"] ?? currentMemberRelationship ?? ""
+        let initialMemberId = data["member_id"]
+        
+        applyPatientInfo(
+            name: initialName,
+            gender: initialGender,
+            dobOrAge: initialDob,
+            relationship: initialRel,
+            memberId: initialMemberId
+        )
+        
+        if bookedPatientName == nil || bookedPatientName?.isEmpty == true {
+            if !initialName.isEmpty {
+                bookedPatientName = initialName
+            }
         }
+        
         dateTxt.text = Date.getCurrentDate()
-        updatePatientSubtitle()
+        fetchPatientDetailsIfNeeded()
         updateInvestigationChips()
         startAutoSaveTimer()
         
@@ -382,16 +391,50 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
     }
     
     // MARK: - Patient Info & Auto-save helpers
+    func applyPatientInfo(name: String?, gender: String?, dobOrAge: String?, relationship: String?, memberId: String? = nil) {
+        let trimmedName = name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if !trimmedName.isEmpty && trimmedName.lowercased() != "me" {
+            userName.text = trimmedName
+            self.data["name"] = trimmedName
+            if bookedPatientName == nil || bookedPatientName?.isEmpty == true {
+                bookedPatientName = trimmedName
+            }
+        } else if (userName.text ?? "").isEmpty {
+            let fallbackName = (bookedPatientName != nil && !bookedPatientName!.isEmpty) ? bookedPatientName! : "Patient".localized()
+            userName.text = fallbackName
+        }
+        
+        if let memberId = memberId, !memberId.isEmpty {
+            self.data["member_id"] = memberId
+        }
+        
+        if let rel = relationship?.trimmingCharacters(in: .whitespacesAndNewlines), !rel.isEmpty {
+            let cleanRel = (rel.lowercased() == "me") ? "Account holder" : rel.capitalized
+            currentMemberRelationship = cleanRel
+            self.data["relationship"] = cleanRel
+        }
+        
+        if let g = gender?.trimmingCharacters(in: .whitespacesAndNewlines), !g.isEmpty {
+            let formattedG = PatientMember.formatGender(g)
+            self.gender.text = formattedG
+            self.data["gender"] = g
+        }
+        
+        if let dob = dobOrAge?.trimmingCharacters(in: .whitespacesAndNewlines), !dob.isEmpty {
+            let formattedA = PatientMember.formatAge(from: dob)
+            self.yearOldLable.text = formattedA
+            self.data["date"] = formattedA
+            self.data["dob"] = dob
+        }
+        
+        updatePatientSubtitle()
+    }
+    
     func updatePatientSubtitle() {
-        let genderStr = gender.text ?? "Male"
-        var ageStr = yearOldLable.text ?? "32 Yrs,"
-        ageStr = ageStr.replacingOccurrences(of: " Yrs,", with: "y")
-                       .replacingOccurrences(of: "Yrs,", with: "y")
-                       .replacingOccurrences(of: " Yrs", with: "y")
-                       .replacingOccurrences(of: "Yrs", with: "y")
-                       .trimmingCharacters(in: .whitespacesAndNewlines)
-        if !ageStr.hasSuffix("y") && !ageStr.isEmpty {
-            ageStr = "\(ageStr)y"
+        let genderStr = gender.text ?? ""
+        var ageStr = yearOldLable.text ?? ""
+        if !ageStr.isEmpty {
+            ageStr = PatientMember.formatAge(from: ageStr)
         }
         
         let df = DateFormatter()
@@ -406,6 +449,58 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
         if !ageStr.isEmpty { parts.append(ageStr) }
         if !dateStr.isEmpty { parts.append(dateStr) }
         patientSubtitleLabel.text = parts.joined(separator: " · ")
+    }
+    
+    func fetchPatientDetailsIfNeeded() {
+        let uid = effectivePatientUserId
+        guard !uid.isEmpty else { return }
+        
+        var params: [String: Any] = [:]
+        if let intId = Int(uid) {
+            params["user_id"] = intId
+        } else {
+            params["user_id"] = uid
+        }
+        
+        firstly {
+            service!.getMembers(parameters: params, header: "DeviceToken")
+        }.done { [weak self] (response: MembersResponse) in
+            guard let self = self else { return }
+            let members = response.data ?? []
+            guard !members.isEmpty else { return }
+            
+            let targetMember: PatientMember?
+            if let memberId = self.data["member_id"], !memberId.isEmpty {
+                targetMember = members.first(where: { $0.member_id == memberId })
+            } else if let currentName = self.userName.text, !currentName.isEmpty, currentName != "Patient".localized() {
+                targetMember = members.first(where: { ($0.member_name ?? "").caseInsensitiveCompare(currentName) == .orderedSame })
+                               ?? members.first(where: { ($0.member_relationship ?? "").lowercased() == "me" })
+                               ?? members.first
+            } else {
+                targetMember = members.first(where: { ($0.member_relationship ?? "").lowercased() == "me" })
+                               ?? members.first
+            }
+            
+            guard let member = targetMember else { return }
+            
+            let resolvedName: String
+            if let mName = member.member_name, !mName.isEmpty, mName.lowercased() != "me" {
+                resolvedName = mName
+            } else {
+                let existing = (self.userName.text != "Patient".localized()) ? (self.userName.text ?? "") : ""
+                resolvedName = !existing.isEmpty ? existing : (self.bookedPatientName ?? "Patient".localized())
+            }
+            
+            self.applyPatientInfo(
+                name: resolvedName,
+                gender: member.member_gender,
+                dobOrAge: member.member_dob,
+                relationship: member.displayRelationship,
+                memberId: member.member_id
+            )
+        }.catch { error in
+            print("fetchPatientDetailsIfNeeded error: \(error.localizedDescription)")
+        }
     }
     
     func startAutoSaveTimer() {
@@ -604,22 +699,13 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
         bottomSheet.modalTransitionStyle = .crossDissolve
         bottomSheet.onPatientConfirmed = { [weak self] member in
             guard let self = self else { return }
-            self.userName.text = member.member_name
-            self.data["name"] = member.member_name ?? ""
-            
-            let formattedAge = member.formattedAge
-            self.yearOldLable.text = formattedAge
-            self.data["date"] = formattedAge
-            
-            self.gender.text = member.formattedGender
-            self.data["gender"] = member.member_gender ?? ""
-            
-            if let memberId = member.member_id {
-                self.data["member_id"] = memberId
-            }
-            
-            self.currentMemberRelationship = member.displayRelationship
-            self.updatePatientSubtitle()
+            self.applyPatientInfo(
+                name: member.member_name,
+                gender: member.member_gender,
+                dobOrAge: member.member_dob,
+                relationship: member.displayRelationship,
+                memberId: member.member_id
+            )
             self.savePrescriptionData1()
         }
         self.present(bottomSheet, animated: true)
@@ -661,10 +747,14 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
             self.bloodSugar1.text = sugar
             hasVitals = true
         }
-        if hasVitals {
-            self.genralSwitchButton.isOn = true
-            self.genralExamSwitch(self.genralSwitchButton)
+        let shouldTurnOnExam: Bool
+        if let gen = template.general {
+            shouldTurnOnExam = (gen == "1")
+        } else {
+            shouldTurnOnExam = hasVitals
         }
+        self.genralSwitchButton.isOn = shouldTurnOnExam
+        self.genralExamSwitch(self.genralSwitchButton)
         if let tests = template.investigations, !tests.isEmpty {
             self.investigationTxt.text = tests.joined(separator: ", ")
             self.investigationToggle.isOn = true
@@ -1139,13 +1229,13 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
         avatarCircle.addSubview(avatarIcon)
         
         userName = UILabel()
-        userName.text = "Md Modasser"
+        userName.text = ""
         userName.font = UIFont(name: "Poppins-SemiBold", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .bold)
         userName.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
         userName.translatesAutoresizingMaskIntoConstraints = false
         userDetailView.addSubview(userName)
         
-        patientSubtitleLabel.text = "Male · 32y · 17/11/2026"
+        patientSubtitleLabel.text = ""
         patientSubtitleLabel.font = UIFont(name: "Poppins-Regular", size: 13) ?? UIFont.systemFont(ofSize: 13, weight: .regular)
         patientSubtitleLabel.textColor = UIColor(red: 100/255, green: 116/255, blue: 139/255, alpha: 1.0)
         patientSubtitleLabel.translatesAutoresizingMaskIntoConstraints = false

@@ -71,6 +71,8 @@ protocol ApiInterface {
     func updatePrescriptionTemplate<T: Decodable>(parameters: [String: Any]?, header: String?) -> Promise<T>
     func deletePrescriptionTemplate<T: Decodable>(parameters: [String: Any]?, header: String?) -> Promise<T>
     func duplicatePrescriptionTemplate<T: Decodable>(parameters: [String: Any]?, header: String?) -> Promise<T>
+    func getMembers<T: Decodable>(parameters: [String: Any]?, header: String?) -> Promise<T>
+    func addMember<T: Decodable>(parameters: [String: Any]?, header: String?) -> Promise<T>
 //    func newEarning<T: Decodable>(parameters:[ String: Any]?,header:String?) -> Promise<T>
     
     
@@ -100,6 +102,14 @@ final class Network: ApiInterface {
     
     func duplicatePrescriptionTemplate<T>(parameters: [String : Any]?, header: String?) -> Promise<T> where T : Decodable {
         client.requestWithParams(.duplicatePrescriptionTemplate, parameters: parameters, header: header)
+    }
+    
+    func getMembers<T>(parameters: [String : Any]?, header: String?) -> Promise<T> where T : Decodable {
+        client.requestWithParams(.members, parameters: parameters, header: header)
+    }
+    
+    func addMember<T>(parameters: [String : Any]?, header: String?) -> Promise<T> where T : Decodable {
+        client.requestWithParams(.addMember, parameters: parameters, header: header)
     }
     
     func appVersionPopup<T>(parameters: [String : Any]?, header: String?) -> Promise<T> where T : Decodable {

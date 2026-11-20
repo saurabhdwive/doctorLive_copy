@@ -93,6 +93,18 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
     
     private let titleTxt = InsetPaddedTextField()
     private let chiefComplaintTxt = TemplateMultilineTextView()
+    private let pastHistoryTxt = TemplateMultilineTextView()
+    
+    // General Examination
+    private let genralExamCard = UIView()
+    private let genralSwitchButton = UISwitch()
+    private let genralExamStack = UIStackView()
+    private let tempTxt = InsetPaddedTextField()
+    private let systolicTxt = InsetPaddedTextField()
+    private let diastolicTxt = InsetPaddedTextField()
+    private let pulseTxt = InsetPaddedTextField()
+    private let sugarTxt = InsetPaddedTextField()
+    
     private let provisionalDiagnosisTxt = TemplateMultilineTextView()
     private let generalAdviceTxt = TemplateMultilineTextView()
     private let investigationsTxt = InsetPaddedTextField()
@@ -234,7 +246,19 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
         pinViewToEdges(view: chiefComplaintTxt, inside: ccBox)
         contentStack.addArrangedSubview(ccBox)
         
-        // 3. Provisional Diagnosis
+        // 3. Past History
+        addSectionHeader(title: "Past History")
+        let phBox = createInputFieldBox(height: 64)
+        pastHistoryTxt.placeholder = "e.g. Hypertension, Diabetes, No known allergies"
+        pastHistoryTxt.translatesAutoresizingMaskIntoConstraints = false
+        phBox.addSubview(pastHistoryTxt)
+        pinViewToEdges(view: pastHistoryTxt, inside: phBox)
+        contentStack.addArrangedSubview(phBox)
+        
+        // 4. General Examination
+        setupGeneralExaminationCard()
+        
+        // 5. Provisional Diagnosis
         addSectionHeader(title: "Provisional Diagnosis")
         let pdBox = createInputFieldBox(height: 64)
         provisionalDiagnosisTxt.placeholder = "e.g. Acute tonsillitis"
@@ -243,7 +267,7 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
         pinViewToEdges(view: provisionalDiagnosisTxt, inside: pdBox)
         contentStack.addArrangedSubview(pdBox)
         
-        // 4. Investigations
+        // 6. Investigations
         addSectionHeader(title: "Investigations (comma separated)")
         let invBox = createInputFieldBox(height: 46)
         investigationsTxt.placeholder = "e.g. CBC, CRP, Throat swab C/S"
@@ -255,8 +279,32 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
         pinViewToEdges(view: investigationsTxt, inside: invBox)
         contentStack.addArrangedSubview(invBox)
         
-        // 5. General Advice
-        addSectionHeader(title: "General Advice")
+        // 7. General Advice with Format button
+        let gaHeaderRow = UIStackView()
+        gaHeaderRow.axis = .horizontal
+        gaHeaderRow.alignment = .center
+        gaHeaderRow.distribution = .equalSpacing
+        gaHeaderRow.translatesAutoresizingMaskIntoConstraints = false
+        
+        let gaLbl = UILabel()
+        gaLbl.text = "General Advice"
+        gaLbl.font = UIFont(name: "Poppins-SemiBold", size: 13) ?? UIFont.systemFont(ofSize: 13, weight: .semibold)
+        gaLbl.textColor = UIColor(red: 71/255, green: 85/255, blue: 105/255, alpha: 1.0)
+        gaHeaderRow.addArrangedSubview(gaLbl)
+        
+        let formatBtn = UIButton(type: .system)
+        formatBtn.setTitle(" ≡ Format", for: .normal)
+        formatBtn.titleLabel?.font = UIFont(name: "Poppins-Medium", size: 12.5) ?? UIFont.systemFont(ofSize: 12.5, weight: .medium)
+        formatBtn.setTitleColor(UIColor(red: 29/255, green: 112/255, blue: 184/255, alpha: 1.0), for: .normal)
+        formatBtn.backgroundColor = .white
+        formatBtn.layer.cornerRadius = 6
+        formatBtn.layer.borderWidth = 1.2
+        formatBtn.layer.borderColor = UIColor(red: 29/255, green: 112/255, blue: 184/255, alpha: 1.0).cgColor
+        formatBtn.contentEdgeInsets = UIEdgeInsets(top: 3, left: 8, bottom: 3, right: 8)
+        formatBtn.addTarget(self, action: #selector(formatAdviceTapped), for: .touchUpInside)
+        gaHeaderRow.addArrangedSubview(formatBtn)
+        contentStack.addArrangedSubview(gaHeaderRow)
+        
         let gaBox = createInputFieldBox(height: 80)
         generalAdviceTxt.placeholder = "e.g. Drink plenty of warm water, gargle with warm saline water"
         generalAdviceTxt.translatesAutoresizingMaskIntoConstraints = false
@@ -264,7 +312,7 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
         pinViewToEdges(view: generalAdviceTxt, inside: gaBox)
         contentStack.addArrangedSubview(gaBox)
         
-        // 6. Follow-up Days
+        // 8. Follow-up Days
         addSectionHeader(title: "Follow-up After (days)")
         fuBox = createInputFieldBox(height: 46)
         followUpDaysTxt.placeholder = "e.g. 7"
@@ -366,10 +414,260 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
         ])
     }
     
+    private func setupGeneralExaminationCard() {
+        genralExamCard.backgroundColor = .white
+        genralExamCard.layer.cornerRadius = 12
+        genralExamCard.layer.borderWidth = 1
+        genralExamCard.layer.borderColor = UIColor(red: 226/255, green: 232/255, blue: 240/255, alpha: 1.0).cgColor
+        genralExamCard.translatesAutoresizingMaskIntoConstraints = false
+        
+        let cardContentStack = UIStackView()
+        cardContentStack.axis = .vertical
+        cardContentStack.spacing = 14
+        cardContentStack.translatesAutoresizingMaskIntoConstraints = false
+        genralExamCard.addSubview(cardContentStack)
+        
+        NSLayoutConstraint.activate([
+            cardContentStack.topAnchor.constraint(equalTo: genralExamCard.topAnchor, constant: 14),
+            cardContentStack.leadingAnchor.constraint(equalTo: genralExamCard.leadingAnchor, constant: 14),
+            cardContentStack.trailingAnchor.constraint(equalTo: genralExamCard.trailingAnchor, constant: -14),
+            cardContentStack.bottomAnchor.constraint(equalTo: genralExamCard.bottomAnchor, constant: -14)
+        ])
+        
+        // Header Row: "General Examination" + UISwitch
+        let headerRow = UIStackView()
+        headerRow.axis = .horizontal
+        headerRow.alignment = .center
+        headerRow.distribution = .equalSpacing
+        headerRow.translatesAutoresizingMaskIntoConstraints = false
+        
+        let titleLbl = UILabel()
+        titleLbl.text = "General Examination"
+        titleLbl.font = UIFont(name: "Poppins-SemiBold", size: 14) ?? UIFont.systemFont(ofSize: 14, weight: .semibold)
+        titleLbl.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        headerRow.addArrangedSubview(titleLbl)
+        
+        genralSwitchButton.onTintColor = UIColor(red: 25/255, green: 118/255, blue: 210/255, alpha: 1.0)
+        genralSwitchButton.isOn = false
+        genralSwitchButton.addTarget(self, action: #selector(genExamSwitchChanged(_:)), for: .valueChanged)
+        headerRow.addArrangedSubview(genralSwitchButton)
+        cardContentStack.addArrangedSubview(headerRow)
+        
+        // Fields Stack (collapsible)
+        genralExamStack.axis = .horizontal
+        genralExamStack.distribution = .fillEqually
+        genralExamStack.spacing = 12
+        genralExamStack.isHidden = true
+        genralExamStack.translatesAutoresizingMaskIntoConstraints = false
+        cardContentStack.addArrangedSubview(genralExamStack)
+        
+        // Left Column: Temperature + Blood Pressure
+        let leftCol = UIStackView()
+        leftCol.axis = .vertical
+        leftCol.spacing = 10
+        leftCol.distribution = .fillEqually
+        genralExamStack.addArrangedSubview(leftCol)
+        
+        // Temperature
+        let tempContainer = UIView()
+        let tempLbl = UILabel()
+        tempLbl.text = "Temperature"
+        tempLbl.font = UIFont(name: "Poppins-Medium", size: 12) ?? UIFont.systemFont(ofSize: 12, weight: .medium)
+        tempLbl.textColor = UIColor(red: 100/255, green: 116/255, blue: 139/255, alpha: 1.0)
+        tempLbl.translatesAutoresizingMaskIntoConstraints = false
+        tempContainer.addSubview(tempLbl)
+        
+        let tempBox = createInputFieldBox(height: 44)
+        tempContainer.addSubview(tempBox)
+        
+        tempTxt.placeholder = "101.2 °F"
+        tempTxt.font = UIFont(name: "Poppins-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14)
+        tempTxt.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        tempTxt.tintColor = UIColor(red: 25/255, green: 118/255, blue: 210/255, alpha: 1.0)
+        tempTxt.keyboardType = .numbersAndPunctuation
+        tempTxt.translatesAutoresizingMaskIntoConstraints = false
+        tempBox.addSubview(tempTxt)
+        pinViewToEdges(view: tempTxt, inside: tempBox)
+        
+        NSLayoutConstraint.activate([
+            tempLbl.topAnchor.constraint(equalTo: tempContainer.topAnchor),
+            tempLbl.leadingAnchor.constraint(equalTo: tempContainer.leadingAnchor),
+            tempBox.topAnchor.constraint(equalTo: tempLbl.bottomAnchor, constant: 4),
+            tempBox.leadingAnchor.constraint(equalTo: tempContainer.leadingAnchor),
+            tempBox.trailingAnchor.constraint(equalTo: tempContainer.trailingAnchor),
+            tempBox.bottomAnchor.constraint(equalTo: tempContainer.bottomAnchor)
+        ])
+        leftCol.addArrangedSubview(tempContainer)
+        
+        // Blood Pressure (systolic / diastolic)
+        let bpContainer = UIView()
+        let bpLbl = UILabel()
+        bpLbl.text = "Blood pressure"
+        bpLbl.font = UIFont(name: "Poppins-Medium", size: 12) ?? UIFont.systemFont(ofSize: 12, weight: .medium)
+        bpLbl.textColor = UIColor(red: 100/255, green: 116/255, blue: 139/255, alpha: 1.0)
+        bpLbl.translatesAutoresizingMaskIntoConstraints = false
+        bpContainer.addSubview(bpLbl)
+        
+        let bpBox = createInputFieldBox(height: 44)
+        bpContainer.addSubview(bpBox)
+        
+        let bpRow = UIStackView()
+        bpRow.axis = .horizontal
+        bpRow.distribution = .fillProportionally
+        bpRow.spacing = 2
+        bpRow.translatesAutoresizingMaskIntoConstraints = false
+        bpBox.addSubview(bpRow)
+        
+        systolicTxt.placeholder = "120"
+        systolicTxt.textAlignment = .center
+        systolicTxt.font = UIFont(name: "Poppins-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14)
+        systolicTxt.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        systolicTxt.tintColor = UIColor(red: 25/255, green: 118/255, blue: 210/255, alpha: 1.0)
+        systolicTxt.keyboardType = .numberPad
+        bpRow.addArrangedSubview(systolicTxt)
+        
+        let slashLbl = UILabel()
+        slashLbl.text = "/"
+        slashLbl.font = UIFont(name: "Poppins-Medium", size: 14) ?? UIFont.systemFont(ofSize: 14, weight: .medium)
+        slashLbl.textColor = UIColor(red: 148/255, green: 163/255, blue: 184/255, alpha: 1.0)
+        slashLbl.textAlignment = .center
+        slashLbl.translatesAutoresizingMaskIntoConstraints = false
+        slashLbl.widthAnchor.constraint(equalToConstant: 12).isActive = true
+        bpRow.addArrangedSubview(slashLbl)
+        
+        diastolicTxt.placeholder = "80"
+        diastolicTxt.textAlignment = .center
+        diastolicTxt.font = UIFont(name: "Poppins-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14)
+        diastolicTxt.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        diastolicTxt.tintColor = UIColor(red: 25/255, green: 118/255, blue: 210/255, alpha: 1.0)
+        diastolicTxt.keyboardType = .numberPad
+        bpRow.addArrangedSubview(diastolicTxt)
+        
+        NSLayoutConstraint.activate([
+            bpLbl.topAnchor.constraint(equalTo: bpContainer.topAnchor),
+            bpLbl.leadingAnchor.constraint(equalTo: bpContainer.leadingAnchor),
+            bpBox.topAnchor.constraint(equalTo: bpLbl.bottomAnchor, constant: 4),
+            bpBox.leadingAnchor.constraint(equalTo: bpContainer.leadingAnchor),
+            bpBox.trailingAnchor.constraint(equalTo: bpContainer.trailingAnchor),
+            bpBox.bottomAnchor.constraint(equalTo: bpContainer.bottomAnchor),
+            bpRow.topAnchor.constraint(equalTo: bpBox.topAnchor),
+            bpRow.bottomAnchor.constraint(equalTo: bpBox.bottomAnchor),
+            bpRow.leadingAnchor.constraint(equalTo: bpBox.leadingAnchor, constant: 6),
+            bpRow.trailingAnchor.constraint(equalTo: bpBox.trailingAnchor, constant: -6)
+        ])
+        leftCol.addArrangedSubview(bpContainer)
+        
+        // Right Column: Pulse + Blood Sugar
+        let rightCol = UIStackView()
+        rightCol.axis = .vertical
+        rightCol.spacing = 10
+        rightCol.distribution = .fillEqually
+        genralExamStack.addArrangedSubview(rightCol)
+        
+        // Pulse
+        let pulseContainer = UIView()
+        let pulseLbl = UILabel()
+        pulseLbl.text = "Pulse"
+        pulseLbl.font = UIFont(name: "Poppins-Medium", size: 12) ?? UIFont.systemFont(ofSize: 12, weight: .medium)
+        pulseLbl.textColor = UIColor(red: 100/255, green: 116/255, blue: 139/255, alpha: 1.0)
+        pulseLbl.translatesAutoresizingMaskIntoConstraints = false
+        pulseContainer.addSubview(pulseLbl)
+        
+        let pulseBox = createInputFieldBox(height: 44)
+        pulseContainer.addSubview(pulseBox)
+        
+        pulseTxt.placeholder = "92"
+        pulseTxt.font = UIFont(name: "Poppins-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14)
+        pulseTxt.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        pulseTxt.tintColor = UIColor(red: 25/255, green: 118/255, blue: 210/255, alpha: 1.0)
+        pulseTxt.keyboardType = .numberPad
+        pulseTxt.translatesAutoresizingMaskIntoConstraints = false
+        pulseBox.addSubview(pulseTxt)
+        pinViewToEdges(view: pulseTxt, inside: pulseBox)
+        
+        NSLayoutConstraint.activate([
+            pulseLbl.topAnchor.constraint(equalTo: pulseContainer.topAnchor),
+            pulseLbl.leadingAnchor.constraint(equalTo: pulseContainer.leadingAnchor),
+            pulseBox.topAnchor.constraint(equalTo: pulseLbl.bottomAnchor, constant: 4),
+            pulseBox.leadingAnchor.constraint(equalTo: pulseContainer.leadingAnchor),
+            pulseBox.trailingAnchor.constraint(equalTo: pulseContainer.trailingAnchor),
+            pulseBox.bottomAnchor.constraint(equalTo: pulseContainer.bottomAnchor)
+        ])
+        rightCol.addArrangedSubview(pulseContainer)
+        
+        // Blood Sugar
+        let sugarContainer = UIView()
+        let sugarLbl = UILabel()
+        sugarLbl.text = "Blood sugar"
+        sugarLbl.font = UIFont(name: "Poppins-Medium", size: 12) ?? UIFont.systemFont(ofSize: 12, weight: .medium)
+        sugarLbl.textColor = UIColor(red: 100/255, green: 116/255, blue: 139/255, alpha: 1.0)
+        sugarLbl.translatesAutoresizingMaskIntoConstraints = false
+        sugarContainer.addSubview(sugarLbl)
+        
+        let sugarBox = createInputFieldBox(height: 44)
+        sugarContainer.addSubview(sugarBox)
+        
+        sugarTxt.placeholder = "—"
+        sugarTxt.font = UIFont(name: "Poppins-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14)
+        sugarTxt.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        sugarTxt.tintColor = UIColor(red: 25/255, green: 118/255, blue: 210/255, alpha: 1.0)
+        sugarTxt.keyboardType = .decimalPad
+        sugarTxt.translatesAutoresizingMaskIntoConstraints = false
+        sugarBox.addSubview(sugarTxt)
+        pinViewToEdges(view: sugarTxt, inside: sugarBox)
+        
+        NSLayoutConstraint.activate([
+            sugarLbl.topAnchor.constraint(equalTo: sugarContainer.topAnchor),
+            sugarLbl.leadingAnchor.constraint(equalTo: sugarContainer.leadingAnchor),
+            sugarBox.topAnchor.constraint(equalTo: sugarLbl.bottomAnchor, constant: 4),
+            sugarBox.leadingAnchor.constraint(equalTo: sugarContainer.leadingAnchor),
+            sugarBox.trailingAnchor.constraint(equalTo: sugarContainer.trailingAnchor),
+            sugarBox.bottomAnchor.constraint(equalTo: sugarContainer.bottomAnchor)
+        ])
+        rightCol.addArrangedSubview(sugarContainer)
+        
+        contentStack.addArrangedSubview(genralExamCard)
+    }
+    
+    @objc private func genExamSwitchChanged(_ sender: UISwitch) {
+        UIView.animate(withDuration: 0.25) {
+            self.genralExamStack.isHidden = !sender.isOn
+            self.view.layoutIfNeeded()
+        }
+    }
+    
+    @objc private func formatAdviceTapped() {
+        let vc = GeneralAdviceFormatViewController()
+        vc.initialText = generalAdviceTxt.text ?? ""
+        vc.onSave = { [weak self] formattedText in
+            self?.generalAdviceTxt.text = formattedText
+        }
+        let nav = UINavigationController(rootViewController: vc)
+        nav.modalPresentationStyle = .fullScreen
+        self.present(nav, animated: true, completion: nil)
+    }
+    
     private func populateExistingData() {
         guard let item = existingTemplate else { return }
         titleTxt.text = item.title
         chiefComplaintTxt.text = item.chiefComplain
+        pastHistoryTxt.text = item.pastHistory
+        
+        tempTxt.text = item.temperature
+        pulseTxt.text = item.pulse
+        systolicTxt.text = item.bloodPressureSystolic
+        diastolicTxt.text = item.bloodPressureDiastolic
+        sugarTxt.text = item.bloodSugar
+        
+        let hasVitals = !(item.temperature?.isEmpty ?? true) ||
+                        !(item.pulse?.isEmpty ?? true) ||
+                        !(item.bloodPressureSystolic?.isEmpty ?? true) ||
+                        !(item.bloodPressureDiastolic?.isEmpty ?? true) ||
+                        !(item.bloodSugar?.isEmpty ?? true)
+        
+        genralSwitchButton.isOn = hasVitals
+        genralExamStack.isHidden = !hasVitals
+        
         provisionalDiagnosisTxt.text = item.provisionalDiagnosis
         generalAdviceTxt.text = item.generalAdvice
         if let tests = item.investigations {
@@ -608,20 +906,28 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
         let used = existingTemplate?.usedCount ?? 0
         let updatedDate = "Just now"
         
+        let past = pastHistoryTxt.text?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let isExamOn = genralSwitchButton.isOn
+        let temp = isExamOn ? tempTxt.text?.trimmingCharacters(in: .whitespacesAndNewlines) : nil
+        let sys = isExamOn ? systolicTxt.text?.trimmingCharacters(in: .whitespacesAndNewlines) : nil
+        let dia = isExamOn ? diastolicTxt.text?.trimmingCharacters(in: .whitespacesAndNewlines) : nil
+        let pulse = isExamOn ? pulseTxt.text?.trimmingCharacters(in: .whitespacesAndNewlines) : nil
+        let sugar = isExamOn ? sugarTxt.text?.trimmingCharacters(in: .whitespacesAndNewlines) : nil
+        
         let template = PrescriptionTemplate(
             id: templateId,
             title: title,
             usedCount: used,
             updatedAt: updatedDate,
             chiefComplain: chiefComplaintTxt.text,
-            pastHistory: nil,
+            pastHistory: (past?.isEmpty ?? true) ? nil : past,
             provisionalDiagnosis: provisionalDiagnosisTxt.text,
             generalAdvice: generalAdviceTxt.text,
-            temperature: nil,
-            bloodPressureSystolic: nil,
-            bloodPressureDiastolic: nil,
-            pulse: nil,
-            bloodSugar: nil,
+            temperature: (temp?.isEmpty ?? true) ? nil : temp,
+            bloodPressureSystolic: (sys?.isEmpty ?? true) ? nil : sys,
+            bloodPressureDiastolic: (dia?.isEmpty ?? true) ? nil : dia,
+            pulse: (pulse?.isEmpty ?? true) ? nil : pulse,
+            bloodSugar: (sugar?.isEmpty ?? true) ? nil : sugar,
             investigations: invList,
             followUpDays: followUpDaysTxt.text,
             medicines: medicinesList
@@ -637,11 +943,22 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
     private func saveTemplateViaApi(template: PrescriptionTemplate) {
         let token = UserDefaults.standard.string(forKey: Constants.accessToken) ?? ""
         let code = UserDefaults.standard.string(forKey: Constants.languageCode) ?? "en"
+        let isExamOn = genralSwitchButton.isOn
         var param: [String: Any] = [
             "token": token,
             "language_type": code,
             "title": template.title,
             "chief_complain": template.chiefComplain ?? "",
+            "past_history": template.pastHistory ?? "",
+            "general": isExamOn ? "1" : "0",
+            "temperature": template.temperature ?? "",
+            "pulse": template.pulse ?? "",
+            "blood_first": template.bloodPressureSystolic ?? "",
+            "blood_second": template.bloodPressureDiastolic ?? "",
+            "blood_pressure_systolic": template.bloodPressureSystolic ?? "",
+            "blood_pressure_diastolic": template.bloodPressureDiastolic ?? "",
+            "blood_sugar": template.bloodSugar ?? "",
+            "blood_sugar_first": template.bloodSugar ?? "",
             "provisional_diagnosis": template.provisionalDiagnosis ?? "",
             "general_advice": template.generalAdvice ?? "",
             "follow_up_days": template.followUpDays ?? "",

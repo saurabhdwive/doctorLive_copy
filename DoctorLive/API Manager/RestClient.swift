@@ -83,6 +83,8 @@ enum MediaType1: String {
     case updatePrescriptionTemplate
     case deletePrescriptionTemplate
     case duplicatePrescriptionTemplate
+    case members
+    case addMember
 
     var resource: (method: HTTPMethod, endPoint: String) {
         switch self {
@@ -206,6 +208,10 @@ enum MediaType1: String {
             return (.post, "deleteprescriptiontemplate")
         case .duplicatePrescriptionTemplate:
             return (.post, "duplicateprescriptiontemplate")
+        case .members:
+            return (.post, "members")
+        case .addMember:
+            return (.post, "addMember")
         }
     }
 }
@@ -239,7 +245,7 @@ class RestClient {
             
             var headers = HTTPHeaders(getHeadeWithDeviceToken())
             
-            // Raw JSON encoding for add and update prescription template
+            // Raw JSON encoding for add/update prescription template and member APIs
             let parameterEncoding: ParameterEncoding
             if resource == .createPrescriptionTemplate || resource == .updatePrescriptionTemplate {
                 parameterEncoding = JSONEncoding.default

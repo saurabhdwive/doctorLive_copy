@@ -106,6 +106,12 @@ extension PrescriptionViewController{
                      "followup": self.avilability ?? "",
                      "followup_value": followup ?? "",
                      "medicine": medicineArray]
+        if let memberId = self.data["member_id"], !memberId.isEmpty {
+            parameter["member_id"] = memberId
+        }
+        if let pName = self.userName.text, !pName.isEmpty {
+            parameter["patient_name"] = pName
+        }
         savePrescription(param: parameter)
     }
 }

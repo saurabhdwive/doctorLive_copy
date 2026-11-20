@@ -60,47 +60,32 @@ class InsetPaddedTextField: UITextField {
     }
 }
 
-class MultilineInputTextField: UITextField, UITextViewDelegate {
-    let internalTextView = UITextView()
+class MultilineInputTextField: UITextView, UITextViewDelegate {
     private let placeholderLabel = UILabel()
     
-    override var text: String? {
-        get { return internalTextView.text }
+    var placeholder: String? {
+        get { return placeholderLabel.text }
         set {
-            internalTextView.text = newValue ?? ""
-            placeholderLabel.isHidden = !(newValue?.isEmpty ?? true)
+            placeholderLabel.text = newValue
+            placeholderLabel.isHidden = !(text?.isEmpty ?? true)
         }
     }
     
-    override var placeholder: String? {
-        get { return placeholderLabel.text }
-        set {
-            // Do NOT call super.placeholder = newValue!
-            // That would cause UITextField to draw its native placeholder
-            // simultaneously with placeholderLabel, producing duplicate overlapping text!
-            placeholderLabel.text = newValue
-            placeholderLabel.isHidden = !(internalTextView.text.isEmpty)
+    override var text: String! {
+        didSet {
+            placeholderLabel.isHidden = !(text?.isEmpty ?? true)
         }
     }
     
     override var font: UIFont? {
-        get { return internalTextView.font }
-        set {
-            super.font = newValue
-            internalTextView.font = newValue
-            placeholderLabel.font = newValue
+        didSet {
+            super.font = font
+            placeholderLabel.font = font
         }
     }
     
-    override var textColor: UIColor? {
-        get { return internalTextView.textColor }
-        set {
-            internalTextView.textColor = newValue
-        }
-    }
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    override init(frame: CGRect, textContainer: NSTextContainer?) {
+        super.init(frame: frame, textContainer: textContainer)
         setupInternalView()
     }
     
@@ -110,74 +95,47 @@ class MultilineInputTextField: UITextField, UITextViewDelegate {
     }
     
     private func setupInternalView() {
-        super.textColor = .clear
-        super.tintColor = .clear
+        backgroundColor = .clear
+        font = UIFont(name: "Poppins-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14)
+        textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+        tintColor = UIColor(red: 25/255, green: 118/255, blue: 210/255, alpha: 1.0)
+        textContainerInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        textContainer.lineFragmentPadding = 0
+        isScrollEnabled = true
+        isUserInteractionEnabled = true
+        delegate = self
         
-        internalTextView.backgroundColor = .clear
-        internalTextView.font = UIFont(name: "Poppins-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14)
-        internalTextView.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
-        internalTextView.tintColor = UIColor(red: 25/255, green: 118/255, blue: 210/255, alpha: 1.0)
-        internalTextView.delegate = self
-        internalTextView.isScrollEnabled = true
-        internalTextView.textContainerInset = UIEdgeInsets(top: 10, left: 8, bottom: 10, right: 8)
-        internalTextView.textContainer.lineFragmentPadding = 4
-        internalTextView.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(internalTextView)
-        
-        placeholderLabel.font = internalTextView.font
+        placeholderLabel.font = font
         placeholderLabel.textColor = UIColor(red: 148/255, green: 163/255, blue: 184/255, alpha: 1.0)
-        placeholderLabel.translatesAutoresizingMaskIntoConstraints = false
+        placeholderLabel.numberOfLines = 0
         placeholderLabel.isUserInteractionEnabled = false
+        placeholderLabel.translatesAutoresizingMaskIntoConstraints = false
         addSubview(placeholderLabel)
         
         NSLayoutConstraint.activate([
-            internalTextView.topAnchor.constraint(equalTo: topAnchor),
-            internalTextView.bottomAnchor.constraint(equalTo: bottomAnchor),
-            internalTextView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            internalTextView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            
-            placeholderLabel.topAnchor.constraint(equalTo: internalTextView.topAnchor, constant: 10),
-            placeholderLabel.leadingAnchor.constraint(equalTo: internalTextView.leadingAnchor, constant: 12),
-            placeholderLabel.trailingAnchor.constraint(equalTo: internalTextView.trailingAnchor, constant: -12)
+            placeholderLabel.topAnchor.constraint(equalTo: topAnchor, constant: 10),
+            placeholderLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
+            placeholderLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10)
         ])
         
-        NotificationCenter.default.addObserver(self, selector: #selector(onInternalTextChanged), name: UITextView.textDidChangeNotification, object: internalTextView)
+        NotificationCenter.default.addObserver(self, selector: #selector(textDidChangeNotification), name: UITextView.textDidChangeNotification, object: self)
     }
     
-    @objc private func onInternalTextChanged() {
-        placeholderLabel.isHidden = !internalTextView.text.isEmpty
-    }
-    
-    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-        if self.point(inside: point, with: event) {
-            return internalTextView
-        }
-        return super.hitTest(point, with: event)
+    @objc private func textDidChangeNotification() {
+        placeholderLabel.isHidden = !(text?.isEmpty ?? true)
     }
     
     func textViewDidChange(_ textView: UITextView) {
         placeholderLabel.isHidden = !textView.text.isEmpty
     }
     
-    override func becomeFirstResponder() -> Bool {
-        return internalTextView.becomeFirstResponder()
-    }
-    
-    override func resignFirstResponder() -> Bool {
-        return internalTextView.resignFirstResponder()
-    }
-    
-    override var isFirstResponder: Bool {
-        return internalTextView.isFirstResponder
-    }
-    
-    override var canBecomeFirstResponder: Bool {
-        return true
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 }
 
 // MARK: - PrescriptionViewController
-class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecriptionDelegate {
+class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecriptionDelegate, UIGestureRecognizerDelegate {
     
     // Outlets preserved for logic & API compatibility
     @IBOutlet var userName: UILabel!
@@ -194,17 +152,17 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
     @IBOutlet var bloodSugarLbl: UILabel!
     @IBOutlet var followUpTitle: UILabel!
     
-    @IBOutlet var ChiefTxtComplain: UITextField!
-    @IBOutlet var pastHistoryTxt: UITextField!
+    @IBOutlet var ChiefTxtComplain: MultilineInputTextField!
+    @IBOutlet var pastHistoryTxt: MultilineInputTextField!
     @IBOutlet var tempLable: UITextField!
     @IBOutlet var systolicBp: UITextField!
     @IBOutlet var diaystolicLable: UITextField!
     @IBOutlet var pulseTxt: UITextField!
     @IBOutlet var bloodSugar1: UITextField!
-    @IBOutlet var provisionTxt: UITextField!
+    @IBOutlet var provisionTxt: MultilineInputTextField!
     @IBOutlet var bloodSugar2: UITextField!
     @IBOutlet var investigationTxt: UITextField!
-    @IBOutlet var genralTxt: UITextField!
+    @IBOutlet var genralTxt: MultilineInputTextField!
     @IBOutlet var followUpDays: UITextField!
     
     @IBOutlet var pastHistory: UIView!
@@ -282,6 +240,18 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
     var bookingIdComeFromChat: String? = ""
     var isComingFromChat:Bool = false
     var initialTemplate: PrescriptionTemplate?
+    var patientUserId: String?
+    var bookedPatientName: String?
+    var currentMemberRelationship: String?
+    
+    var effectivePatientUserId: String {
+        if let id = patientUserId, !id.isEmpty { return id }
+        if let id = data["user_id"], !id.isEmpty { return id }
+        if let id = data["userId"], !id.isEmpty { return id }
+        if let id = data["patient_id"], !id.isEmpty { return id }
+        if let id = UserDefaults.standard.string(forKey: "current_patient_user_id"), !id.isEmpty { return id }
+        return ""
+    }
     
     // MARK: - Lifecycle
     override func loadView() {
@@ -290,6 +260,9 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        if bookedPatientName == nil {
+            bookedPatientName = data["name"] ?? userName.text
+        }
         validations()
         setupUi()
         userName.text = data["name"] ?? "Md Modasser"
@@ -315,10 +288,22 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tap.cancelsTouchesInView = false
+        tap.delegate = self
         view.addGestureRecognizer(tap)
     }
     
-     override func dismissKeyboard() {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        var current = touch.view
+        while let view = current {
+            if view is UITextField || view is UITextView || view is UIControl {
+                return false
+            }
+            current = view.superview
+        }
+        return true
+    }
+    
+    override func dismissKeyboard() {
         view.endEditing(true)
     }
     
@@ -414,6 +399,9 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
         let dateStr = df.string(from: Date())
         
         var parts: [String] = []
+        if let rel = currentMemberRelationship, !rel.isEmpty {
+            parts.append(rel)
+        }
         if !genderStr.isEmpty { parts.append(genderStr) }
         if !ageStr.isEmpty { parts.append(ageStr) }
         if !dateStr.isEmpty { parts.append(dateStr) }
@@ -588,61 +576,53 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
     
     // MARK: - Actions
     @IBAction func changePatientBtn_Action(_ sender: Any) {
-        let storyboard = UIStoryboard(name: "Auth", bundle: nil)
-        if let vc = storyboard.instantiateViewController(withIdentifier: "AddPatientViewC") as? AddPatientViewC {
-            vc.initialName = userName.text
-            var currentAge = yearOldLable.text ?? ""
-            currentAge = currentAge.replacingOccurrences(of: " Yrs,", with: "")
-                                   .replacingOccurrences(of: "Yrs,", with: "")
-                                   .replacingOccurrences(of: "y", with: "")
-                                   .trimmingCharacters(in: .whitespacesAndNewlines)
-            vc.initialAge = currentAge
-            vc.initialGender = gender.text
-            vc.modalPresentationStyle = .overFullScreen
-            vc.modalTransitionStyle = .crossDissolve
-            vc.addPatientCallBack = { [weak self] name in
-                guard let self = self else { return }
-                self.userName.text = name
-                self.data["name"] = name
-                self.updatePatientSubtitle()
-            }
-            vc.onPatientAdded = { [weak self] name, age, gender in
-                guard let self = self else { return }
-                self.userName.text = name
-                self.data["name"] = name
-                let cleanAge = age.trimmingCharacters(in: .whitespacesAndNewlines)
-                self.yearOldLable.text = "\(cleanAge)y"
-                self.data["date"] = "\(cleanAge)y"
-                self.gender.text = gender
-                self.data["gender"] = gender.lowercased().starts(with: "m") ? "m" : (gender.lowercased().starts(with: "f") ? "f" : "o")
-                self.updatePatientSubtitle()
-            }
-            self.present(vc, animated: true, completion: nil)
-        } else {
-            let alert = UIAlertController(title: "Change Patient".localized(), message: "Enter patient details".localized(), preferredStyle: .alert)
+        let uid = self.effectivePatientUserId
+        if uid.isEmpty {
+            let alert = UIAlertController(title: "Patient User ID", message: "Please enter the patient's account user_id to load family members:", preferredStyle: .alert)
             alert.addTextField { tf in
-                tf.placeholder = "Patient Name"
-                tf.text = self.userName.text
+                tf.placeholder = "e.g. 55"
+                tf.keyboardType = .numberPad
             }
-            alert.addTextField { tf in
-                tf.placeholder = "Age (e.g. 32y)"
-                tf.text = self.yearOldLable.text
-            }
-            alert.addAction(UIAlertAction(title: "Save".localized(), style: .default, handler: { [weak self] _ in
-                guard let self = self else { return }
-                if let newName = alert.textFields?[0].text, !newName.isEmpty {
-                    self.userName.text = newName
-                    self.data["name"] = newName
-                }
-                if let newAge = alert.textFields?[1].text, !newAge.isEmpty {
-                    self.yearOldLable.text = newAge
-                    self.data["date"] = newAge
-                }
-                self.updatePatientSubtitle()
+            alert.addAction(UIAlertAction(title: "Continue", style: .default, handler: { [weak self] _ in
+                guard let self = self, let enteredId = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines), !enteredId.isEmpty else { return }
+                self.patientUserId = enteredId
+                self.data["user_id"] = enteredId
+                UserDefaults.standard.set(enteredId, forKey: "current_patient_user_id")
+                self.changePatientBtn_Action(sender)
             }))
-            alert.addAction(UIAlertAction(title: "Cancel".localized(), style: .cancel))
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
             self.present(alert, animated: true)
+            return
         }
+        
+        let bottomSheet = ChangePatientBottomSheetViewController()
+        bottomSheet.userId = uid
+        bottomSheet.currentPatientName = self.userName.text
+        bottomSheet.bookedPatientName = self.bookedPatientName ?? self.userName.text
+        bottomSheet.currentMemberId = self.data["member_id"]
+        bottomSheet.modalPresentationStyle = .overFullScreen
+        bottomSheet.modalTransitionStyle = .crossDissolve
+        bottomSheet.onPatientConfirmed = { [weak self] member in
+            guard let self = self else { return }
+            self.userName.text = member.member_name
+            self.data["name"] = member.member_name ?? ""
+            
+            let formattedAge = member.formattedAge
+            self.yearOldLable.text = formattedAge
+            self.data["date"] = formattedAge
+            
+            self.gender.text = member.formattedGender
+            self.data["gender"] = member.member_gender ?? ""
+            
+            if let memberId = member.member_id {
+                self.data["member_id"] = memberId
+            }
+            
+            self.currentMemberRelationship = member.displayRelationship
+            self.updatePatientSubtitle()
+            self.savePrescriptionData1()
+        }
+        self.present(bottomSheet, animated: true)
     }
     
     @objc func investigationTextChanged() {
@@ -650,26 +630,40 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
     }
     
     func applyTemplate(_ template: PrescriptionTemplate) {
+        self.comeFromMedicne = true
         if let chief = template.chiefComplain, !chief.isEmpty {
             self.ChiefTxtComplain.text = chief
+        }
+        if let past = template.pastHistory, !past.isEmpty {
+            self.pastHistoryTxt.text = past
         }
         if let diag = template.provisionalDiagnosis, !diag.isEmpty {
             self.provisionTxt.text = diag
         }
+        var hasVitals = false
         if let temp = template.temperature, !temp.isEmpty {
             self.tempLable.text = temp
+            hasVitals = true
         }
         if let pulse = template.pulse, !pulse.isEmpty {
             self.pulseTxt.text = pulse
+            hasVitals = true
         }
         if let sys = template.bloodPressureSystolic, !sys.isEmpty {
             self.systolicBp.text = sys
+            hasVitals = true
         }
         if let dia = template.bloodPressureDiastolic, !dia.isEmpty {
             self.diaystolicLable.text = dia
+            hasVitals = true
         }
         if let sugar = template.bloodSugar, !sugar.isEmpty {
             self.bloodSugar1.text = sugar
+            hasVitals = true
+        }
+        if hasVitals {
+            self.genralSwitchButton.isOn = true
+            self.genralExamSwitch(self.genralSwitchButton)
         }
         if let tests = template.investigations, !tests.isEmpty {
             self.investigationTxt.text = tests.joined(separator: ", ")
@@ -679,8 +673,6 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
         }
         if let advice = template.generalAdvice, !advice.isEmpty {
             self.genralTxt.text = advice
-            self.genralSwitchButton.isOn = true
-            self.genralExamSwitch(self.genralSwitchButton)
         }
         if let followUp = template.followUpDays, !followUp.isEmpty {
             self.followUpDays.text = followUp
@@ -705,6 +697,11 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
             }
             self.medicinceTogle.isOn = true
             self.medicineToggle(self.medicinceTogle)
+            self.tableHightConstraint.constant = CGFloat(self.arrayData.count * 160)
+            self.tableView.reloadData()
+        } else {
+            self.arrayData.removeAll()
+            self.tableHightConstraint.constant = 0
             self.tableView.reloadData()
         }
         self.savePrescriptionData1()
@@ -712,6 +709,7 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
     }
     
     @objc func selectTemplateTapped() {
+        self.comeFromMedicne = true
         let vc = PrescriptionTemplatesViewController()
         vc.isSelectMode = true
         vc.onSelectTemplate = { [weak self] template in
@@ -727,6 +725,7 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
     }
     
     @objc func formatGeneralAdviceTapped() {
+        self.comeFromMedicne = true
         let vc = GeneralAdviceFormatViewController()
         vc.initialText = genralTxt.text ?? ""
         vc.onSave = { [weak self] formattedText in

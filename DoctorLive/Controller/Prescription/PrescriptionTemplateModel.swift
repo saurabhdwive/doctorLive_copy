@@ -29,6 +29,7 @@ struct PrescriptionTemplate: Codable {
     enum CodingKeys: String, CodingKey {
         case id
         case mongoId = "_id"
+        case templateId = "template_id"
         case title
         case name
         case usedCount = "used_count"
@@ -40,11 +41,16 @@ struct PrescriptionTemplate: Codable {
         case generalAdvice = "general_advice"
         case temperature
         case bloodPressureSystolic = "blood_pressure_systolic"
+        case bloodFirst = "blood_first"
         case bloodPressureDiastolic = "blood_pressure_diastolic"
+        case bloodSecond = "blood_second"
         case pulse
         case bloodSugar = "blood_sugar"
+        case bloodSugarFirst = "blood_sugar_first"
         case investigations
+        case investigation
         case followUpDays = "follow_up_days"
+        case followupValue = "followup_value"
         case medicines
         case medicine
     }
@@ -73,8 +79,12 @@ struct PrescriptionTemplate: Codable {
         
         if let sId = try? c.decodeIfPresent(String.self, forKey: .id) {
             id = sId
+        } else if let tId = try? c.decodeIfPresent(String.self, forKey: .templateId) {
+            id = tId
         } else if let iId = try? c.decodeIfPresent(Int.self, forKey: .id) {
             id = "\(iId)"
+        } else if let itId = try? c.decodeIfPresent(Int.self, forKey: .templateId) {
+            id = "\(itId)"
         } else if let mId = try? c.decodeIfPresent(String.self, forKey: .mongoId) {
             id = mId
         } else {
@@ -110,13 +120,15 @@ struct PrescriptionTemplate: Codable {
         provisionalDiagnosis = try? c.decodeIfPresent(String.self, forKey: .provisionalDiagnosis)
         generalAdvice = try? c.decodeIfPresent(String.self, forKey: .generalAdvice)
         temperature = try? c.decodeIfPresent(String.self, forKey: .temperature)
-        bloodPressureSystolic = try? c.decodeIfPresent(String.self, forKey: .bloodPressureSystolic)
-        bloodPressureDiastolic = try? c.decodeIfPresent(String.self, forKey: .bloodPressureDiastolic)
+        bloodPressureSystolic = (try? c.decodeIfPresent(String.self, forKey: .bloodPressureSystolic)) ?? (try? c.decodeIfPresent(String.self, forKey: .bloodFirst))
+        bloodPressureDiastolic = (try? c.decodeIfPresent(String.self, forKey: .bloodPressureDiastolic)) ?? (try? c.decodeIfPresent(String.self, forKey: .bloodSecond))
         pulse = try? c.decodeIfPresent(String.self, forKey: .pulse)
-        bloodSugar = try? c.decodeIfPresent(String.self, forKey: .bloodSugar)
+        bloodSugar = (try? c.decodeIfPresent(String.self, forKey: .bloodSugar)) ?? (try? c.decodeIfPresent(String.self, forKey: .bloodSugarFirst))
         
         if let fStr = try? c.decodeIfPresent(String.self, forKey: .followUpDays) {
             followUpDays = fStr
+        } else if let fVal = try? c.decodeIfPresent(String.self, forKey: .followupValue) {
+            followUpDays = fVal
         } else if let fInt = try? c.decodeIfPresent(Int.self, forKey: .followUpDays) {
             followUpDays = "\(fInt)"
         } else {
@@ -127,6 +139,8 @@ struct PrescriptionTemplate: Codable {
             investigations = invArr
         } else if let invStr = try? c.decodeIfPresent(String.self, forKey: .investigations) {
             investigations = invStr.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        } else if let invStr2 = try? c.decodeIfPresent(String.self, forKey: .investigation) {
+            investigations = invStr2.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
         } else {
             investigations = nil
         }

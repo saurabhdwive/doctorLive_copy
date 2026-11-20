@@ -16,6 +16,7 @@ extension PrescriptionViewController: UITableViewDelegate, UITableViewDataSource
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "PrescriptionTableViewCell", for: indexPath) as! PrescriptionTableViewCell
+        guard indexPath.row < arrayData.count else { return cell }
         cell.medicineName.text = arrayData[indexPath.row].name
         cell.pediatric.text = "Dosage: \(arrayData[indexPath.row].dosage)"
         cell.frequency.text = "Frequency: \(arrayData[indexPath.row].frequencyFirst)"

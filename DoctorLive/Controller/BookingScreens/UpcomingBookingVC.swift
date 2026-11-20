@@ -803,6 +803,7 @@ extension UpcomingBookingVC: UITableViewDelegate, UITableViewDataSource {
             if prescriptionOnCall?.isEmpty == true  {
                 let vc = PrescriptionViewController()
                 vc.bookingId = pastOnCall[index].id
+                vc.patientUserId = pastOnCall[index].userId
                 //let age = getAgeFromDOF(date: pastOnCall[index].memberDob!)
                 if pastOnCall[index].memberName == "Me" {
                     userData = ["name": pastOnCall[index].name ?? "",
@@ -810,14 +811,16 @@ extension UpcomingBookingVC: UITableViewDelegate, UITableViewDataSource {
                                 "time": pastOnCall[index].createdDate ?? "",
                                 "reason": pastOnCall[index].reasonVisit ?? "",
                                 "date": "\(pastOnCall[index].memberDob ?? "") Yrs,",
-                                "id": pastOnCall[index].id ?? ""]
+                                "id": pastOnCall[index].id ?? "",
+                                "user_id": pastOnCall[index].userId ?? ""]
                 } else{
                     userData = ["name": pastOnCall[index].memberName ?? "",
                                 "gender": pastOnCall[index].memberGender ?? "",
                                 "time": pastOnCall[index].createdDate ?? "",
                                 "reason": pastOnCall[index].reasonVisit ?? "",
                                 "date": "\(pastOnCall[index].memberDob ?? "")Yrs,",
-                                "id": pastOnCall[index].id ?? ""]
+                                "id": pastOnCall[index].id ?? "",
+                                "user_id": pastOnCall[index].userId ?? ""]
                 }
                 vc.data = userData
                 self.navigationController?.pushViewController(vc, animated: true)
@@ -832,6 +835,7 @@ extension UpcomingBookingVC: UITableViewDelegate, UITableViewDataSource {
             if prescriptionOnVisit?.isEmpty == true {
                 let vc = PrescriptionViewController()
                 vc.bookingId = pastVisit[index].id
+                vc.patientUserId = pastVisit[index].userId
                 //let age = getAgeFromDOF(date: pastVisit[index].memberDob!)
                 
                 if pastVisit[index].memberName == "Me" {
@@ -840,14 +844,16 @@ extension UpcomingBookingVC: UITableViewDelegate, UITableViewDataSource {
                                 "time": pastVisit[index].createdDate ?? "",
                                 "reason": pastVisit[index].reasonVisit ?? "",
                                 "date": "\(pastVisit[index].memberDob ?? "") Yrs,",
-                                "id": pastVisit[index].id ?? ""]
+                                "id": pastVisit[index].id ?? "",
+                                "user_id": pastVisit[index].userId ?? ""]
                 } else{
                     userData = ["name": pastVisit[index].memberName ?? "",
                                 "gender": pastVisit[index].memberGender ?? "",
                                 "time": pastVisit[index].createdDate ?? "",
                                 "reason": pastVisit[index].reasonVisit ?? "",
                                 "date": "\(pastVisit[index].memberDob ?? "") Yrs,",
-                                "id": pastVisit[index].id ?? ""]
+                                "id": pastVisit[index].id ?? "",
+                                "user_id": pastVisit[index].userId ?? ""]
                 }
                 
                 vc.data = userData
@@ -867,6 +873,7 @@ extension UpcomingBookingVC: UITableViewDelegate, UITableViewDataSource {
         if prescription?.isEmpty == true {
             let vc = PrescriptionViewController()
             vc.bookingId = pastVisit[index].id
+            vc.patientUserId = pastVisit[index].userId
             //let age = getAgeFromDOF(date: pastVisit[index].memberDob!)
             if pastVisit[index].memberName == "Me" {
                 userData = ["name": pastVisit[index].name ?? "",
@@ -874,14 +881,16 @@ extension UpcomingBookingVC: UITableViewDelegate, UITableViewDataSource {
                             "time": pastVisit[index].createdDate ?? "",
                             "reason": pastVisit[index].reasonVisit ?? "",
                             "date": "\(pastVisit[index].memberDob ?? "") Yrs,",
-                            "id": pastVisit[index].id ?? ""]
+                            "id": pastVisit[index].id ?? "",
+                            "user_id": pastVisit[index].userId ?? ""]
             } else{
                 userData = ["name": pastVisit[index].memberName ?? "",
                             "gender": pastVisit[index].memberGender ?? "",
                             "time": pastVisit[index].createdDate ?? "",
                             "reason": pastVisit[index].reasonVisit ?? "",
                             "date": "\(pastVisit[index].memberDob ?? "") Yrs,",
-                            "id": pastVisit[index].id ?? ""]
+                            "id": pastVisit[index].id ?? "",
+                            "user_id": pastVisit[index].userId ?? ""]
             }
             
             vc.data = userData

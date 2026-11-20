@@ -249,6 +249,15 @@ class PrescriptionTemplateCell: UITableViewCell {
         if let days = template.followUpDays, !days.isEmpty {
             chipsStackView.addArrangedSubview(createChip(text: "Follow-up \(days) days"))
         }
+        
+        // Vitals chip
+        let hasVitals = !(template.temperature?.isEmpty ?? true) ||
+                        !(template.pulse?.isEmpty ?? true) ||
+                        !(template.bloodPressureSystolic?.isEmpty ?? true) ||
+                        !(template.bloodSugar?.isEmpty ?? true)
+        if hasVitals {
+            chipsStackView.addArrangedSubview(createChip(text: "Vitals included"))
+        }
     }
     
     private func createChip(text: String) -> UIView {

@@ -431,6 +431,8 @@ class HomeVC: UIViewController {
         if call?.filePdf ?? EMPTY == EMPTY {
             let viewC = PrescriptionViewController()
             viewC.bookingId = call?.id ?? EMPTY
+            viewC.patientUserId = self.allBookingData[sender.tag].patientId
+            viewC.data["user_id"] = self.allBookingData[sender.tag].patientId ?? ""
             self.navigationController?.pushViewController(viewC, animated: true)
         }else{
             let vc = PrescriptionViewVC()

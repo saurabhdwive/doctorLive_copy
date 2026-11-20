@@ -532,6 +532,8 @@ extension ChatViewC: UITableViewDataSource{
                         let viewC = PrescriptionViewController()
                         viewC.isComingFromChat = true
                         viewC.bookingId = self?.roomId ?? ""
+                        viewC.patientUserId = self?.userId
+                        viewC.data["user_id"] = self?.userId ?? ""
                         self?.navigationController?.pushViewController(viewC, animated: true)
                     }
                     ConsultationCell.contentView.translatesAutoresizingMaskIntoConstraints = false

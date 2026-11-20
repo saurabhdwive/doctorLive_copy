@@ -147,6 +147,8 @@ class ChatViewController: UIViewController, UIImagePickerControllerDelegate, UIN
             vc.comeFrom = "videoCallViaChat"
             vc.videoCallflowdelegate = self
             vc.data = data
+            vc.patientUserId = oncallPatientId
+            vc.data["user_id"] = oncallPatientId ?? ""
             vc.bookingId = bookingId
             vc.followUpState = followUpState
             vc.investigationToggleState = investigationState

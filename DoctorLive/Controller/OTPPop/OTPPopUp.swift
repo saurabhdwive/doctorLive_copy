@@ -402,6 +402,24 @@ extension OTPPopUp {
         guard let registrationImage = documnetImage else {return}
         let code = UserDefaults.standard.string(forKey: Constants.languageCode) ?? "en"
        
+        // parameter = ["language_type": code,
+        //              "signup_type": "normal",
+        //              "name": name,
+        //              "email": email,
+        //              "country_code": countryCode,
+        //              "mobile": mobileNumber,
+        //              "password": password,
+        //              "confirm_password": confirmPassword,
+        //              "dob":dob,
+        //              "gender": gender,
+        //              "address": address,
+        //              "latitude": addressLatitude,
+        //              "longitude": addressLongitude,
+        //              "device_type": "ios",
+        //              "device_token": "\(deviceToken)",
+        //              "passport_num": passportNum,
+        //              "registration_num": registrationNum]
+        let deviceModel = UIDevice.modelName.isEmpty ? UIDevice.current.model : UIDevice.modelName
         parameter = ["language_type": code,
                      "signup_type": "normal",
                      "name": name,
@@ -416,6 +434,7 @@ extension OTPPopUp {
                      "latitude": addressLatitude,
                      "longitude": addressLongitude,
                      "device_type": "ios",
+                     "device_name": deviceModel,
                      "device_token": "\(deviceToken)",
                      "passport_num": passportNum,
                      "registration_num": registrationNum]
@@ -578,11 +597,20 @@ extension OTPPopUp {
                     let deviceToken = UserDefaults.standard.string(forKey: Constants.deviceId)
                    
                     let code = UserDefaults.standard.string(forKey: Constants.languageCode) ?? "en"
+                    // parameter = ["language_type": code,
+                    //              "country_code": countryCode,
+                    //              "mobile": mobileNumber,
+                    //              "device_token": deviceToken ?? "",
+                    //              "device_type": "ios",
+                    //              "latitude": "\(self.lattitude)",
+                    //              "longitude": "\(self.longitude)"]
+                    let deviceModel = UIDevice.modelName.isEmpty ? UIDevice.current.model : UIDevice.modelName
                     parameter = ["language_type": code,
                                  "country_code": countryCode,
                                  "mobile": mobileNumber,
                                  "device_token": deviceToken ?? "",
                                  "device_type": "ios",
+                                 "device_name": deviceModel,
                                  "latitude": "\(self.lattitude)",
                                  "longitude": "\(self.longitude)"]
                     self.performLoginWithOtp(param: parameter)

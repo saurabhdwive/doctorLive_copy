@@ -41,12 +41,26 @@ class GeneralAdviceFormatViewController: UIViewController, UITextViewDelegate {
     private var isBulletActive = false
     
     private var bottomConstraint: NSLayoutConstraint?
+    private var wasNavBarHidden: Bool = true
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         loadInitialText()
         setupKeyboardObservers()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        wasNavBarHidden = navigationController?.isNavigationBarHidden ?? true
+        navigationController?.setNavigationBarHidden(true, animated: animated)
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        if !wasNavBarHidden {
+            navigationController?.setNavigationBarHidden(false, animated: animated)
+        }
     }
     
     deinit {
@@ -59,9 +73,11 @@ class GeneralAdviceFormatViewController: UIViewController, UITextViewDelegate {
         
         // 1. Navigation Bar
         navBarView.backgroundColor = .white
+        navBarView.isUserInteractionEnabled = true
         navBarView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(navBarView)
         
+        backButton.isUserInteractionEnabled = true
         backButton.translatesAutoresizingMaskIntoConstraints = false
         if let backImg = UIImage(systemName: "chevron.left") {
             backButton.setImage(backImg, for: .normal)
@@ -74,15 +90,18 @@ class GeneralAdviceFormatViewController: UIViewController, UITextViewDelegate {
             backButton.titleLabel?.font = UIFont.systemFont(ofSize: 28, weight: .regular)
         }
         backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
+        backButton.addTarget(self, action: #selector(backButtonTapped), for: .primaryActionTriggered)
         navBarView.addSubview(backButton)
         
         titleLabel.text = "General Advice".localized()
         titleLabel.font = UIFont(name: "Poppins-SemiBold", size: 17) ?? UIFont.systemFont(ofSize: 17, weight: .semibold)
         titleLabel.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
         titleLabel.textAlignment = .center
+        titleLabel.isUserInteractionEnabled = false
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         navBarView.addSubview(titleLabel)
         
+        doneButton.isUserInteractionEnabled = true
         doneButton.setTitle("Done".localized(), for: .normal)
         doneButton.titleLabel?.font = UIFont(name: "Poppins-SemiBold", size: 14) ?? UIFont.systemFont(ofSize: 14, weight: .semibold)
         doneButton.setTitleColor(.white, for: .normal)
@@ -91,6 +110,7 @@ class GeneralAdviceFormatViewController: UIViewController, UITextViewDelegate {
         doneButton.clipsToBounds = true
         doneButton.translatesAutoresizingMaskIntoConstraints = false
         doneButton.addTarget(self, action: #selector(doneButtonTapped), for: .touchUpInside)
+        doneButton.addTarget(self, action: #selector(doneButtonTapped), for: .primaryActionTriggered)
         navBarView.addSubview(doneButton)
         
         NSLayoutConstraint.activate([
@@ -99,18 +119,26 @@ class GeneralAdviceFormatViewController: UIViewController, UITextViewDelegate {
             navBarView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             navBarView.heightAnchor.constraint(equalToConstant: 44),
             
-            backButton.leadingAnchor.constraint(equalTo: navBarView.leadingAnchor, constant: 14),
+            // backButton.leadingAnchor.constraint(equalTo: navBarView.leadingAnchor, constant: 14),
+            // backButton.centerYAnchor.constraint(equalTo: navBarView.centerYAnchor),
+            // backButton.widthAnchor.constraint(equalToConstant: 32),
+            // backButton.heightAnchor.constraint(equalToConstant: 32),
+            backButton.leadingAnchor.constraint(equalTo: navBarView.leadingAnchor, constant: 8),
             backButton.centerYAnchor.constraint(equalTo: navBarView.centerYAnchor),
-            backButton.widthAnchor.constraint(equalToConstant: 32),
-            backButton.heightAnchor.constraint(equalToConstant: 32),
+            backButton.widthAnchor.constraint(equalToConstant: 44),
+            backButton.heightAnchor.constraint(equalToConstant: 44),
             
             titleLabel.centerXAnchor.constraint(equalTo: navBarView.centerXAnchor),
             titleLabel.centerYAnchor.constraint(equalTo: navBarView.centerYAnchor),
             
+            // doneButton.trailingAnchor.constraint(equalTo: navBarView.trailingAnchor, constant: -14),
+            // doneButton.centerYAnchor.constraint(equalTo: navBarView.centerYAnchor),
+            // doneButton.widthAnchor.constraint(equalToConstant: 68),
+            // doneButton.heightAnchor.constraint(equalToConstant: 32)
             doneButton.trailingAnchor.constraint(equalTo: navBarView.trailingAnchor, constant: -14),
             doneButton.centerYAnchor.constraint(equalTo: navBarView.centerYAnchor),
-            doneButton.widthAnchor.constraint(equalToConstant: 68),
-            doneButton.heightAnchor.constraint(equalToConstant: 32)
+            doneButton.widthAnchor.constraint(equalToConstant: 72),
+            doneButton.heightAnchor.constraint(equalToConstant: 36)
         ])
         
         // 2. Toolbar
@@ -241,6 +269,8 @@ class GeneralAdviceFormatViewController: UIViewController, UITextViewDelegate {
             textView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             textView.bottomAnchor.constraint(equalTo: footerContainer.topAnchor)
         ])
+        
+        view.bringSubviewToFront(navBarView)
     }
     
     private func setupToolbarButton(_ button: UIButton, title: String, isBoldText: Bool = false, isItalicText: Bool = false, action: Selector) {
@@ -325,6 +355,7 @@ class GeneralAdviceFormatViewController: UIViewController, UITextViewDelegate {
     
     // MARK: - Initial Text Parsing
     private func loadInitialText() {
+        /*
         if initialText.isEmpty {
             // Pre-fill with the default advice shown in the screenshot for seamless convenience
             let defaultAdvice = """
@@ -341,6 +372,25 @@ class GeneralAdviceFormatViewController: UIViewController, UITextViewDelegate {
             updateButtonHighlight(numberListBtn, isActive: true)
         } else {
             renderFormattedText(initialText)
+        }
+        */
+        if !initialText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            if initialText.contains("<") && initialText.contains(">") {
+                let attr = AdviceHTMLHelper.htmlToAttributedString(
+                    initialText,
+                    font: UIFont.systemFont(ofSize: 15),
+                    textColor: UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+                )
+                textView.attributedText = attr
+            } else {
+                renderFormattedText(initialText)
+            }
+        } else {
+            textView.attributedText = NSAttributedString(string: "", attributes: [
+                .font: UIFont.systemFont(ofSize: 15),
+                .foregroundColor: UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+            ])
+            textView.text = ""
         }
     }
     
@@ -648,6 +698,7 @@ class GeneralAdviceFormatViewController: UIViewController, UITextViewDelegate {
     }
     
     // MARK: - Navigation Actions
+    /*
     @objc private func backButtonTapped() {
         if let nav = navigationController, nav.viewControllers.contains(self) {
             nav.popViewController(animated: true)
@@ -664,6 +715,46 @@ class GeneralAdviceFormatViewController: UIViewController, UITextViewDelegate {
         } else {
             dismiss(animated: true)
         }
+    }
+    */
+    
+    @objc private func backButtonTapped() {
+        view.endEditing(true)
+        dismissOrPop()
+    }
+    
+    @objc private func doneButtonTapped() {
+        view.endEditing(true)
+        // let plainText = textView.text ?? ""
+        // onSave?(plainText)
+        let formattedHTML = AdviceHTMLHelper.attributedStringToHTML(textView.attributedText)
+        onSave?(formattedHTML)
+        dismissOrPop()
+    }
+    
+    private func dismissOrPop() {
+        view.endEditing(true)
+        // 1. If pushed onto an active navigation stack with prior screens, pop back
+        if let nav = navigationController, nav.viewControllers.count > 1, nav.viewControllers.last == self {
+            nav.popViewController(animated: true)
+            return
+        }
+        // 2. If wrapped in a modal navigation controller (e.g. root VC in presented nav), dismiss the nav container
+        if let nav = navigationController, nav.presentingViewController != nil {
+            nav.dismiss(animated: true, completion: nil)
+            return
+        }
+        // 3. If presented modally directly, dismiss self
+        if presentingViewController != nil {
+            dismiss(animated: true, completion: nil)
+            return
+        }
+        // 4. Fallback pop or dismiss
+        if let nav = navigationController, nav.viewControllers.count > 1 {
+            nav.popViewController(animated: true)
+            return
+        }
+        dismiss(animated: true, completion: nil)
     }
     
     // MARK: - Keyboard Handling

@@ -80,6 +80,7 @@ class ChatViewC: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         USER_DEFAULTS.set(true, forKey: PUSHUD.chatNotification)
+        self.chatTblVw.reloadData()
     }
     
     override func viewWillDisappear(_ animated: Bool) {

@@ -466,49 +466,99 @@ class ChatActionCardCell: UITableViewCell {
         actionBtn2.isHidden = actionBtn2Hide
     }
     
+    // Configures the full-width Prescribe Now button with pencil icon matching design
+    func configurePrescribeButton() {
+        actionBtn2.isHidden = true
+        let pencilConfig = UIImage.SymbolConfiguration(pointSize: 15, weight: .semibold)
+        if let pencilImg = UIImage(systemName: "pencil", withConfiguration: pencilConfig) {
+            if #available(iOS 15.0, *) {
+                var config = UIButton.Configuration.filled()
+                config.baseBackgroundColor = UIColor(red: 29/255, green: 112/255, blue: 220/255, alpha: 1.0)
+                config.baseForegroundColor = .white
+                config.image = pencilImg
+                config.imagePlacement = .leading
+                config.imagePadding = 8
+                config.cornerStyle = .fixed
+                var titleAttr = AttributedString("Prescribe Now")
+                titleAttr.font = UIFont.systemFont(ofSize: 15, weight: .bold)
+                config.attributedTitle = titleAttr
+                actionBtn.configuration = config
+            } else {
+                actionBtn.setImage(pencilImg.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
+                actionBtn.setTitle("  Prescribe Now", for: .normal)
+                actionBtn.setTitleColor(.white, for: .normal)
+                actionBtn.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .bold)
+                actionBtn.tintColor = .white
+                actionBtn.backgroundColor = UIColor(red: 29/255, green: 112/255, blue: 220/255, alpha: 1.0)
+            }
+        } else {
+            actionBtn.setTitle("✎  Prescribe Now", for: .normal)
+            actionBtn.setTitleColor(.white, for: .normal)
+            actionBtn.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .bold)
+            actionBtn.backgroundColor = UIColor(red: 29/255, green: 112/255, blue: 220/255, alpha: 1.0)
+        }
+        actionBtn.layer.cornerRadius = 14
+        actionBtn.clipsToBounds = true
+    }
+    
     private func setupViews() {
         actionBtn2.isHidden = true
         selectionStyle = .none
         backgroundColor = .clear
         
         cardView.backgroundColor = .white
-        cardView.layer.borderColor = UIColor(red: 223/255, green: 234/255, blue: 251/255, alpha: 1).cgColor
-        cardView.layer.borderWidth = 1.5
-        cardView.layer.cornerRadius = 13
-        cardView.layer.shadowColor = UIColor(red: 20/255, green: 45/255, blue: 90/255, alpha: 1).cgColor
-        cardView.layer.shadowOpacity = 0.06
+        // cardView.layer.borderColor = UIColor(red: 223/255, green: 234/255, blue: 251/255, alpha: 1).cgColor
+        // cardView.layer.borderWidth = 1.5
+        // cardView.layer.cornerRadius = 13
+        // cardView.layer.shadowColor = UIColor(red: 20/255, green: 45/255, blue: 90/255, alpha: 1).cgColor
+        // cardView.layer.shadowOpacity = 0.06
+        // cardView.layer.shadowOffset = CGSize(width: 0, height: 2)
+        // cardView.layer.shadowRadius = 8
+        cardView.layer.borderColor = UIColor(red: 226/255, green: 232/255, blue: 240/255, alpha: 1.0).cgColor // #E2E8F0
+        cardView.layer.borderWidth = 1.0
+        cardView.layer.cornerRadius = 16
+        cardView.layer.shadowColor = UIColor(red: 15/255, green: 23/255, blue: 42/255, alpha: 0.04).cgColor
+        cardView.layer.shadowOpacity = 1.0
         cardView.layer.shadowOffset = CGSize(width: 0, height: 2)
-        cardView.layer.shadowRadius = 8
+        cardView.layer.shadowRadius = 6
         
-        titleLabel.font = UIFont.systemFont(ofSize: 13.5, weight: .heavy)
-        titleLabel.textColor = UIColor(red: 16/255, green: 28/255, blue: 47/255, alpha: 1)
+        // titleLabel.font = UIFont.systemFont(ofSize: 13.5, weight: .heavy)
+        // titleLabel.textColor = UIColor(red: 16/255, green: 28/255, blue: 47/255, alpha: 1)
+        titleLabel.font = UIFont.systemFont(ofSize: 16.5, weight: .bold)
+        titleLabel.textColor = UIColor(red: 15/255, green: 23/255, blue: 42/255, alpha: 1.0) // #0F172A
         
-        subLabel.font = UIFont.systemFont(ofSize: 12.5)
-        subLabel.textColor = UIColor(red: 92/255, green: 107/255, blue: 130/255, alpha: 1)
+        // subLabel.font = UIFont.systemFont(ofSize: 12.5)
+        // subLabel.textColor = UIColor(red: 92/255, green: 107/255, blue: 130/255, alpha: 1)
+        subLabel.font = UIFont.systemFont(ofSize: 13.5, weight: .regular)
+        subLabel.textColor = UIColor(red: 71/255, green: 85/255, blue: 105/255, alpha: 1.0) // #475569
         subLabel.numberOfLines = 0
         
-        actionBtn.backgroundColor = UIColor(red: 28/255, green: 94/255, blue: 201/255, alpha: 1)
+        actionBtn.backgroundColor = UIColor(red: 29/255, green: 112/255, blue: 220/255, alpha: 1.0) // #1D70DC
         actionBtn.setTitleColor(.white, for: .normal)
-        actionBtn.titleLabel?.font = UIFont.systemFont(ofSize: 13.5, weight: .bold)
-        actionBtn.layer.cornerRadius = 10
+        actionBtn.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .bold)
+        actionBtn.layer.cornerRadius = 12
         actionBtn.contentEdgeInsets = UIEdgeInsets(top: 8, left: 12, bottom: 8, right: 12)
-        
         
         actionBtn2.backgroundColor = UIColor(red: 239/255, green: 247/255, blue: 252/255, alpha: 1)
         actionBtn2.setTitleColor(UIColor(red: 63/255, green: 97/255, blue: 191/255, alpha: 1), for: .normal)
-        actionBtn2.titleLabel?.font = UIFont.systemFont(ofSize: 13.5, weight: .bold)
-        actionBtn2.layer.cornerRadius = 10
+        actionBtn2.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .bold)
+        actionBtn2.layer.cornerRadius = 12
         actionBtn2.contentEdgeInsets = UIEdgeInsets(top: 8, left: 12, bottom: 8, right: 12)
         
         actionBtn.addTarget(self, action: #selector(btnAction), for: .touchUpInside)
         actionBtn2.addTarget(self, action: #selector(btnAction2), for: .touchUpInside)
+        
+        let buttonStack = UIStackView(arrangedSubviews: [actionBtn, actionBtn2])
+        buttonStack.axis = .horizontal
+        buttonStack.spacing = 10
+        buttonStack.distribution = .fillEqually
         
         [cardView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             contentView.addSubview($0)
         }
         
-        [titleLabel, subLabel, actionBtn,actionBtn2].forEach {
+        [titleLabel, subLabel, buttonStack].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             cardView.addSubview($0)
         }
@@ -517,25 +567,30 @@ class ChatActionCardCell: UITableViewCell {
             cardView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
             cardView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
             cardView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 14),
-            cardView.widthAnchor.constraint(lessThanOrEqualTo: contentView.widthAnchor, multiplier: 0.86),
+            // cardView.widthAnchor.constraint(lessThanOrEqualTo: contentView.widthAnchor, multiplier: 0.86),
+            cardView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -14),
             
-            titleLabel.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 12),
-            titleLabel.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 13),
-            titleLabel.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -13),
+            titleLabel.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 16),
+            titleLabel.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 16),
+            titleLabel.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -16),
             
-            subLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 2),
-            subLabel.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 13),
-            subLabel.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -13),
+            subLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 6),
+            subLabel.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 16),
+            subLabel.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -16),
             
-            actionBtn.topAnchor.constraint(equalTo: subLabel.bottomAnchor, constant: 9),
-            actionBtn.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 13),
-            actionBtn.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -12),
-            actionBtn.heightAnchor.constraint(equalToConstant: 30),
-            
-            actionBtn2.topAnchor.constraint(equalTo: subLabel.bottomAnchor, constant: 9),
-            actionBtn2.leadingAnchor.constraint(equalTo: actionBtn.trailingAnchor, constant: 8),
-            actionBtn2.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -12),
-            actionBtn2.heightAnchor.constraint(equalToConstant: 30)
+            // actionBtn.topAnchor.constraint(equalTo: subLabel.bottomAnchor, constant: 9),
+            // actionBtn.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 13),
+            // actionBtn.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -12),
+            // actionBtn.heightAnchor.constraint(equalToConstant: 30),
+            // actionBtn2.topAnchor.constraint(equalTo: subLabel.bottomAnchor, constant: 9),
+            // actionBtn2.leadingAnchor.constraint(equalTo: actionBtn.trailingAnchor, constant: 8),
+            // actionBtn2.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -12),
+            // actionBtn2.heightAnchor.constraint(equalToConstant: 30)
+            buttonStack.topAnchor.constraint(equalTo: subLabel.bottomAnchor, constant: 16),
+            buttonStack.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 16),
+            buttonStack.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -16),
+            buttonStack.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -16),
+            buttonStack.heightAnchor.constraint(equalToConstant: 48)
         ])
     }
     
@@ -730,12 +785,16 @@ class ChatBookingSummaryCardCell: UITableViewCell {
     let cardView = UIView()
 
     let iconView = UIView()
+    let iconImageView = UIImageView()
     let iconLabel = UILabel()
 
     let titleLabel = UILabel()
     let subLabel = UILabel()
     let expandLabel = UILabel()
     let expandLabel2 = UILabel()
+    
+    let viewBtn = UIButton(type: .system)
+    let saveBtn = UIButton(type: .system)
 
     var expandTapped: (() -> Void)?
     var expand2Tapped: (() -> Void)?
@@ -756,55 +815,75 @@ class ChatBookingSummaryCardCell: UITableViewCell {
 
         // MARK: - Card
         cardView.backgroundColor = .white
-        cardView.layer.borderColor = UIColor(
-            red: 223/255,
-            green: 234/255,
-            blue: 251/255,
-            alpha: 1
-        ).cgColor
-        cardView.layer.borderWidth = 1.5
-        cardView.layer.cornerRadius = 13
-        cardView.layer.shadowColor = UIColor(
-            red: 20/255,
-            green: 45/255,
-            blue: 90/255,
-            alpha: 1
-        ).cgColor
-        cardView.layer.shadowOpacity = 0.06
+        // cardView.layer.borderColor = UIColor(
+        //     red: 223/255,
+        //     green: 234/255,
+        //     blue: 251/255,
+        //     alpha: 1
+        // ).cgColor
+        // cardView.layer.borderWidth = 1.5
+        // cardView.layer.cornerRadius = 13
+        // cardView.layer.shadowColor = UIColor(
+        //     red: 20/255,
+        //     green: 45/255,
+        //     blue: 90/255,
+        //     alpha: 1
+        // ).cgColor
+        // cardView.layer.shadowOpacity = 0.06
+        // cardView.layer.shadowOffset = CGSize(width: 0, height: 2)
+        // cardView.layer.shadowRadius = 8
+        cardView.layer.borderColor = UIColor(red: 226/255, green: 232/255, blue: 240/255, alpha: 1.0).cgColor // #E2E8F0
+        cardView.layer.borderWidth = 1.0
+        cardView.layer.cornerRadius = 16
+        cardView.layer.shadowColor = UIColor(red: 15/255, green: 23/255, blue: 42/255, alpha: 0.04).cgColor
+        cardView.layer.shadowOpacity = 1.0
         cardView.layer.shadowOffset = CGSize(width: 0, height: 2)
-        cardView.layer.shadowRadius = 8
+        cardView.layer.shadowRadius = 6
 
         // MARK: - Icon View
-        iconView.backgroundColor = UIColor(
-            red: 223/255,
-            green: 234/255,
-            blue: 251/255,
-            alpha: 1
-        )
-        iconView.layer.cornerRadius = 8
+        // iconView.backgroundColor = UIColor(
+        //     red: 223/255,
+        //     green: 234/255,
+        //     blue: 251/255,
+        //     alpha: 1
+        // )
+        // iconView.layer.cornerRadius = 8
+        iconView.backgroundColor = UIColor(red: 234/255, green: 247/255, blue: 238/255, alpha: 1.0) // #EAF7EE
+        iconView.layer.cornerRadius = 12
         iconView.clipsToBounds = true
+
+        let checkmarkConfig = UIImage.SymbolConfiguration(pointSize: 18, weight: .bold)
+        iconImageView.image = UIImage(systemName: "checkmark", withConfiguration: checkmarkConfig)
+        iconImageView.tintColor = UIColor(red: 22/255, green: 163/255, blue: 74/255, alpha: 1.0) // #16A34A
+        iconImageView.contentMode = .scaleAspectFit
 
         iconLabel.text = ""
         iconLabel.font = UIFont.systemFont(ofSize: 14)
         iconLabel.textAlignment = .center
         iconLabel.adjustsFontSizeToFitWidth = true
+        iconLabel.isHidden = true
 
         // MARK: - Labels
-        titleLabel.font = UIFont.systemFont(ofSize: 13.5, weight: .heavy)
-        titleLabel.textColor = UIColor(
-            red: 16/255,
-            green: 28/255,
-            blue: 47/255,
-            alpha: 1
-        )
+        // titleLabel.font = UIFont.systemFont(ofSize: 13.5, weight: .heavy)
+        // titleLabel.textColor = UIColor(
+        //     red: 16/255,
+        //     green: 28/255,
+        //     blue: 47/255,
+        //     alpha: 1
+        // )
+        titleLabel.font = UIFont.systemFont(ofSize: 16.5, weight: .bold)
+        titleLabel.textColor = UIColor(red: 15/255, green: 23/255, blue: 42/255, alpha: 1.0) // #0F172A
 
-        subLabel.font = UIFont.systemFont(ofSize: 12.5)
-        subLabel.textColor = UIColor(
-            red: 148/255,
-            green: 161/255,
-            blue: 184/255,
-            alpha: 1
-        )
+        // subLabel.font = UIFont.systemFont(ofSize: 12.5)
+        // subLabel.textColor = UIColor(
+        //     red: 148/255,
+        //     green: 161/255,
+        //     blue: 184/255,
+        //     alpha: 1
+        // )
+        subLabel.font = UIFont.systemFont(ofSize: 13.5, weight: .regular)
+        subLabel.textColor = UIColor(red: 71/255, green: 85/255, blue: 105/255, alpha: 1.0) // #475569
+        subLabel.numberOfLines = 0
 
         expandLabel.font = UIFont.systemFont(ofSize: 13.5, weight: .bold)
         expandLabel.textColor = UIColor(
@@ -813,6 +892,7 @@ class ChatBookingSummaryCardCell: UITableViewCell {
             blue: 201/255,
             alpha: 1
         )
+        expandLabel.isHidden = true
 
         expandLabel2.font = UIFont.systemFont(ofSize: 13.5, weight: .bold)
         expandLabel2.textColor = UIColor(
@@ -821,6 +901,15 @@ class ChatBookingSummaryCardCell: UITableViewCell {
             blue: 201/255,
             alpha: 1
         )
+        expandLabel2.isHidden = true
+
+        // MARK: - Action Buttons (View & Save)
+        setupActionButtons()
+
+        let buttonStack = UIStackView(arrangedSubviews: [viewBtn, saveBtn])
+        buttonStack.axis = .horizontal
+        buttonStack.spacing = 12
+        buttonStack.distribution = .fillEqually
 
         // MARK: - Add Views
         cardView.translatesAutoresizingMaskIntoConstraints = false
@@ -830,12 +919,16 @@ class ChatBookingSummaryCardCell: UITableViewCell {
             iconView,
             titleLabel,
             subLabel,
+            buttonStack,
             expandLabel,
             expandLabel2
         ].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             cardView.addSubview($0)
         }
+
+        iconImageView.translatesAutoresizingMaskIntoConstraints = false
+        iconView.addSubview(iconImageView)
 
         // Emoji inside iconView
         iconLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -874,22 +967,34 @@ class ChatBookingSummaryCardCell: UITableViewCell {
                 equalTo: contentView.leadingAnchor,
                 constant: 14
             ),
-            cardView.widthAnchor.constraint(
-                lessThanOrEqualTo: contentView.widthAnchor,
-                multiplier: 0.84
+            // cardView.widthAnchor.constraint(
+            //     lessThanOrEqualTo: contentView.widthAnchor,
+            //     multiplier: 0.84
+            // ),
+            cardView.trailingAnchor.constraint(
+                equalTo: contentView.trailingAnchor,
+                constant: -14
             ),
 
             // Icon
             iconView.topAnchor.constraint(
                 equalTo: cardView.topAnchor,
-                constant: 11
+                constant: 16
             ),
             iconView.leadingAnchor.constraint(
                 equalTo: cardView.leadingAnchor,
-                constant: 13
+                constant: 16
             ),
-            iconView.widthAnchor.constraint(equalToConstant: 28),
-            iconView.heightAnchor.constraint(equalToConstant: 28),
+            // iconView.widthAnchor.constraint(equalToConstant: 28),
+            // iconView.heightAnchor.constraint(equalToConstant: 28),
+            iconView.widthAnchor.constraint(equalToConstant: 42),
+            iconView.heightAnchor.constraint(equalToConstant: 42),
+
+            // Checkmark Icon
+            iconImageView.centerXAnchor.constraint(equalTo: iconView.centerXAnchor),
+            iconImageView.centerYAnchor.constraint(equalTo: iconView.centerYAnchor),
+            iconImageView.widthAnchor.constraint(equalToConstant: 20),
+            iconImageView.heightAnchor.constraint(equalToConstant: 20),
 
             // Emoji
             iconLabel.centerXAnchor.constraint(
@@ -902,59 +1007,112 @@ class ChatBookingSummaryCardCell: UITableViewCell {
             // Title
             titleLabel.topAnchor.constraint(
                 equalTo: cardView.topAnchor,
-                constant: 11
+                constant: 16
             ),
             titleLabel.leadingAnchor.constraint(
                 equalTo: iconView.trailingAnchor,
-                constant: 8
+                constant: 12
             ),
             titleLabel.trailingAnchor.constraint(
                 equalTo: cardView.trailingAnchor,
-                constant: -13
+                constant: -16
             ),
 
             // Subtitle
             subLabel.topAnchor.constraint(
                 equalTo: titleLabel.bottomAnchor,
-                constant: 1
+                constant: 4
             ),
             subLabel.leadingAnchor.constraint(
                 equalTo: iconView.trailingAnchor,
-                constant: 8
+                constant: 12
             ),
             subLabel.trailingAnchor.constraint(
                 equalTo: cardView.trailingAnchor,
-                constant: -13
+                constant: -16
             ),
 
-            // Expand 1
-            expandLabel.topAnchor.constraint(
+            // Button Stack (View & Save)
+            buttonStack.topAnchor.constraint(
                 equalTo: subLabel.bottomAnchor,
-                constant: 3
-            ),
-            expandLabel.leadingAnchor.constraint(
-                equalTo: iconView.trailingAnchor,
-                constant: 8
-            ),
-            expandLabel.bottomAnchor.constraint(
-                equalTo: cardView.bottomAnchor,
-                constant: -11
-            ),
-
-            // Expand 2
-            expandLabel2.topAnchor.constraint(
-                equalTo: subLabel.bottomAnchor,
-                constant: 3
-            ),
-            expandLabel2.leadingAnchor.constraint(
-                equalTo: expandLabel.trailingAnchor,
                 constant: 16
             ),
-            expandLabel2.bottomAnchor.constraint(
+            buttonStack.leadingAnchor.constraint(
+                equalTo: cardView.leadingAnchor,
+                constant: 16
+            ),
+            buttonStack.trailingAnchor.constraint(
+                equalTo: cardView.trailingAnchor,
+                constant: -16
+            ),
+            buttonStack.bottomAnchor.constraint(
                 equalTo: cardView.bottomAnchor,
-                constant: -11
-            )
+                constant: -16
+            ),
+            buttonStack.heightAnchor.constraint(equalToConstant: 44)
         ])
+    }
+
+    private func setupActionButtons() {
+        // View Button
+        let blueColor = UIColor(red: 29/255, green: 112/255, blue: 220/255, alpha: 1.0) // #1D70DC
+        let eyeConfig = UIImage.SymbolConfiguration(pointSize: 15, weight: .semibold)
+        let eyeImg = UIImage(systemName: "eye", withConfiguration: eyeConfig)
+        
+        if #available(iOS 15.0, *) {
+            var viewConfig = UIButton.Configuration.plain()
+            viewConfig.baseBackgroundColor = .clear
+            viewConfig.baseForegroundColor = blueColor
+            viewConfig.image = eyeImg
+            viewConfig.imagePlacement = .leading
+            viewConfig.imagePadding = 8
+            var viewTitle = AttributedString("View")
+            viewTitle.font = UIFont.systemFont(ofSize: 15, weight: .bold)
+            viewConfig.attributedTitle = viewTitle
+            viewBtn.configuration = viewConfig
+        } else {
+            viewBtn.setImage(eyeImg?.withTintColor(blueColor, renderingMode: .alwaysOriginal), for: .normal)
+            viewBtn.setTitle("  View", for: .normal)
+            viewBtn.setTitleColor(blueColor, for: .normal)
+            viewBtn.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .bold)
+            viewBtn.tintColor = blueColor
+        }
+        viewBtn.backgroundColor = .white
+        viewBtn.layer.borderColor = blueColor.cgColor
+        viewBtn.layer.borderWidth = 1.5
+        viewBtn.layer.cornerRadius = 12
+        viewBtn.clipsToBounds = true
+        viewBtn.addTarget(self, action: #selector(expandAction), for: .touchUpInside)
+
+        // Save Button
+        let slateColor = UIColor(red: 51/255, green: 65/255, blue: 85/255, alpha: 1.0) // #334155
+        let dlConfig = UIImage.SymbolConfiguration(pointSize: 15, weight: .semibold)
+        let dlImg = UIImage(systemName: "arrow.down.to.line", withConfiguration: dlConfig) ?? UIImage(systemName: "arrow.down.circle", withConfiguration: dlConfig) ?? UIImage(systemName: "square.and.arrow.down", withConfiguration: dlConfig)
+        
+        if #available(iOS 15.0, *) {
+            var saveConfig = UIButton.Configuration.plain()
+            saveConfig.baseBackgroundColor = .clear
+            saveConfig.baseForegroundColor = slateColor
+            saveConfig.image = dlImg
+            saveConfig.imagePlacement = .leading
+            saveConfig.imagePadding = 8
+            var saveTitle = AttributedString("Save")
+            saveTitle.font = UIFont.systemFont(ofSize: 15, weight: .bold)
+            saveConfig.attributedTitle = saveTitle
+            saveBtn.configuration = saveConfig
+        } else {
+            saveBtn.setImage(dlImg?.withTintColor(slateColor, renderingMode: .alwaysOriginal), for: .normal)
+            saveBtn.setTitle("  Save", for: .normal)
+            saveBtn.setTitleColor(slateColor, for: .normal)
+            saveBtn.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .bold)
+            saveBtn.tintColor = slateColor
+        }
+        saveBtn.backgroundColor = .white
+        saveBtn.layer.borderColor = UIColor(red: 203/255, green: 213/255, blue: 225/255, alpha: 1.0).cgColor // #CBD5E1
+        saveBtn.layer.borderWidth = 1.5
+        saveBtn.layer.cornerRadius = 12
+        saveBtn.clipsToBounds = true
+        saveBtn.addTarget(self, action: #selector(expand2Action), for: .touchUpInside)
     }
 
     @objc func expandAction() {
@@ -1478,6 +1636,116 @@ class ChatDynamicStackCell: UITableViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+    }
+}
+
+// MARK: - Unsent Draft Saved Card Cell
+class ChatDraftCardCell: UITableViewCell {
+    
+    let cardView = UIView()
+    let iconContainer = UIView()
+    let iconImageView = UIImageView()
+    let titleLabel = UILabel()
+    let subLabel = UILabel()
+    let chevronImageView = UIImageView()
+    
+    var onTap: (() -> Void)?
+    
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        setupViews()
+    }
+    
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    
+    private func setupViews() {
+        selectionStyle = .none
+        backgroundColor = .clear
+        
+        cardView.backgroundColor = UIColor(red: 254/255, green: 252/255, blue: 232/255, alpha: 1.0) // #FEFCE8
+        cardView.layer.borderColor = UIColor(red: 253/255, green: 230/255, blue: 138/255, alpha: 1.0).cgColor // #FDE68A
+        cardView.layer.borderWidth = 1.0
+        cardView.layer.cornerRadius = 14
+        cardView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(cardView)
+        
+        // Tap gesture
+        let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+        cardView.addGestureRecognizer(tap)
+        cardView.isUserInteractionEnabled = true
+        
+        // Icon container
+        iconContainer.backgroundColor = UIColor(red: 254/255, green: 243/255, blue: 199/255, alpha: 1.0) // #FEF3C7
+        iconContainer.layer.cornerRadius = 18
+        iconContainer.translatesAutoresizingMaskIntoConstraints = false
+        cardView.addSubview(iconContainer)
+        
+        if let pencilImg = UIImage(systemName: "pencil") {
+            iconImageView.image = pencilImg
+        } else if let pencilImg = UIImage(named: "edit_icon") {
+            iconImageView.image = pencilImg
+        }
+        iconImageView.tintColor = UIColor(red: 146/255, green: 64/255, blue: 14/255, alpha: 1.0) // #92400E
+        iconImageView.contentMode = .scaleAspectFit
+        iconImageView.translatesAutoresizingMaskIntoConstraints = false
+        iconContainer.addSubview(iconImageView)
+        
+        // Text Stack
+        titleLabel.text = "Unsent draft saved"
+        titleLabel.font = UIFont(name: "Poppins-SemiBold", size: 14.5) ?? UIFont.systemFont(ofSize: 14.5, weight: .bold)
+        titleLabel.textColor = UIColor(red: 120/255, green: 53/255, blue: 15/255, alpha: 1.0) // #78350F
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        subLabel.text = "Continue where you left off"
+        subLabel.font = UIFont(name: "Poppins-Regular", size: 12.5) ?? UIFont.systemFont(ofSize: 12.5, weight: .regular)
+        subLabel.textColor = UIColor(red: 161/255, green: 98/255, blue: 7/255, alpha: 1.0) // #A16207
+        subLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        let textStack = UIStackView(arrangedSubviews: [titleLabel, subLabel])
+        textStack.axis = .vertical
+        textStack.spacing = 2
+        textStack.alignment = .leading
+        textStack.translatesAutoresizingMaskIntoConstraints = false
+        cardView.addSubview(textStack)
+        
+        // Chevron
+        let chevronConfig = UIImage.SymbolConfiguration(pointSize: 13, weight: .semibold)
+        chevronImageView.image = UIImage(systemName: "chevron.right", withConfiguration: chevronConfig)
+        chevronImageView.tintColor = UIColor(red: 180/255, green: 83/255, blue: 9/255, alpha: 1.0) // #B45309
+        chevronImageView.contentMode = .scaleAspectFit
+        chevronImageView.translatesAutoresizingMaskIntoConstraints = false
+        cardView.addSubview(chevronImageView)
+        
+        NSLayoutConstraint.activate([
+            cardView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
+            cardView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
+            cardView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 14),
+            cardView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -14),
+            cardView.heightAnchor.constraint(greaterThanOrEqualToConstant: 58),
+            
+            iconContainer.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 12),
+            iconContainer.centerYAnchor.constraint(equalTo: cardView.centerYAnchor),
+            iconContainer.widthAnchor.constraint(equalToConstant: 36),
+            iconContainer.heightAnchor.constraint(equalToConstant: 36),
+            
+            iconImageView.centerXAnchor.constraint(equalTo: iconContainer.centerXAnchor),
+            iconImageView.centerYAnchor.constraint(equalTo: iconContainer.centerYAnchor),
+            iconImageView.widthAnchor.constraint(equalToConstant: 18),
+            iconImageView.heightAnchor.constraint(equalToConstant: 18),
+            
+            textStack.leadingAnchor.constraint(equalTo: iconContainer.trailingAnchor, constant: 12),
+            textStack.centerYAnchor.constraint(equalTo: cardView.centerYAnchor),
+            textStack.trailingAnchor.constraint(lessThanOrEqualTo: chevronImageView.leadingAnchor, constant: -8),
+            
+            chevronImageView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -14),
+            chevronImageView.centerYAnchor.constraint(equalTo: cardView.centerYAnchor),
+            chevronImageView.widthAnchor.constraint(equalToConstant: 10),
+            chevronImageView.heightAnchor.constraint(equalToConstant: 16)
+        ])
+    }
+    
+    @objc private func handleTap() {
+        onTap?()
     }
 }
 

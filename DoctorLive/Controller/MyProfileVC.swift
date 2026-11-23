@@ -49,8 +49,8 @@ class MyProfileVC: UIViewController, updateTableViewDelegateProtocol, updateExpi
     @IBOutlet weak var adress: UILabel!
     @IBOutlet weak var gender: UILabel!
     @IBOutlet weak var dob: UILabel!
-    @IBOutlet weak var docNum: UILabel!
-    @IBOutlet weak var passNum: UILabel!
+    @IBOutlet weak var docNum: UILabel! // In storyboard: NID/Passport No. value label
+    @IBOutlet weak var passNum: UILabel! // In storyboard: BMDC Reg. No. value label
     @IBOutlet weak var doctorName: UILabel!
     @IBOutlet weak var totalConsultation: UILabel!
     @IBOutlet weak var totalCall: UILabel!

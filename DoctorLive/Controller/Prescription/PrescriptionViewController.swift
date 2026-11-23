@@ -77,6 +77,12 @@ class MultilineInputTextField: UITextView, UITextViewDelegate {
         }
     }
     
+    override var attributedText: NSAttributedString! {
+        didSet {
+            placeholderLabel.isHidden = !(text?.isEmpty ?? true)
+        }
+    }
+    
     override var font: UIFont? {
         didSet {
             super.font = font
@@ -237,6 +243,7 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
     var investigationToggleState: Bool = true
     var genralSwitchButtonState: Bool = true
     var followUpState: Bool = true
+    var savedGeneralAdviceHTML: String?
     var bookingIdComeFromChat: String? = ""
     var isComingFromChat:Bool = false
     var initialTemplate: PrescriptionTemplate?
@@ -315,6 +322,8 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
         
         if let template = initialTemplate {
             applyTemplate(template)
+        } else {
+            restoreDraftIfNeeded()
         }
         
         SideMenuManager.default.leftMenuNavigationController = menu
@@ -371,6 +380,8 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
             investigationTxt.isHidden = !investigationToggleState
             investigationDropDown.isHidden = !investigationToggleState
             updateInvestigationChips()
+        } else if let bId = self.bookingId, PrescriptionDraftManager.shared.hasDraft(for: bId) {
+            restoreDraftIfNeeded()
         } else {
             if comeFrom == "videoCallViaChat" {
                 savePrescriptionData()
@@ -538,7 +549,7 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
     func startAutoSaveTimer() {
         autoSaveTimer?.invalidate()
         autoSaveTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
-            self?.updateAutoSaveBanner()
+            self?.savePrescriptionData1()
         }
     }
     
@@ -652,6 +663,61 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
     fileprivate func savePrescriptionData1() {
         lastSavedDate = Date()
         updateAutoSaveBanner()
+        
+        // Save draft in app session for this booking
+        let bId = self.bookingId ?? self.data["booking_id"] ?? ""
+        if !bId.isEmpty {
+            let df = DateFormatter()
+            df.dateFormat = "HH:mm"
+            let timeStr = df.string(from: Date())
+            
+            let draftMeds = self.arrayData.map { med in
+                DraftMedicine(
+                    id: med.id,
+                    name: med.name,
+                    dosage: med.dosage,
+                    frequencyFirst: med.frequencyFirst,
+                    duration: med.duration,
+                    meals: med.meals,
+                    strength: nil
+                )
+            }
+            
+            let draft = PrescriptionDraft(
+                bookingId: bId,
+                patientName: self.userName.text ?? self.bookedPatientName ?? "Patient",
+                patientGender: self.gender.text,
+                patientDobOrAge: self.yearOldLable.text,
+                patientRelationship: self.currentMemberRelationship ?? self.data["relationship"],
+                patientDate: self.data["date"],
+                patientSubtitle: self.patientSubtitleLabel.text ?? "",
+                savedAtTime: timeStr,
+                savedTimestamp: Date(),
+                chiefComplain: self.ChiefTxtComplain.text,
+                pastHistory: self.pastHistoryTxt.text,
+                provisionalDiagnosis: self.provisionTxt.text,
+                generalAdvice: self.genralTxt.text,
+                general: self.genralSwitchButtonState ? "1" : "0",
+                temperature: self.tempLable.text,
+                systolicBp: self.systolicBp.text,
+                diastolicBp: self.diaystolicLable.text,
+                pulse: self.pulseTxt.text,
+                bloodSugar1: self.bloodSugar1.text,
+                bloodSugar2: self.bloodSugar2.text,
+                followUpDays: self.followUpDays.text,
+                investigations: self.investigationTxt.text,
+                medicines: draftMeds,
+                generalExamState: self.genralSwitchButtonState,
+                followUpState: self.followUpState,
+                medicineSwitch: self.medicineSwitch,
+                investigationToggleState: self.investigationToggleState,
+                memberId: self.data["member_id"],
+                patientUserId: self.effectivePatientUserId
+            )
+            
+            PrescriptionDraftManager.shared.saveDraft(draft)
+        }
+        
         if comeFrom == "videoCallViaChat" {
             PrescriptionDetail.pasthistory = pastHistoryTxt.text ?? ""
             PrescriptionDetail.provisonalDiagnosis = provisionTxt.text ?? ""
@@ -668,6 +734,115 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
             PrescriptionDetail.medicineData = arrayData
             PrescriptionDetail.investigationGuide = investigationTxt.text ?? ""
         }
+    }
+    
+    func restoreDraftIfNeeded() {
+        let bId = self.bookingId ?? self.data["booking_id"] ?? ""
+        guard !bId.isEmpty, let draft = PrescriptionDraftManager.shared.getDraft(for: bId) else { return }
+        
+        self.comeFromMedicne = true
+        
+        if let chief = draft.chiefComplain, !chief.isEmpty {
+            self.ChiefTxtComplain.text = chief
+        }
+        if let past = draft.pastHistory, !past.isEmpty {
+            self.pastHistoryTxt.text = past
+        }
+        if let diag = draft.provisionalDiagnosis, !diag.isEmpty {
+            self.provisionTxt.text = diag
+        }
+        if let temp = draft.temperature, !temp.isEmpty {
+            self.tempLable.text = temp
+        }
+        if let sys = draft.systolicBp, !sys.isEmpty {
+            self.systolicBp.text = sys
+        }
+        if let dia = draft.diastolicBp, !dia.isEmpty {
+            self.diaystolicLable.text = dia
+        }
+        if let pulse = draft.pulse, !pulse.isEmpty {
+            self.pulseTxt.text = pulse
+        }
+        if let sugar1 = draft.bloodSugar1, !sugar1.isEmpty {
+            self.bloodSugar1.text = sugar1
+        }
+        if let sugar2 = draft.bloodSugar2, !sugar2.isEmpty {
+            self.bloodSugar2.text = sugar2
+        }
+        if let advice = draft.generalAdvice, !advice.isEmpty {
+            self.genralTxt.text = AdviceHTMLHelper.htmlToPlainText(advice)
+        }
+        if let follow = draft.followUpDays, !follow.isEmpty {
+            self.followUpDays.text = follow
+        }
+        
+        self.genralSwitchButtonState = draft.generalExamState
+        self.genralSwitchButton.isOn = draft.generalExamState
+        self.genralExamSwitch(self.genralSwitchButton)
+        
+        self.followUpState = draft.followUpState
+        self.switchButton.isOn = draft.followUpState
+        self.followUpSwitch(self.switchButton)
+        
+        self.investigationToggleState = draft.investigationToggleState
+        self.investigationToggle.isOn = draft.investigationToggleState
+        self.investigationContentStack.isHidden = !draft.investigationToggleState
+        self.investigationTxt.isHidden = !draft.investigationToggleState
+        self.investigationDropDown.isHidden = !draft.investigationToggleState
+        if let invText = draft.investigations, !invText.isEmpty {
+            self.investigationTxt.text = invText
+            self.selectedNames = draft.investigationList
+            self.chipsScrollView.isHidden = false
+            self.updateInvestigationChips()
+            PrescriptionDetail.investigationGuide = invText
+        }
+        
+        if !draft.medicines.isEmpty {
+            self.arrayData = draft.medicines.map { med in
+                Medicine(
+                    id: med.id ?? UUID().uuidString,
+                    name: med.name,
+                    dosage: med.dosage,
+                    frequencyFirst: med.frequencyFirst,
+                    duration: med.duration,
+                    meals: med.meals,
+                    toggleBtnState: true,
+                    genralExamState: true,
+                    followUpState: true,
+                    investigationState: true,
+                    comeFromMedicne: true
+                )
+            }
+            self.medicineSwitch = draft.medicineSwitch
+            self.medicinceTogle.isOn = draft.medicineSwitch
+            self.medicineToggle(self.medicinceTogle)
+            self.tableHightConstraint.constant = CGFloat(self.arrayData.count * 160)
+            self.tableView.reloadData()
+        }
+        
+        if let mId = draft.memberId, !mId.isEmpty {
+            self.data["member_id"] = mId
+        }
+        if let pRel = draft.patientRelationship, !pRel.isEmpty {
+            self.currentMemberRelationship = pRel
+            self.data["relationship"] = pRel
+        }
+        if let pGender = draft.patientGender, !pGender.isEmpty {
+            self.gender.text = pGender
+            self.data["gender"] = pGender
+        }
+        if let pDob = draft.patientDobOrAge, !pDob.isEmpty {
+            self.yearOldLable.text = pDob
+            self.data["dob"] = pDob
+        }
+        if !draft.patientName.isEmpty && draft.patientName.lowercased() != "me" {
+            self.userName.text = draft.patientName
+            self.data["name"] = draft.patientName
+        }
+        updatePatientSubtitle()
+        
+        autoSaveStatusLabel.text = "✓ Draft restored from \(draft.savedAtTime)"
+        print("📥 [PrescriptionViewController] Restored draft for booking: \(bId)")
     }
     
     func setupUi() {
@@ -811,7 +986,13 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
             PrescriptionDetail.investigationGuide = ""
         }
         if let advice = template.generalAdvice, !advice.isEmpty {
-            self.genralTxt.text = AdviceHTMLHelper.htmlToPlainText(advice)
+            self.savedGeneralAdviceHTML = advice
+            self.genralTxt.attributedText = AdviceHTMLHelper.htmlToAttributedString(
+                advice,
+                font: UIFont(name: "Poppins-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14),
+                textColor: UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+            )
+            // self.genralTxt.text = AdviceHTMLHelper.htmlToPlainText(advice)
             PrescriptionDetail.genralAdvice = self.genralTxt.text
         }
         if let followUp = template.followUpDays, !followUp.isEmpty {
@@ -867,10 +1048,25 @@ class PrescriptionViewController: UIViewController, DataDelegate, DeletePresecri
     @objc func formatGeneralAdviceTapped() {
         self.comeFromMedicne = true
         let vc = GeneralAdviceFormatViewController()
-        vc.initialText = genralTxt.text ?? ""
-        vc.onSave = { [weak self] formattedText in
+        let currentHTML: String
+        if let saved = savedGeneralAdviceHTML, !saved.isEmpty {
+            currentHTML = saved
+        } else if let attr = genralTxt.attributedText, attr.length > 0 {
+            currentHTML = AdviceHTMLHelper.attributedStringToHTML(attr)
+        } else {
+            currentHTML = genralTxt.text ?? ""
+        }
+        vc.initialText = currentHTML
+        vc.onSave = { [weak self] formattedHtml in
             guard let self = self else { return }
-            self.genralTxt.text = formattedText
+            self.savedGeneralAdviceHTML = formattedHtml
+            let attr = AdviceHTMLHelper.htmlToAttributedString(
+                formattedHtml,
+                font: UIFont(name: "Poppins-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14),
+                textColor: UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+            )
+            self.genralTxt.attributedText = attr
+            // self.genralTxt.text = formattedText
             self.savePrescriptionData1()
         }
         if let nav = self.navigationController {

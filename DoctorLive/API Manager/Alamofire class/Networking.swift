@@ -225,7 +225,13 @@ extension Requestable1{
         
 //        URLEncoding.default =====   for form data
 //        JSONEncoding.default =====  for raw data
-        AF.request(url, method: method.method, parameters: params, encoding: JSONEncoding.default, headers: header).response { responseObject in
+        // AF.request(url, method: method.method, parameters: params, encoding: JSONEncoding.default, headers: header).response { responseObject in
+        var encodingOptions: JSONSerialization.WritingOptions = []
+        if #available(iOS 13.0, *) {
+            encodingOptions.insert(.withoutEscapingSlashes)
+        }
+        let jsonEncoding = JSONEncoding(options: encodingOptions)
+        AF.request(url, method: method.method, parameters: params, encoding: jsonEncoding, headers: header).response { responseObject in
             switch responseObject.result{
                 
             case .success(_):

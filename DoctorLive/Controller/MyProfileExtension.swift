@@ -64,8 +64,10 @@ extension MyProfileVC {
             phone.text = model.personaldetail?.mobile
             gender.text = gender1
             adress.text = model.personaldetail?.address
-            passNum.text = model.personaldetail?.passportNum
-            docNum.text = model.personaldetail?.registrationNum
+            // passNum.text = model.personaldetail?.passportNum
+            // docNum.text = model.personaldetail?.registrationNum
+            passNum.text = model.personaldetail?.registrationNum
+            docNum.text = model.personaldetail?.passportNum
             dateOfJoin.text = model.personaldetail?.joiningDate
             if let imageUrl = model.personaldetail?.image {
                 self.profileImage.sd_setImage(with: URL(string:imageUrl))

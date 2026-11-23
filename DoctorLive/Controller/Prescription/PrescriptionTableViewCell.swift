@@ -35,7 +35,33 @@ class PrescriptionTableViewCell: UITableViewCell {
         mainView.backgroundColor = .white
         medicineName.font = UIFont(name: "Poppins-SemiBold", size: 14) ?? UIFont.systemFont(ofSize: 14, weight: .semibold)
         medicineName.textColor = UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
-        medicineName.numberOfLines = 0
+        // medicineName.numberOfLines = 0
+        medicineName.numberOfLines = 2
+        medicineName.lineBreakMode = .byTruncatingTail
+        
+        // Prevent medicineName from overlapping edit & delete buttons
+        if let stackView = editButton.superview {
+            for c in mainView.constraints {
+                if (c.firstItem as? UIView == stackView || c.secondItem as? UIView == stackView) && c.firstAttribute == .centerY {
+                    c.isActive = false
+                }
+            }
+            stackView.topAnchor.constraint(equalTo: mainView.topAnchor, constant: 10).isActive = true
+            medicineName.trailingAnchor.constraint(lessThanOrEqualTo: stackView.leadingAnchor, constant: -8).isActive = true
+        }
+        
+        // Adjust spacing below medicineName so 2 lines fit comfortably inside the 160pt card
+        for c in mainView.constraints {
+            if c.firstItem as? UILabel == pediatric && c.secondItem as? UILabel == medicineName && c.firstAttribute == .top {
+                c.constant = 8
+            }
+        }
+        
+        // Prevent detail labels from overflowing the card
+        pediatric.trailingAnchor.constraint(lessThanOrEqualTo: mainView.trailingAnchor, constant: -14).isActive = true
+        frequency.trailingAnchor.constraint(lessThanOrEqualTo: mainView.trailingAnchor, constant: -14).isActive = true
+        duration.trailingAnchor.constraint(lessThanOrEqualTo: mainView.trailingAnchor, constant: -14).isActive = true
+        meal.trailingAnchor.constraint(lessThanOrEqualTo: mainView.trailingAnchor, constant: -14).isActive = true
         
         if let pencilImg = UIImage(systemName: "pencil") {
             editButton.setImage(pencilImg, for: .normal)

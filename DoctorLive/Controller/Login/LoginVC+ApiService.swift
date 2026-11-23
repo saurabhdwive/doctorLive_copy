@@ -180,6 +180,15 @@ extension LoginVC {
             let password = txtPwd.text ?? ""
             let mobile = txtPhone.text ?? ""
             guard let code = UserDefaults.standard.string(forKey: Constants.languageCode) else { return }
+            // parameter = ["language_type": code,
+            //              "country_code": countrycode ?? "",
+            //              "mobile": mobile,
+            //              "latitude": self.currentLat,
+            //              "longitude": self.currentLong,
+            //              "password": password,
+            //              "device_type": "ios",
+            //              "device_token": "\(deviceToken ?? "")"]
+            let deviceModel = UIDevice.modelName.isEmpty ? UIDevice.current.model : UIDevice.modelName
             parameter = ["language_type": code,
                          "country_code": countrycode ?? "",
                          "mobile": mobile,
@@ -187,6 +196,7 @@ extension LoginVC {
                          "longitude": self.currentLong,
                          "password": password,
                          "device_type": "ios",
+                         "device_name": deviceModel,
                          "device_token": "\(deviceToken ?? "")"]
             performLogin(param: parameter)
         }

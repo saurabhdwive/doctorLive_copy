@@ -26,7 +26,7 @@ class PrescriptionViewVC: UIViewController, WKNavigationDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        downloadButton.isHidden = false
+        downloadButton.isHidden = true
         downloadButton.layer.cornerRadius = 10
         webView.layer.backgroundColor = UIColor.white.cgColor
         self.webView.navigationDelegate = self

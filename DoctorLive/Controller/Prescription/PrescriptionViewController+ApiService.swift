@@ -21,7 +21,12 @@ extension PrescriptionViewController{
         print("🚀 Encoding: raw JSON (JSONEncoding.default)")
         print("🚀 Headers: \(headers)")
         if let params = param {
-            if let jsonData = try? JSONSerialization.data(withJSONObject: params, options: .prettyPrinted),
+            // if let jsonData = try? JSONSerialization.data(withJSONObject: params, options: .prettyPrinted),
+            var printOptions: JSONSerialization.WritingOptions = [.prettyPrinted]
+            if #available(iOS 13.0, *) {
+                printOptions.insert(.withoutEscapingSlashes)
+            }
+            if let jsonData = try? JSONSerialization.data(withJSONObject: params, options: printOptions),
                let jsonString = String(data: jsonData, encoding: .utf8) {
                 print("🚀 Payload (formatted JSON):\n\(jsonString)")
             } else {
@@ -49,6 +54,10 @@ extension PrescriptionViewController{
                 
                 let modelData = try? JSONDecoder().decode(SavePrescriptionModel.self, from: data)
                 print("📋 Decoded SavePrescriptionModel: \(String(describing: modelData))")
+                
+                // Prescription completed and sent successfully - remove draft and cell
+                let currentBookingId = self.bookingId ?? self.data["booking_id"] ?? ""
+                PrescriptionDraftManager.shared.deleteDraft(for: currentBookingId)
                 self.pastHistoryTxt.text = ""
                 self.provisionTxt.text = ""
                 self.tempLable.text = ""
@@ -133,7 +142,15 @@ extension PrescriptionViewController{
             
         }
         
-        let htmlAdvice = AdviceHTMLHelper.convertToHTML(plainOrFormattedText: generalAdvice ?? "")
+        // let htmlAdvice = AdviceHTMLHelper.convertToHTML(plainOrFormattedText: generalAdvice ?? "")
+        let htmlAdvice: String
+        if let saved = self.savedGeneralAdviceHTML, !saved.isEmpty {
+            htmlAdvice = saved
+        } else if let attr = genralTxt.attributedText, attr.length > 0 {
+            htmlAdvice = AdviceHTMLHelper.attributedStringToHTML(attr)
+        } else {
+            htmlAdvice = AdviceHTMLHelper.convertToHTML(plainOrFormattedText: generalAdvice ?? "")
+        }
         var parameter = [String: Any]()
         parameter = ["token": token,
                      "language_type": code,

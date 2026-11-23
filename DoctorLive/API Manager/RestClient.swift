@@ -248,7 +248,12 @@ class RestClient {
             // Raw JSON encoding for add/update prescription template and member APIs
             let parameterEncoding: ParameterEncoding
             if resource == .createPrescriptionTemplate || resource == .updatePrescriptionTemplate {
-                parameterEncoding = JSONEncoding.default
+                // parameterEncoding = JSONEncoding.default
+                var encodingOptions: JSONSerialization.WritingOptions = []
+                if #available(iOS 13.0, *) {
+                    encodingOptions.insert(.withoutEscapingSlashes)
+                }
+                parameterEncoding = JSONEncoding(options: encodingOptions)
                 headers.add(name: "Content-Type", value: "application/json")
             } else {
                 parameterEncoding = URLEncoding.default

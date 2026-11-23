@@ -521,11 +521,12 @@ extension ChatViewC: UITableViewDataSource{
                 ])
                 containerCell.stackView.addArrangedSubview(chipCell) // Append it
                 
-//                if chat?.is_status == "1"{
+             if chat?.is_status == "1"{ 
                      let ConsultationCell = ChatActionCardCell(style: .default, reuseIdentifier: nil)
                     ConsultationCell.titleLabel.text = "Consultation completed"
                     ConsultationCell.subLabel.text = "Write and send the prescription to finish this consultation."
-                    ConsultationCell.actionBtn.setTitle("📝 Prescribe Now", for: .normal)
+//                    ConsultationCell.actionBtn.setTitle("📝 Prescribe Now", for: .normal)
+                    ConsultationCell.configurePrescribeButton()
                     ConsultationCell.actionBtnTapped = {[weak self] in
                         //                    Indicator.shared.showProgressView(self?.view ?? UIView())
                         //                    self?.emitBookingStatusData(bookingStatus: "PRESCRIPTION_SENT")
@@ -547,17 +548,61 @@ extension ChatViewC: UITableViewDataSource{
                         ConsultationCell.contentView.trailingAnchor.constraint(equalTo: ConsultationCell.trailingAnchor)
                     ])
                     containerCell.stackView.addArrangedSubview(ConsultationCell)
-//                }
+                    
+                    // Unsent draft saved cell
+                    let effectiveBookingId = self.roomId ?? ""
+                    if PrescriptionDraftManager.shared.hasDraft(for: effectiveBookingId) {
+                        let draftCell = ChatDraftCardCell(style: .default, reuseIdentifier: nil)
+                        draftCell.onTap = { [weak self] in
+                            guard let self = self else { return }
+                            let draftVC = PrescriptionDraftRecoveryViewController()
+                            draftVC.bookingId = effectiveBookingId
+                            draftVC.patientUserId = self.userId
+                            draftVC.patientName = self.patientName
+                            self.navigationController?.pushViewController(draftVC, animated: true)
+                        }
+                        draftCell.contentView.translatesAutoresizingMaskIntoConstraints = false
+                        NSLayoutConstraint.activate([
+                            draftCell.contentView.topAnchor.constraint(equalTo: draftCell.topAnchor),
+                            draftCell.contentView.bottomAnchor.constraint(equalTo: draftCell.bottomAnchor),
+                            draftCell.contentView.leadingAnchor.constraint(equalTo: draftCell.leadingAnchor),
+                            draftCell.contentView.trailingAnchor.constraint(equalTo: draftCell.trailingAnchor)
+                        ])
+                        containerCell.stackView.addArrangedSubview(draftCell)
+                    }
+             }
                 return containerCell
              case "PRESCRIPTION_SENT":
                 let containerCell = self.chatTblVw.dequeueReusableCell(withIdentifier: "ChatDynamicStackCell") as! ChatDynamicStackCell
                 containerCell.stackView.spacing = 8
                 
                 let chipCell = ChatBookingSummaryCardCell(style: .default, reuseIdentifier: nil)
-                chipCell.iconLabel.text = "📄"
+//                chipCell.iconLabel.text = "📄"
 //                chipCell.iconView.image = UIImage(systemName: "document")
                 chipCell.titleLabel.text = "Prescription sent"
-                chipCell.subLabel.text = "Your prescription is ready to view."
+//                chipCell.subLabel.text = "Your prescription is ready to view."
+
+                var formattedDate = ""
+                let dateInputFormatter = DateFormatter()
+                let dateOutputFormatter = DateFormatter()
+                dateOutputFormatter.dateFormat = "dd/MM/yyyy"
+                let candidateDates = [chat?.booking_date, chat?.date, self.keys[indexPath.section]]
+                for candidate in candidateDates {
+                    guard let c = candidate, !c.isEmpty else { continue }
+                    for format in ["yyyy-MM-dd", "yyyy-MM-dd HH:mm:ss", "dd-MM-yyyy", "dd/MM/yyyy", "yyyy/MM/dd"] {
+                        dateInputFormatter.dateFormat = format
+                        if let d = dateInputFormatter.date(from: c) {
+                            formattedDate = dateOutputFormatter.string(from: d)
+                            break
+                        }
+                    }
+                    if !formattedDate.isEmpty { break }
+                }
+                if formattedDate.isEmpty {
+                    formattedDate = dateOutputFormatter.string(from: Date())
+                }
+                chipCell.subLabel.text = "Ready for the patient to view · \(formattedDate)"
+
                 chipCell.expandLabel.text = "View"
 //                chipCell.expandLabel2.isHidden = true
                 chipCell.expandLabel2.text = "Save"

@@ -26,6 +26,12 @@ class TemplateMultilineTextView: UITextView, UITextViewDelegate {
         }
     }
     
+    override var attributedText: NSAttributedString! {
+        didSet {
+            placeholderLabel.isHidden = !(text?.isEmpty ?? true)
+        }
+    }
+    
     override var font: UIFont? {
         didSet {
             super.font = font
@@ -107,6 +113,7 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
     
     private let provisionalDiagnosisTxt = TemplateMultilineTextView()
     private let generalAdviceTxt = TemplateMultilineTextView()
+    private var savedGeneralAdviceHTML: String?
     private let investigationsTxt = InsetPaddedTextField()
     private let followUpDaysTxt = InsetPaddedTextField()
     
@@ -639,11 +646,29 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
     
     @objc private func formatAdviceTapped() {
         let vc = GeneralAdviceFormatViewController()
-        vc.initialText = generalAdviceTxt.text ?? ""
-        vc.onSave = { [weak self] formattedText in
-            self?.generalAdviceTxt.text = formattedText
+        // vc.initialText = generalAdviceTxt.text ?? ""
+        let currentHTML: String
+        if let saved = savedGeneralAdviceHTML, !saved.isEmpty {
+            currentHTML = saved
+        } else if let attr = generalAdviceTxt.attributedText, attr.length > 0 {
+            currentHTML = AdviceHTMLHelper.attributedStringToHTML(attr)
+        } else {
+            currentHTML = generalAdviceTxt.text ?? ""
+        }
+        vc.initialText = currentHTML
+        vc.onSave = { [weak self] formattedHtml in
+            guard let self = self else { return }
+            self.savedGeneralAdviceHTML = formattedHtml
+            let attr = AdviceHTMLHelper.htmlToAttributedString(
+                formattedHtml,
+                font: UIFont(name: "Poppins-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14),
+                textColor: UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+            )
+            self.generalAdviceTxt.attributedText = attr
+            // self?.generalAdviceTxt.text = formattedText
         }
         let nav = UINavigationController(rootViewController: vc)
+        nav.isNavigationBarHidden = true
         nav.modalPresentationStyle = .fullScreen
         self.present(nav, animated: true, completion: nil)
     }
@@ -682,7 +707,17 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
         genralExamStack.isHidden = !shouldTurnOn
         
         provisionalDiagnosisTxt.text = item.provisionalDiagnosis
-        generalAdviceTxt.text = item.generalAdvice
+        // generalAdviceTxt.text = item.generalAdvice
+        if let advice = item.generalAdvice, !advice.isEmpty {
+            savedGeneralAdviceHTML = advice
+            generalAdviceTxt.attributedText = AdviceHTMLHelper.htmlToAttributedString(
+                advice,
+                font: UIFont(name: "Poppins-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14),
+                textColor: UIColor(red: 30/255, green: 41/255, blue: 59/255, alpha: 1.0)
+            )
+        } else {
+            generalAdviceTxt.text = item.generalAdvice
+        }
         if let tests = item.investigations {
             investigationsTxt.text = tests.joined(separator: ", ")
         }
@@ -720,39 +755,74 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
             
             let medName = UILabel()
             medName.attributedText = formatMedicineTitle(med.name)
-            medName.numberOfLines = 1
+            // medName.numberOfLines = 1
+            medName.numberOfLines = 2
+            medName.lineBreakMode = .byTruncatingTail
             medName.translatesAutoresizingMaskIntoConstraints = false
             card.addSubview(medName)
             
+            // Action button stack matching Prescription screen (Edit pencil + Delete trash)
+            let buttonStack = UIStackView()
+            buttonStack.axis = .horizontal
+            buttonStack.spacing = 10
+            buttonStack.alignment = .center
+            buttonStack.translatesAutoresizingMaskIntoConstraints = false
+            
+            let editBtn = UIButton(type: .system)
+            if let pencilImg = UIImage(systemName: "pencil") {
+                editBtn.setImage(pencilImg, for: .normal)
+            }
+            editBtn.tintColor = UIColor(red: 100/255, green: 116/255, blue: 139/255, alpha: 1.0)
+            editBtn.tag = index
+            editBtn.translatesAutoresizingMaskIntoConstraints = false
+            editBtn.addTarget(self, action: #selector(editMedicineFromTemplateBtn(_:)), for: .touchUpInside)
+            buttonStack.addArrangedSubview(editBtn)
+            
             let delBtn = UIButton(type: .system)
-            delBtn.setImage(UIImage(systemName: "trash"), for: .normal)
+            // delBtn.setImage(UIImage(systemName: "trash"), for: .normal)
+            // delBtn.tintColor = UIColor(red: 239/255, green: 68/255, blue: 68/255, alpha: 0.8)
+            if let trashImg = UIImage(systemName: "trash") {
+                delBtn.setImage(trashImg, for: .normal)
+            }
             delBtn.tintColor = UIColor(red: 239/255, green: 68/255, blue: 68/255, alpha: 0.8)
             delBtn.tag = index
             delBtn.translatesAutoresizingMaskIntoConstraints = false
             delBtn.addTarget(self, action: #selector(deleteMedicineFromTemplate(_:)), for: .touchUpInside)
-            card.addSubview(delBtn)
+            // card.addSubview(delBtn)
+            buttonStack.addArrangedSubview(delBtn)
+            card.addSubview(buttonStack)
             
             let medSub = UILabel()
             medSub.text = "\(med.dosage) · \(med.frequencyFirst) · \(med.duration) · \(med.meals)"
             medSub.font = UIFont(name: "Poppins-Regular", size: 13) ?? UIFont.systemFont(ofSize: 13)
             medSub.textColor = UIColor(red: 71/255, green: 85/255, blue: 105/255, alpha: 1.0)
-            medSub.numberOfLines = 1
+            // medSub.numberOfLines = 1
+            medSub.numberOfLines = 2
+            medSub.lineBreakMode = .byTruncatingTail
             medSub.translatesAutoresizingMaskIntoConstraints = false
             card.addSubview(medSub)
             
             NSLayoutConstraint.activate([
                 medName.topAnchor.constraint(equalTo: card.topAnchor, constant: 12),
                 medName.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
-                medName.trailingAnchor.constraint(equalTo: delBtn.leadingAnchor, constant: -8),
+                // medName.trailingAnchor.constraint(equalTo: delBtn.leadingAnchor, constant: -8),
+                medName.trailingAnchor.constraint(lessThanOrEqualTo: buttonStack.leadingAnchor, constant: -8),
                 
-                delBtn.centerYAnchor.constraint(equalTo: card.centerYAnchor),
-                delBtn.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
-                delBtn.widthAnchor.constraint(equalToConstant: 28),
-                delBtn.heightAnchor.constraint(equalToConstant: 28),
+                // delBtn.centerYAnchor.constraint(equalTo: card.centerYAnchor),
+                // delBtn.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
+                // delBtn.widthAnchor.constraint(equalToConstant: 28),
+                // delBtn.heightAnchor.constraint(equalToConstant: 28),
+                buttonStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 12),
+                buttonStack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -12),
+                editBtn.widthAnchor.constraint(equalToConstant: 24),
+                editBtn.heightAnchor.constraint(equalToConstant: 24),
+                delBtn.widthAnchor.constraint(equalToConstant: 24),
+                delBtn.heightAnchor.constraint(equalToConstant: 24),
                 
                 medSub.topAnchor.constraint(equalTo: medName.bottomAnchor, constant: 4),
                 medSub.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
-                medSub.trailingAnchor.constraint(equalTo: delBtn.leadingAnchor, constant: -8),
+                // medSub.trailingAnchor.constraint(equalTo: delBtn.leadingAnchor, constant: -8),
+                medSub.trailingAnchor.constraint(lessThanOrEqualTo: buttonStack.leadingAnchor, constant: -8),
                 medSub.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -12)
             ])
             
@@ -761,7 +831,8 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
     }
     
     private func formatMedicineTitle(_ rawName: String) -> NSAttributedString {
-        let clean = rawName.components(separatedBy: "\n").first ?? rawName
+        // let clean = rawName.components(separatedBy: "\n").first ?? rawName
+        let clean = rawName.replacingOccurrences(of: "\n", with: " ").trimmingCharacters(in: .whitespacesAndNewlines)
         let parts = clean.components(separatedBy: " ")
         guard let firstWord = parts.first, !firstWord.isEmpty else {
             return NSAttributedString(string: rawName)
@@ -797,6 +868,29 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
             medicinesList.remove(at: index)
             refreshMedicinesUI()
         }
+    }
+    
+    @objc private func editMedicineFromTemplateBtn(_ sender: UIButton) {
+        let index = sender.tag
+        guard index < medicinesList.count else { return }
+        editingMedicineIndex = index
+        let med = medicinesList[index]
+        
+        let storyboard = UIStoryboard(name: "Auth", bundle: nil)
+        let vc = storyboard.instantiateViewController(withIdentifier: "AddMedicineViewController") as! AddMedicineViewController
+        vc.delegate = self
+        vc.editMed = true
+        vc.editMedicne = [
+            "id": med.id ?? "",
+            "name": med.name,
+            "dosage": med.dosage,
+            "frequency_first": med.frequencyFirst,
+            "duration": med.duration,
+            "meals": med.meals
+        ]
+        vc.modalPresentationStyle = .overFullScreen
+        vc.modalTransitionStyle = .crossDissolve
+        self.present(vc, animated: true, completion: nil)
     }
     
     @objc private func editMedicineFromTemplate(_ sender: UITapGestureRecognizer) {
@@ -964,7 +1058,8 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
             chiefComplain: chiefComplaintTxt.text,
             pastHistory: (past?.isEmpty ?? true) ? nil : past,
             provisionalDiagnosis: provisionalDiagnosisTxt.text,
-            generalAdvice: generalAdviceTxt.text,
+            // generalAdvice: generalAdviceTxt.text,
+            generalAdvice: (savedGeneralAdviceHTML != nil && !savedGeneralAdviceHTML!.isEmpty) ? savedGeneralAdviceHTML : ((generalAdviceTxt.attributedText != nil && generalAdviceTxt.attributedText.length > 0) ? AdviceHTMLHelper.attributedStringToHTML(generalAdviceTxt.attributedText) : generalAdviceTxt.text),
             general: isExamOn ? "1" : "0",
             temperature: (temp?.isEmpty ?? true) ? nil : temp,
             bloodPressureSystolic: (sys?.isEmpty ?? true) ? nil : sys,
@@ -1071,7 +1166,16 @@ class CreateEditTemplateViewController: UIViewController, UITextFieldDelegate, U
         let bloodSugarFast = sugarTxt.text ?? template.bloodSugar ?? ""
         let bloodSugar2nd = ""
         let diagnosis = provisionalDiagnosisTxt.text ?? template.provisionalDiagnosis ?? ""
-        let generalAdvice = generalAdviceTxt.text ?? template.generalAdvice ?? ""
+        // let generalAdvice = generalAdviceTxt.text ?? template.generalAdvice ?? ""
+        let generalAdviceRaw: String
+        if let saved = savedGeneralAdviceHTML, !saved.isEmpty {
+            generalAdviceRaw = saved
+        } else if let attr = generalAdviceTxt.attributedText, attr.length > 0 {
+            generalAdviceRaw = AdviceHTMLHelper.attributedStringToHTML(attr)
+        } else {
+            generalAdviceRaw = generalAdviceTxt.text ?? template.generalAdvice ?? ""
+        }
+        let generalAdvice = AdviceHTMLHelper.convertToHTML(plainOrFormattedText: generalAdviceRaw)
         let followupValue = followUpDaysTxt.text ?? template.followUpDays ?? ""
         let followup = followupValue.isEmpty ? "0" : followupValue
         

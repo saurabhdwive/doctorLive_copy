@@ -86,6 +86,7 @@
                             <constraint firstAttribute="height" constant="160" id="FaO-H6-2HP"/>
                             <constraint firstItem="N6e-06-J34" firstAttribute="top" secondItem="cOy-iG-zcq" secondAttribute="bottom" constant="15" id="GF0-QS-5BQ"/>
                             <constraint firstItem="cOy-iG-zcq" firstAttribute="leading" secondItem="1Ck-52-0NE" secondAttribute="leading" constant="16" id="OC1-Bu-8Ab"/>
+                            <constraint firstItem="XcR-xo-JyC" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="cOy-iG-zcq" secondAttribute="trailing" constant="8" id="aQe-8e-Z3B"/>
                             <constraint firstItem="XcR-xo-JyC" firstAttribute="centerY" secondItem="cOy-iG-zcq" secondAttribute="centerY" id="ZU0-aK-CJX"/>
                             <constraint firstItem="N6e-06-J34" firstAttribute="leading" secondItem="1Ck-52-0NE" secondAttribute="leading" constant="16" id="dQS-sY-fQ9"/>
                             <constraint firstItem="A94-JS-UCN" firstAttribute="leading" secondItem="1Ck-52-0NE" secondAttribute="leading" constant="16" id="fkM-Gt-rVz"/>

@@ -159,7 +159,13 @@ extension Requestable {
             header.add(name: k, value: v)
         }
 //
-        AF.request(url, method: method.method , parameters: params, encoding: JSONEncoding.default, headers:header).responseJSON { (responseObject) -> Void in
+        // AF.request(url, method: method.method , parameters: params, encoding: JSONEncoding.default, headers:header).responseJSON { (responseObject) -> Void in
+        var encodingOptions: JSONSerialization.WritingOptions = []
+        if #available(iOS 13.0, *) {
+            encodingOptions.insert(.withoutEscapingSlashes)
+        }
+        let jsonEncoding = JSONEncoding(options: encodingOptions)
+        AF.request(url, method: method.method , parameters: params, encoding: jsonEncoding, headers:header).responseJSON { (responseObject) -> Void in
 
             switch responseObject.result{
 
